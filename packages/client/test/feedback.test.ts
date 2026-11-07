@@ -1,10 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  GAME_VERSION,
-  type PetitionDoc,
-  type PetitionVote,
-  voteDocId,
-} from '@sms/shared';
+import { describe, expect, it, vi } from 'vitest';
+import { GAME_VERSION, type PetitionDoc, type PetitionVote, voteDocId } from '@sms/shared';
 
 vi.hoisted(() => {
   (globalThis as { location?: unknown }).location ??= {
@@ -54,9 +49,7 @@ describe('feedback firestore payloads', () => {
       voterId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
       value: 1 as const,
     };
-    expect(voteDocId(vote.petitionId, vote.voterId)).toBe(
-      `${vote.petitionId}_${vote.voterId}`,
-    );
+    expect(voteDocId(vote.petitionId, vote.voterId)).toBe(`${vote.petitionId}_${vote.voterId}`);
     const create = voteBody(cfg, vote, false);
     expect(create.writes[0]!.currentDocument).toEqual({ exists: false });
     const update = voteBody(cfg, { ...vote, value: 0 }, true);
@@ -65,9 +58,7 @@ describe('feedback firestore payloads', () => {
   });
 
   it('endpoint hits the database root (top-level collections)', () => {
-    expect(petitionEndpoint(cfg, 'runQuery')).toContain(
-      `${DOCS}:runQuery?key=`,
-    );
+    expect(petitionEndpoint(cfg, 'runQuery')).toContain(`${DOCS}:runQuery?key=`);
     expect(listPetitionsQuery().structuredQuery.from[0]!.collectionId).toBe('petitions');
   });
 

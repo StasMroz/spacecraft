@@ -39,44 +39,55 @@ export function isPetitionVoteValue(v: unknown): v is PetitionVoteValue {
   return typeof v === 'number' && (PETITION_VOTE_VALUES as readonly number[]).includes(v);
 }
 
+/** C0 controls (U+0000–U+001F) and DEL (U+007F). */
+const isControl = (c: number) => c <= 0x1f || c === 0x7f;
+/** Controls except tab (U+0009), LF (U+000A) and CR (U+000D). */
+const isBodyControl = (c: number) => isControl(c) && c !== 0x09 && c !== 0x0a && c !== 0x0d;
+const hasChar = (s: string, bad: (c: number) => boolean) => {
+  for (let i = 0; i < s.length; i++) if (bad(s.charCodeAt(i))) return true;
+  return false;
+};
+/** Drops chars matching `bad` plus '<' and '>'. */
+const stripChars = (s: string, bad: (c: number) => boolean) => {
+  let out = '';
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (!bad(c) && c !== 0x3c && c !== 0x3e) out += s[i];
+  }
+  return out;
+};
+
 const titleOk = (s: string) =>
-  s.length >= L.titleMinLength &&
-  s.length <= L.titleMaxLength &&
-  !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(s);
+  s.length >= L.titleMinLength && s.length <= L.titleMaxLength && !hasChar(s, isBodyControl);
 
 const bodyOk = (s: string) =>
-  s.length >= L.bodyMinLength &&
-  s.length <= L.bodyMaxLength &&
-  !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(s);
+  s.length >= L.bodyMinLength && s.length <= L.bodyMaxLength && !hasChar(s, isBodyControl);
 
 /** NFC + collapse spaces (title) / keep newlines in body, strip controls, length-cap. */
 export function sanitizeTitle(raw: string): string {
-  return raw
-    .normalize('NFC')
-    .replace(/\s+/g, ' ')
-    .replace(/[\u0000-\u001f\u007f<>]/g, '')
+  return stripChars(raw.normalize('NFC').replace(/\s+/g, ' '), isControl)
     .trim()
     .slice(0, L.titleMaxLength);
 }
 
 export function sanitizeBody(raw: string): string {
-  return raw
-    .normalize('NFC')
-    .replace(/\r\n/g, '\n')
-    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f<>]/g, '')
+  return stripChars(raw.normalize('NFC').replace(/\r\n/g, '\n'), isBodyControl)
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
     .slice(0, L.bodyMaxLength);
 }
 
-export function petitionProblem(p: Partial<PetitionInput> & { status?: string }): PetitionProblem | null {
+export function petitionProblem(
+  p: Partial<PetitionInput> & { status?: string },
+): PetitionProblem | null {
   if (typeof p.id !== 'string' || !L.petitionIdPattern.test(p.id)) return 'BAD_ID';
   if (!isPetitionCategory(p.category)) return 'BAD_CATEGORY';
   if (typeof p.title !== 'string' || !titleOk(p.title)) return 'BAD_TITLE';
   if (typeof p.body !== 'string' || !bodyOk(p.body)) return 'BAD_BODY';
   if (typeof p.name !== 'string' || nameProblem(p.name) !== null) return 'BAD_NAME';
-  if (typeof p.gameVersion !== 'string' || !L.versionPattern.test(p.gameVersion)) return 'BAD_VERSION';
+  if (typeof p.gameVersion !== 'string' || !L.versionPattern.test(p.gameVersion))
+    return 'BAD_VERSION';
   if (!isPetitionSource(p.source)) return 'BAD_SOURCE';
   if (p.status !== undefined && p.status !== 'open') return 'BAD_STATUS';
   return null;
@@ -104,10 +115,7 @@ export function voteDocId(petitionId: string, voterId: string): string {
   return `${petitionId}_${voterId}`;
 }
 
-export function voteProblem(
-  voteId: string,
-  v: Partial<PetitionVote>,
-): VoteProblem | null {
+export function voteProblem(voteId: string, v: Partial<PetitionVote>): VoteProblem | null {
   if (typeof v.petitionId !== 'string' || !L.petitionIdPattern.test(v.petitionId))
     return 'BAD_PETITION';
   if (typeof v.voterId !== 'string' || !L.voterIdPattern.test(v.voterId)) return 'BAD_VOTER';

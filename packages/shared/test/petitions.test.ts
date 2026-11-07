@@ -3,6 +3,7 @@ import {
   aggregateVotes,
   makePetitionId,
   PETITION_LIMITS,
+  petitionProblem,
   sanitizeBody,
   sanitizeTitle,
   validatePetitionInput,
@@ -25,6 +26,34 @@ describe('petition validation', () => {
     const v = validatePetitionInput(good);
     expect(v.ok).toBe(true);
     if (v.ok) expect(v.value.title).toBe(good.title);
+  });
+
+  it('strips/rejects control chars exactly at range boundaries', () => {
+    const bodyAllowed = new Set([0x09, 0x0a, 0x0d]);
+    const codes = [
+      0x00, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x1f, 0x20, 0x7e, 0x7f, 0x80, 0xa0,
+    ];
+    for (const c of codes) {
+      const ch = String.fromCharCode(c);
+      const ctrl = c <= 0x1f || c === 0x7f;
+      const ws = /\s/.test(ch);
+      // Title: whitespace collapses to ' ' first, then every C0 control + DEL is removed.
+      expect(sanitizeTitle(`a${ch}b`)).toBe(ws ? 'a b' : ctrl ? 'ab' : `a${ch}b`);
+      // Body: tab/LF/CR survive (CR kept when lone), other controls + DEL removed.
+      expect(sanitizeBody(`a${ch}b`)).toBe(ctrl && !bodyAllowed.has(c) ? 'ab' : `a${ch}b`);
+      const rawTitle = `Carnifex${ch}zbyt szybki`;
+      const rawBody = `${good.body}${ch}koniec`;
+      const title = validatePetitionInput({ ...good, title: rawTitle });
+      const body = validatePetitionInput({ ...good, body: rawBody });
+      expect(title.ok && title.value.title).toBe(sanitizeTitle(rawTitle));
+      expect(body.ok && body.value.body).toBe(sanitizeBody(rawBody));
+      // Unsanitized check: tab/LF/CR allowed, other C0 controls + DEL rejected.
+      const bad = ctrl && !bodyAllowed.has(c);
+      expect(petitionProblem({ ...good, title: rawTitle })).toBe(bad ? 'BAD_TITLE' : null);
+      expect(petitionProblem({ ...good, body: rawBody })).toBe(bad ? 'BAD_BODY' : null);
+    }
+    expect(sanitizeTitle(' <x>\t\u0000y ')).toBe('x y');
+    expect(sanitizeBody('a \t\r\nb\u0007<c>\n\n\n\nd')).toBe('a\nbc\n\nd');
   });
 
   it('sanitizes title/body and rejects empties / overlong', () => {
