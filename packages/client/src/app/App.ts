@@ -5,11 +5,9 @@ import {
   type SquadSummary,
   type RunResult,
 } from '@sms/shared';
-import { runForBoard } from '../devPreview.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
-import { config, getServerInfo } from '../config.js';
+import { config } from '../config.js';
 import { GameClient } from '../game/GameClient.js';
-import { createHighscoreStore, type FallbackHighscoreStore } from '../highscores/index.js';
 import {
   connectDedicated,
   createLocalGame,
@@ -18,7 +16,7 @@ import {
   type GameConnection,
 } from '../net/connection.js';
 import { Assets } from '../render/assets.js';
-import { createGameOverScreen, type SubmitInfo } from '../ui/screens/gameOver.js';
+import { createGameOverScreen } from '../ui/screens/gameOver.js';
 import { stripJoinParams } from '../net/joinUrl.js';
 import { createJoinScreen } from '../ui/screens/join.js';
 import { createMenuScreen } from '../ui/screens/menu.js';
@@ -36,7 +34,6 @@ export class App {
   screen: Screen = 'boot';
   private readonly assets = new Assets();
   private audio!: AudioEngine;
-  private readonly store: FallbackHighscoreStore = createHighscoreStore();
   private readonly content: ContentRegistry = config.names
     ? defaultContent.withNames(config.names)
     : defaultContent;
@@ -45,7 +42,6 @@ export class App {
   private cleanup: Array<() => void> = [];
   private connCleanup: Array<() => void> = [];
   private leaving = false;
-  private lastSubmit: SubmitInfo = { status: 'pending' };
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -55,7 +51,6 @@ export class App {
   async boot(): Promise<void> {
     await this.assets.load();
     this.audio = new AudioEngine(this.assets.manifest, this.assets.baseUrl);
-    void this.store.flushPending();
     (window as unknown as { __sms: App }).__sms = this; // debugging / smoke tests
     document.title = this.content.title;
     document.documentElement.style.setProperty(
@@ -81,16 +76,6 @@ export class App {
     if (!el) return;
     el.textContent = message;
     el.classList.add('progress');
-  }
-
-  private serverStatus(): Promise<string> {
-    if (config.firebase) return Promise.resolve('global leaderboard (Firestore)');
-    if (!config.hasServer) return Promise.resolve('local scores (saved in this browser)');
-    return getServerInfo().then((i) =>
-      i
-        ? `highscore server online (${config.apiUrl})`
-        : `highscore server offline — scores saved locally`,
-    );
   }
 
   /** Room code of an in-progress join-link flow (errors return to the join screen). */
@@ -144,9 +129,7 @@ export class App {
           solo: (name) => this.solo(name),
           host: (name) =>
             void this.connect(() =>
-              config.useDedicatedHost
-                ? connectDedicated(name)
-                : hostPeerGame(name, (r) => this.submit(r)),
+              config.useDedicatedHost ? connectDedicated(name) : hostPeerGame(name),
             ),
           join: (name, code) =>
             void this.connect(() =>
@@ -158,10 +141,8 @@ export class App {
         {
           content: this.content,
           baseUrl: this.assets.baseUrl,
-          store: this.store,
           joinCode: config.joinCode,
           error,
-          serverStatus: this.serverStatus(),
           dedicated: config.useDedicatedHost,
           mixer: this.audio.mixerControls(),
         },
@@ -169,14 +150,8 @@ export class App {
     );
   }
 
-  private submit(r: RunResult) {
-    return this.store.submit(runForBoard(r));
-  }
-
   private solo(name: string, demo = false): void {
-    const conn = createLocalGame(name, (r) =>
-      demo ? Promise.resolve({ status: 'local' as const }) : this.submit(r),
-    );
+    const conn = createLocalGame(name);
     this.attach(conn);
     if (demo) {
       const off = conn.session.on('start', () => {
@@ -222,10 +197,6 @@ export class App {
           conn.mode !== 'local'
         )
           this.showRoom();
-      }),
-      s.on('submitted', (sub) => {
-        this.lastSubmit = { status: sub.status, rank: sub.rank };
-        this.gameOverUi?.setSubmit(this.lastSubmit);
       }),
       s.on('error', (e) => {
         if (e.code === 'full' || e.code === 'in_progress' || e.code === 'protocol')
@@ -274,7 +245,6 @@ export class App {
     this.game?.dispose();
     this.screen = 'game';
     this.linkJoin = null;
-    this.lastSubmit = { status: 'pending' };
     this.gameOverUi = null;
     this.setUi(null);
     const game = new GameClient(conn, this.canvas, this.assets, this.audio, this.content);
@@ -299,7 +269,6 @@ export class App {
       result,
       summary,
       {
-        store: this.store,
         canRestart: conn.session.isOwner,
         colors,
         content: this.content,
@@ -316,6 +285,5 @@ export class App {
     );
     this.gameOverUi = ui;
     this.setUi(ui.el);
-    ui.setSubmit(this.lastSubmit);
   }
 }

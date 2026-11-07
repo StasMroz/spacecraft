@@ -68,6 +68,10 @@ canvas#game.playing ~ #ui {
   gap: 20px;
   align-items: start;
 }
+.cols.single {
+  grid-template-columns: minmax(0, 420px);
+  justify-content: center;
+}
 @media (max-width: 860px) {
   .cols,
   .gameover {

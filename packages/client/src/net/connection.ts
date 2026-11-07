@@ -34,7 +34,7 @@ const PEER_PREFIX = 'sms-v1-';
 const peerIdFor = (code: string) => `${PEER_PREFIX}${code}`;
 
 /** Solo play: host + client in the same tab over an in-memory link. */
-export function createLocalGame(name: string, submit: SubmitFn): GameConnection {
+export function createLocalGame(name: string, submit?: SubmitFn): GameConnection {
   const host = new HostSession({
     roomCode: 'SOLO',
     mode: 'local',
@@ -113,7 +113,7 @@ function openPeer(id: string | undefined, opts: PeerOptions): Promise<Peer> {
 }
 
 /** Host a P2P room in this browser. Other players connect over WebRTC. */
-export async function hostPeerGame(name: string, submit: SubmitFn): Promise<GameConnection> {
+export async function hostPeerGame(name: string, submit?: SubmitFn): Promise<GameConnection> {
   const opts = await peerOptions();
   let peer: Peer | null = null;
   let code = '';

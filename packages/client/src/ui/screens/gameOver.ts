@@ -7,26 +7,18 @@ import type {
   SquadSummary,
 } from '@sms/shared';
 import { chapterBadgeSvg } from '../chapters.js';
-import type { HighscoreStore } from '../../highscores/index.js';
 import { $, html } from '../dom.js';
 import { escapeHtml, formatTime } from '../format.js';
-import { createHighscorePanel } from '../highscoreTable.js';
 
 export interface GameOverActions {
   again(): void;
   menu(): void;
 }
 
-export interface SubmitInfo {
-  status: 'pending' | 'server' | 'local' | 'failed';
-  rank?: number;
-}
-
 export function createGameOverScreen(
   result: RunResult,
   summary: PlayerSummary[],
   opts: {
-    store: HighscoreStore;
     canRestart: boolean;
     colors: Map<number, ChapterDef>;
     content?: ContentRegistry;
@@ -36,18 +28,16 @@ export function createGameOverScreen(
     icon?: (spriteKey: string) => string | undefined;
   },
   actions: GameOverActions,
-): { el: HTMLElement; setSubmit(s: SubmitInfo): void } {
+): { el: HTMLElement } {
   const el = html(`<div class="screen gameover" data-tab="squad">
     <div class="go-left">
       <div class="card go-main">
         <h1 class="dead">THE LINE HAS FALLEN</h1>
         <div class="survived"><span class="muted">SURVIVED</span><div class="big">${formatTime(result.survivalMs)}</div>
           <div class="muted">wave ${result.wave} · ${result.kills} kills · ${result.teamSize}-marine squad</div></div>
-        <div class="submit" id="submit">Submitting score…</div>
         <nav class="go-tabs" role="tablist">
           <button data-tab="squad" role="tab" class="active">SQUAD</button>
           <button data-tab="xenos" role="tab">XENOS</button>
-          <button data-tab="scores" role="tab">LEADERS</button>
         </nav>
         <div class="row go-actions">
           <button id="menu">MAIN MENU</button>
@@ -58,7 +48,6 @@ export function createGameOverScreen(
     </div>
     <div class="side">
       <div class="card go-panel tally-card" data-panel="xenos">${killTally(summary, opts)}</div>
-      <div class="card go-panel scores" data-panel="scores"><h2>LEADERS</h2><div id="hs"></div></div>
     </div>
   </div>`);
   // Compact (phone landscape) layout shows one panel at a time; tabs are hidden on big screens.
@@ -73,34 +62,9 @@ export function createGameOverScreen(
       });
     }),
   );
-  const hsHost = $(el, '#hs');
-  const mountTable = () => {
-    hsHost.innerHTML = '';
-    hsHost.append(
-      createHighscorePanel(opts.store, { teamSize: result.teamSize, highlightRunId: result.runId }),
-    );
-  };
-  mountTable();
   $(el, '#menu').addEventListener('click', () => actions.menu());
   el.querySelector('#again')?.addEventListener('click', () => actions.again());
-  const submit = $(el, '#submit');
-  return {
-    el,
-    setSubmit(s) {
-      submit.className = `submit ${s.status}`;
-      submit.textContent =
-        s.status === 'pending'
-          ? 'Submitting score…'
-          : s.status === 'server'
-            ? `Score recorded on the global leaderboard${s.rank ? ` — rank #${s.rank}` : ''}`
-            : s.status === 'local' && opts.store.localOnly
-              ? `Saved to local scores${s.rank ? ` — local rank #${s.rank}` : ''}`
-              : s.status === 'local'
-                ? `Global leaderboard unreachable — saved locally${s.rank ? ` (local rank #${s.rank})` : ''}, will retry`
-                : `Score was not accepted by the global leaderboard — kept in this browser's scores${s.rank ? ` (local rank #${s.rank})` : ''}.`;
-      if (s.status !== 'pending') mountTable();
-    },
-  };
+  return { el };
 }
 
 /**
