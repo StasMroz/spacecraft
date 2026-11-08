@@ -1,5 +1,10 @@
 # Changelog
 
+## v25
+
+- Menu: wyraźny główny przycisk ▶ SOLO DEPLOY; HOST SQUAD i dołączanie kodem pokoju zebrane w sekcji „PLAY WITH FRIENDS”.
+- Instrukcje sterowania (klawiatura/mysz i dotyk) schowane w zwijanym „HOW TO PLAY”, więc domyślne menu jest krótsze. Numer wersji pod tytułem bez zmian.
+
 ## v24
 
 - Niska osłona, nowy wariant (decyzja balansu, nie zasada 40k): osłona do 70 jednostek świata od strzelca — pociski swobodnie nad nią przelatują. Osłona dalej — 50% szans, że pocisk zatrzyma się NA osłonie (iskra, jak na ścianie); inaczej leci dalej. Losowane raz na pocisk i osłonę (bez losowania co tick), od najbliższej; kilka osłon losuje się osobno. Dotyczy pocisków marines, Tyranidów i Gwardzistów.

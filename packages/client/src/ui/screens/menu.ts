@@ -28,41 +28,7 @@ export interface MenuOptions {
 const NAME_KEY = 'sms.name';
 
 export function createMenuScreen(actions: MenuActions, opts: MenuOptions): HTMLElement {
-  const [main, sub] = splitTitle(opts.content.title);
-  const el = html(`<div class="screen menu">
-    <div class="title">
-      <img class="emblem" src="${escapeHtml(opts.baseUrl)}ui/emblem.png" alt="" width="256" height="128">
-      <h1>${escapeHtml(main)}${sub ? `<span>: ${escapeHtml(sub)}</span>` : ''}</h1>
-      <p class="tagline">${escapeHtml(opts.content.subtitle)}</p>
-      <div class="version-tag" id="version">${escapeHtml(versionLabel())}</div>
-      ${DEV_PREVIEW ? `<div class="dev-badge" title="Unversioned dev preview — scores go to a separate DEV board">DEV PREVIEW ${escapeHtml(DEV_PREVIEW)}</div>` : ''}
-      <div class="scroll">The hive spires have gone dark. Hold the breach until the last bolt is spent.</div>
-    </div>
-    <div class="cols single">
-      <div class="card play">
-        <label>CALLSIGN<input id="name" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Marine"></label>
-        <label>CHAPTER</label>
-        <div id="chapters"></div>
-        <button id="solo" class="primary">▶ SOLO DEPLOY</button>
-        <div class="row">
-          <button id="host">HOST SQUAD (CO-OP)</button>
-        </div>
-        <div class="row join">
-          <input id="code" maxlength="8" placeholder="ROOM CODE" autocomplete="off" spellcheck="false">
-          <button id="join">JOIN</button>
-        </div>
-        <div class="error" id="err"></div>
-        <div class="help">
-          <span class="kbm-only"><b>WASD</b> move · <b>Mouse</b> aim · <b>LMB / Space</b> fire · <b>RMB</b> guard · <b>1-${opts.content.weaponOrder.length}</b> / <b>Q E</b> / wheel switch weapon · <b>R</b> reload · <b>M</b> mute<br></span>
-          <span class="touch-only"><b>Left thumb</b> move · <b>Right thumb</b> aim &amp; auto-fire · <b>🛡 GUARD</b> hold (right) · <b>tap a weapon</b> to switch · <b>⟳</b> reload · <b>⛶</b> fullscreen<br></span>
-          Stand next to a downed battle-brother to revive them. Wargear unlocks over time; supply crates drop on the map. Plasma runs hot: past the line shots are supercharged, at the top it vents and burns you.
-        </div>
-        <div id="mixer"></div>
-        <div class="muted small" id="meta"><a class="rules-link" href="rules.html">ZASADY / RULES</a> · <a class="rules-link" href="feedback.html">PETYCJE</a>${opts.dedicated ? ' · dedicated host mode' : ' · P2P (browser-hosted)'}</div>
-      </div>
-    </div>
-    <p class="disclaimer">Unofficial, non-commercial fan project. Not affiliated with or endorsed by Games Workshop. Warhammer 40,000 and related marks are trademarks of Games Workshop Ltd. All art and sound here is procedurally generated.</p>
-  </div>`);
+  const el = html(menuMarkup(opts));
   $(el, '#chapters').append(
     createChapterPicker(opts.content, prefs.chapter(), (id) => prefs.setChapter(id)).el,
   );
@@ -100,6 +66,47 @@ export function createMenuScreen(actions: MenuActions, opts: MenuOptions): HTMLE
   code.addEventListener('keydown', (e) => e.key === 'Enter' && doJoin());
   queueMicrotask(() => (opts.joinCode ? $(el, '#join') : name).focus());
   return el;
+}
+
+/** Menu markup: solo CTA first, host/join grouped under PLAY WITH FRIENDS, controls collapsed. */
+export function menuMarkup(opts: Pick<MenuOptions, 'baseUrl' | 'content' | 'dedicated'>): string {
+  const [main, sub] = splitTitle(opts.content.title);
+  return `<div class="screen menu">
+    <div class="title">
+      <img class="emblem" src="${escapeHtml(opts.baseUrl)}ui/emblem.png" alt="" width="256" height="128">
+      <h1>${escapeHtml(main)}${sub ? `<span>: ${escapeHtml(sub)}</span>` : ''}</h1>
+      <p class="tagline">${escapeHtml(opts.content.subtitle)}</p>
+      <div class="version-tag" id="version">${escapeHtml(versionLabel())}</div>
+      ${DEV_PREVIEW ? `<div class="dev-badge" title="Unversioned dev preview — scores go to a separate DEV board">DEV PREVIEW ${escapeHtml(DEV_PREVIEW)}</div>` : ''}
+      <div class="scroll">The hive spires have gone dark. Hold the breach until the last bolt is spent.</div>
+    </div>
+    <div class="cols single">
+      <div class="card play">
+        <label>CALLSIGN<input id="name" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Marine"></label>
+        <label>CHAPTER</label>
+        <div id="chapters"></div>
+        <button id="solo" class="primary">▶ SOLO DEPLOY</button>
+        <section class="squad" aria-labelledby="squad-title">
+          <h2 id="squad-title">PLAY WITH FRIENDS</h2>
+          <button id="host">HOST SQUAD (CO-OP)</button>
+          <div class="row join">
+            <input id="code" maxlength="8" placeholder="ROOM CODE" aria-label="Room code" autocomplete="off" spellcheck="false">
+            <button id="join">JOIN</button>
+          </div>
+        </section>
+        <div class="error" id="err"></div>
+        <details class="help">
+          <summary>HOW TO PLAY</summary>
+          <span class="kbm-only"><b>WASD</b> move · <b>Mouse</b> aim · <b>LMB / Space</b> fire · <b>RMB</b> guard · <b>1-${opts.content.weaponOrder.length}</b> / <b>Q E</b> / wheel switch weapon · <b>R</b> reload · <b>M</b> mute<br></span>
+          <span class="touch-only"><b>Left thumb</b> move · <b>Right thumb</b> aim &amp; auto-fire · <b>🛡 GUARD</b> hold (right) · <b>tap a weapon</b> to switch · <b>⟳</b> reload · <b>⛶</b> fullscreen<br></span>
+          Stand next to a downed battle-brother to revive them. Wargear unlocks over time; supply crates drop on the map. Plasma runs hot: past the line shots are supercharged, at the top it vents and burns you.
+        </details>
+        <div id="mixer"></div>
+        <div class="muted small" id="meta"><a class="rules-link" href="rules.html">ZASADY / RULES</a> · <a class="rules-link" href="feedback.html">PETYCJE</a>${opts.dedicated ? ' · dedicated host mode' : ' · P2P (browser-hosted)'}</div>
+      </div>
+    </div>
+    <p class="disclaimer">Unofficial, non-commercial fan project. Not affiliated with or endorsed by Games Workshop. Warhammer 40,000 and related marks are trademarks of Games Workshop Ltd. All art and sound here is procedurally generated.</p>
+  </div>`;
 }
 
 /** "Spacecraft: Hive Siege" -> ["Spacecraft", "Hive Siege"]. */

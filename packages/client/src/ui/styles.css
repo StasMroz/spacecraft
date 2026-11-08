@@ -227,6 +227,27 @@ button.primary:hover:not(:disabled) {
   padding-top: 10px;
   margin-top: 10px;
 }
+.help summary {
+  cursor: pointer;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+}
+.help[open] summary {
+  margin-bottom: 6px;
+}
+.squad {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+.squad h2 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+.squad > button {
+  width: 100%;
+}
 .help b {
   color: var(--text);
 }
