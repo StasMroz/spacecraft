@@ -54,7 +54,7 @@ describe('Meltagun size-weighted pierce', () => {
       'termagant',
     ]);
     expect(bySize('medium').sort()).toEqual(['biovore', 'ravener', 'warrior']);
-    expect(bySize('large')).toEqual(['carnifex']);
+    expect(bySize('large').sort()).toEqual(['carnifex', 'psychophage']);
   });
 
   it.each([

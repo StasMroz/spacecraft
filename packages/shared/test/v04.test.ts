@@ -62,6 +62,7 @@ describe('v0.4 arsenal', () => {
       ravener: 10,
       warrior: 15,
       carnifex: 50,
+      psychophage: 40,
     });
   });
 });

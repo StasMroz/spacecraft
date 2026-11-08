@@ -90,6 +90,8 @@ export const DIRECTOR: DirectorConfig = {
     count: [1, 1, 2, 2, 2, 3, 3, 3],
     extraPerAppearance: 1,
   },
+  // A Psychophage (support boss) joins wave 5 and every 3rd wave after it (never a Carnifex wave).
+  support: { enemy: 'psychophage', firstWave: 5, everyWave: 3 },
   waveTable: [
     { fromWave: 1, weights: { hormagaunt: 10, ripper: 3 } },
     { fromWave: 2, weights: { hormagaunt: 10, termagant: 5, ripper: 3 } },

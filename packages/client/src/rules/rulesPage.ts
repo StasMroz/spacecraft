@@ -205,6 +205,7 @@ export function rulesHtml(c: ContentRegistry): string {
   <li>Hormagaunty i Carnifex szarżują — uskocz, gdy widzisz zamach.</li>
   <li>Spore Mine wybucha przy marines — zestrzel ją z daleka (zabójstwa od jej wybuchu idą na Twoje konto).</li>
   <li>Tyranid Warrior to stwór synapsy — przyspiesza i wzmacnia rój wokół siebie. Biovore wypuszcza Spore Mine. Zabijaj je w pierwszej kolejności.</li>
+  <li>Psychophage (boss wsparcia, fala 5 i co 3 fale) sam gryzie słabo, ale jego Bio-stimulus (fioletowy pierścień 240 px) daje widzianym Tyranidom +15% prędkości, +20% obrażeń, −15% otrzymywanych obrażeń i każe im otaczać marine z każdej strony. Pełna ściana odcina aurę, bonusy się nie sumują, a jego śmierć od razu zdejmuje buff.</li>
   <li>Puść spust, żeby uciec — strzelanie spowalnia. W razie biedy sprint, ale pamiętaj o plecach i o chwili bez broni po biegu.</li>
   <li>Nie odwracaj się plecami do roju — z tyłu dostajesz najmocniej, a z przodu pancerz odbija część pocisków.</li>
 </ul></section>

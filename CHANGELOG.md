@@ -1,5 +1,14 @@
 # Changelog
 
+## v18
+
+- Nowy boss wsparcia: Psychophage. Pojawia się sam (1 sztuka) w fali 5 i co 3 fale (5, 8, 11…), nigdy w fali Carnifexa. 700 HP (skalowane jak inne wg fali i drużyny), T9, zapis 3+, prędkość 110, promień 30 px, klasa duża (melta: koszt 12), 40 pkt, pewna apteczka.
+- Atakuje słabo: ugryzienie 10, „psychoklastyczny popiół” 4 obrażenia na 300 px co 1,6 s; trzyma się ~330 px za swoim rojem.
+- Bio-stimulus (fioletowy przerywany pierścień 240 px): inne Tyranidy w zasięgu, które Psychophage widzi (pełna ściana odcina aurę, niska nie), mają ×1,15 prędkości, ×1,2 obrażeń, otrzymują ×0,85 obrażeń (fioletowa obwódka) i otaczają marine — każdy zmierza do własnego miejsca na pierścieniu wokół celu zamiast biec gęsiego.
+- Bonusy się nie sumują: kilka źródeł i synapsa Warriora dają najlepszą wartość każdej cechy. Śmierć Psychophage zdejmuje buff w następnym ticku. Kompendium i zasady opisują jednostkę.
+- Protokół sieci 8 (nowa jednostka i flaga aury); stare klienty niezgodne. Melta 50–30, ściany i kwas bez zmian.
+- Lore (Lexicanum, Codex: Tyranids 10. ed.): Psychophage to szybki potwór, który metabolizuje psykerów i zieje „psychocorrosive ash”; zasada Bio-stimulus (aura 6") daje sojuszniczym Tyranidom Feel No Pain 6+. Wzrost prędkości/obrażeń, otaczanie, zasięg, HP i harmonogram fal to adaptacja balansu gry (prośba z tablicy: boss słabo atakujący, wzmacniający i „inteligentniejszy” rój), nie zasady 40k; −15% obrażeń przybliża FNP 6+ (~17%).
+
 ## v17
 
 - Kwasoplujki szybsze: pocisk Termaganta (fleshborer) 430 → 560 px/s, Warriora (deathspitter) 480 → 620 px/s. Obrażenia i szybkostrzelność bez zmian.

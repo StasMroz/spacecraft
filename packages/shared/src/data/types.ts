@@ -223,6 +223,19 @@ export interface EnemySynapseSpec {
   damageMul: number;
 }
 
+/**
+ * Support aura (Psychophage "Bio-stimulus"): every other Tyranid within `radius` that the source
+ * can see (full walls block it) moves and hits harder, takes less damage and — melee — closes in
+ * from all sides instead of in a line. Never stacks: several sources / synapse take the best value.
+ */
+export interface EnemyStimSpec {
+  radius: number;
+  speedMul: number;
+  damageMul: number;
+  /** Damage taken multiplier (< 1). */
+  damageTakenMul: number;
+}
+
 export interface EnemyDef {
   id: string;
   /** Display name (see data/naming.ts). */
@@ -256,6 +269,7 @@ export interface EnemyDef {
   charge?: EnemyChargeSpec;
   burrow?: EnemyBurrowSpec;
   synapse?: EnemySynapseSpec;
+  stim?: EnemyStimSpec;
   spawner?: EnemySpawnerSpec;
   /** Group size the director spawns (default: director spawn.groupMin..groupMax). */
   group?: [number, number];
@@ -404,6 +418,8 @@ export interface DirectorConfig {
     /** Extra bosses per further appearance. */
     extraPerAppearance: number;
   };
+  /** Support boss (one per appearance) on wave `firstWave` and every `everyWave` after it. */
+  support?: { enemy: string; firstWave: number; everyWave: number };
   waveTable: WaveTableEntry[];
 }
 

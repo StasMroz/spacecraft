@@ -59,6 +59,8 @@ export const ENEMY_FLAG = {
   attacking: 32,
   /** End-of-wave hunt: closing in faster (not marked on the HUD). */
   hunt: 64,
+  /** Inside a Psychophage Bio-stimulus aura. */
+  stim: 128,
 } as const;
 
 /** Finite-wave status. */
@@ -161,6 +163,7 @@ export function enemyFlags(e: Enemy): number {
   if (e.chargePhase === 2) f |= ENEMY_FLAG.dashing;
   if (e.attackAnim > 0) f |= ENEMY_FLAG.attacking;
   if (e.hunt) f |= ENEMY_FLAG.hunt;
+  if ((e.stimTaken ?? 1) < 1) f |= ENEMY_FLAG.stim;
   return f;
 }
 

@@ -790,6 +790,7 @@ export class Renderer {
     const v = this.camera.view(140);
     const seen = new Set<number>();
     const synapseAuras: { x: number; y: number; r: number }[] = [];
+    const stimAuras: { x: number; y: number; r: number }[] = [];
     for (const e of f.b.enemies) {
       const [id, typeIdx, bx, by, ba, hp, flags] = e;
       seen.add(id);
@@ -870,6 +871,19 @@ export class Renderer {
         continue;
       }
       if (def?.synapse) synapseAuras.push({ x, y, r: def.synapse.radius });
+      if (def?.stim) stimAuras.push({ x, y, r: def.stim.radius });
+      if (flags & ENEMY_FLAG.stim) {
+        // Bio-stimulus: violet halo on every buffed beast
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = 0.35 + 0.15 * Math.sin(time * 6 + id);
+        ctx.strokeStyle = '#c070ff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(x, y, r + 4, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
       this.drawShadow(x, y, r);
       const fuse = (flags & ENEMY_FLAG.fuse) !== 0;
       const pulse = fuse ? 1 + Math.sin(time * 30) * 0.08 : 1;
@@ -923,6 +937,25 @@ export class Renderer {
         pose.sx === pose.sy && pose.rot === 0
           ? this.assets.draw(ctx, key, frame, cx, cy, da, pose.sx)
           : this.assets.drawXform(ctx, key, frame, cx, cy, da, pose.sx, pose.sy);
+      if (!drawn && def?.stim) {
+        // Psychophage (no sprite): bloated violet body with a ring of whipping maw tentacles
+        ctx.strokeStyle = '#d090ff';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        for (let k = 0; k < 7; k++) {
+          const ta = da + (k - 3) * 0.32;
+          const wob = Math.sin(time * 9 + k * 1.7) * 0.25;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(ta) * r * 0.7, cy + Math.sin(ta) * r * 0.7);
+          ctx.quadraticCurveTo(
+            cx + Math.cos(ta + wob) * r * 1.3,
+            cy + Math.sin(ta + wob) * r * 1.3,
+            cx + Math.cos(ta - wob) * r * 1.7,
+            cy + Math.sin(ta - wob) * r * 1.7,
+          );
+          ctx.stroke();
+        }
+      }
       if (!drawn) {
         ctx.fillStyle = vis.color;
         ctx.beginPath();
@@ -956,6 +989,20 @@ export class Renderer {
         ctx.fillStyle = '#b02020';
         ctx.fillRect(x - r, y - r - 10, (r * 2 * hp) / 100, 4);
       }
+    }
+    // Bio-stimulus range: a slow dashed violet ring so marines can read (and leave) the aura
+    for (const a of stimAuras) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(190,110,255,0.45)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([14, 10]);
+      ctx.lineDashOffset = -time * 20;
+      ctx.beginPath();
+      ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(150,60,220,0.07)';
+      ctx.fill();
+      ctx.restore();
     }
     // synapse auras drawn additively on top so the "commander" reads at a glance
     if (synapseAuras.length) {

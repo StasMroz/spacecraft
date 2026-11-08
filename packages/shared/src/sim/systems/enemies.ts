@@ -44,6 +44,15 @@ function heading(
     const f = flowDirection(flowField(world), e.x, e.y);
     if (f) return f;
   }
+  if ((e.stimTaken ?? 1) < 1 && d > SURROUND.near) {
+    // Golden-angle slots spread a pack evenly round the marine (cut off the retreat).
+    const slot = ((e.id * 0.6180339887) % 1) * Math.PI * 2;
+    const R = Math.min(SURROUND.maxRing, d * SURROUND.ring);
+    const gx = target.x + Math.cos(slot) * R - e.x;
+    const gy = target.y + Math.sin(slot) * R - e.y;
+    const gl = Math.hypot(gx, gy) || 1;
+    return { x: gx / gl, y: gy / gl };
+  }
   const spread = FLANK.maxAngle * Math.min(1, Math.max(0, (d - FLANK.near) / FLANK.far));
   const a = (((e.id * 0.6180339887) % 1) - 0.5) * 2 * spread;
   const c = Math.cos(a);
@@ -75,6 +84,7 @@ function applySynapse(world: World, hash: SpatialHash<Enemy>): void {
   for (const e of world.enemies) {
     e.synSpeed = 1;
     e.synDamage = 1;
+    e.stimTaken = 1;
   }
   for (const s of world.enemies) {
     if (s.dead || s.burrowed) continue;
@@ -88,7 +98,24 @@ function applySynapse(world: World, hash: SpatialHash<Enemy>): void {
       o.synDamage = Math.max(o.synDamage, syn.damageMul);
     });
   }
+  for (const s of world.enemies) {
+    if (s.dead || s.burrowed) continue;
+    const st = world.content.enemy(s.type).stim;
+    if (!st) continue;
+    const r2 = st.radius * st.radius;
+    hash.query(s.x, s.y, st.radius, (o) => {
+      if (o === s || o.dead || world.content.enemy(o.type).stim) return;
+      if (dist2(s.x, s.y, o.x, o.y) > r2) return;
+      if (segmentBlocked(world.map.walls, s.x, s.y, o.x, o.y, 'full')) return;
+      o.synSpeed = Math.max(o.synSpeed, st.speedMul);
+      o.synDamage = Math.max(o.synDamage, st.damageMul);
+      o.stimTaken = Math.min(o.stimTaken ?? 1, st.damageTakenMul);
+    });
+  }
 }
+
+/** Stimmed melee swarm: each beast heads for its own slot on a ring round the target. */
+const SURROUND = { ring: 0.9, maxRing: 300, near: 60 } as const;
 
 /** Charge state machine. Returns true while the charge controls movement. */
 function updateCharge(

@@ -68,6 +68,8 @@ export const MARINE_DEFLECTION = {
     deathspitter: 0.147,
     /** Carnifex acid glob: a bucket of acid, not a bolt — nothing to ricochet. */
     bioacid: 0,
+    /** Psychophage psychoclastic ash: a gout, not a bolt — never ricochets. */
+    psyash: 0,
   } as Readonly<Record<string, number>>,
   /** Any future direct-fire projectile not in the table. */
   defaultChance: 0.15,

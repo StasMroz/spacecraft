@@ -54,7 +54,7 @@ describe('40k content data', () => {
     expect(content.weapon('plasma_gun').heat).toBeDefined();
   });
 
-  it('has the Tyranid roster with exactly one boss and the synapse/burrow/charge traits', () => {
+  it('has the Tyranid roster with the Carnifex and Psychophage bosses and the synapse/burrow/charge traits', () => {
     const ids = [...content.enemies.keys()];
     for (const id of [
       'termagant',
@@ -70,6 +70,7 @@ describe('40k content data', () => {
       expect(ids).toContain(id);
     expect([...content.enemies.values()].filter((e) => e.boss).map((e) => e.id)).toEqual([
       'carnifex',
+      'psychophage',
     ]);
     expect(content.enemy('warrior').synapse).toBeDefined();
     expect(content.enemy('ravener').burrow).toBeDefined();

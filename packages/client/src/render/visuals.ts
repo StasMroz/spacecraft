@@ -60,6 +60,14 @@ export const PROJECTILE_VISUALS: Record<string, ProjectileVisual> = {
     trailShape: 'smoke',
     fallbackRadius: 12,
   },
+  psyash: {
+    color: '#d8a0ff',
+    glow: true,
+    trail: 18,
+    trailColor: '#9050c0',
+    trailShape: 'smoke',
+    fallbackRadius: 9,
+  },
   spore: {
     color: '#a8c040',
     glow: false,
@@ -164,6 +172,15 @@ export const ENEMY_VISUALS: Record<string, EnemyVisual> = {
     attackFps: 8,
     deathFps: 14,
     deathShake: 0,
+    corpse: false,
+  },
+  psychophage: {
+    color: '#7a3a9a',
+    ichor: '#5a0a40',
+    stride: 14,
+    attackFps: 9,
+    deathFps: 8,
+    deathShake: 7,
     corpse: false,
   },
   carnifex: {

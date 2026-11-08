@@ -50,6 +50,7 @@ export function damageEnemy(
       dmg = 0;
     } else dmg = amount * woundMul(opts.strength, def.toughness);
   }
+  dmg *= enemy.stimTaken ?? 1;
   enemy.hp -= dmg;
   if (opts.knockback && (opts.kx || opts.ky)) {
     const l = Math.hypot(opts.kx ?? 0, opts.ky ?? 0) || 1;

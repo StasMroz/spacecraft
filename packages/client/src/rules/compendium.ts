@@ -196,6 +196,14 @@ function enemyAttack(e: EnemyDef, c: ContentRegistry): string {
     a.push(
       `synapsa: rój w promieniu ${e.synapse.radius} px szybszy ×${n(e.synapse.speedMul, 2)}, obrażenia ×${n(e.synapse.damageMul, 2)}`,
     );
+  if (e.stim)
+    a.push(
+      `Bio-stimulus: inne Tyranidy w promieniu ${e.stim.radius} px, które widzi (nie przez pełną ścianę), szybsze ×${n(e.stim.speedMul, 2)}, obrażenia ×${n(e.stim.damageMul, 2)}, otrzymują ×${n(e.stim.damageTakenMul, 2)} obrażeń i otaczają marine; nie kumuluje się z synapsą ani drugim źródłem`,
+    );
+  if (e.lobAttack)
+    a.push(
+      `kula kwasu na ${e.lobAttack.minDistance}–${e.lobAttack.range} px co ~${n(e.lobAttack.cooldown, 1)} s`,
+    );
   if (e.spawner)
     a.push(
       `wypuszcza ${esc(c.enemies.get(e.spawner.enemy)?.name ?? e.spawner.enemy)} co ${n(e.spawner.interval, 1)} s (max ${e.spawner.max}, gdy marine bliżej niż ${e.spawner.range} px)`,

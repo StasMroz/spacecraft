@@ -108,6 +108,9 @@ export function buildRoster(world: World, wave: number): RosterGroup[] {
       cfg.bosses.extraPerAppearance * world.director.bossWaves;
     roster.push({ type: cfg.bosses.enemy, n, boss: true });
   }
+  const sup = cfg.support;
+  if (sup && wave >= sup.firstWave && (wave - sup.firstWave) % sup.everyWave === 0)
+    roster.push({ type: sup.enemy, n: 1, boss: true });
   const weights = waveWeightsFor(cfg, wave, world.teamSize, (id) => world.content.enemy(id).threat);
   let budget = waveBudget(cfg, wave, world.teamSize);
   let guard = 0;

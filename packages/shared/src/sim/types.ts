@@ -126,6 +126,8 @@ export interface Enemy {
   /** Synapse buff this tick (1 = none). */
   synSpeed: number;
   synDamage: number;
+  /** Damage taken multiplier from a support aura (1 = none; < 1 = stimmed). */
+  stimTaken?: number;
   /** > 0 for a moment after attacking (animation). */
   attackAnim: number;
   /** Cooldown of the secondary lobbed attack (EnemyDef.lobAttack). */
