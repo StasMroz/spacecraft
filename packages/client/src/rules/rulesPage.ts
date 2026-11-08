@@ -29,7 +29,7 @@ export function rulesHtml(c: ContentRegistry): string {
     .filter((w) => w.projectile.endBurst)
     .map((w) => {
       const b = w.projectile.endBurst!;
-      return `<li><b>${esc(w.name)}: błysk na końcu zasięgu</b> — gdy pocisk doleci do końca zasięgu (${Math.round(w.projectile.speed * w.projectile.lifetime)} px), błyska małym wybuchem cieplnym: ${b.damage} obrażeń w promieniu ${b.radius} px (na krawędzi ${Math.round(b.edgeFactor * 100)}%). Działa też po przebiciu celów (promień leci dalej); nie ma błysku po wyjściu poza arenę. Rani tylko Tyranidów, nigdy marines.</li>`;
+      return `<li><b>${esc(w.name)}: błysk na końcu zasięgu</b> — gdy pocisk doleci do końca zasięgu (${Math.round(w.projectile.speed * w.projectile.lifetime)} px), błyska małym wybuchem cieplnym: ${b.damage} obrażeń w promieniu ${b.radius} px (na krawędzi ${Math.round(b.edgeFactor * 100)}%). ${w.projectile.pierce === 0 && !w.projectile.pierceBudget ? 'Działa też po trafieniu pierwszego celu: pocisk leci dalej do końca zasięgu bez kolejnych trafień i błyska raz' : 'Działa też po przebiciu celów (promień leci dalej)'}; nie ma błysku po wyjściu poza arenę. Rani tylko Tyranidów, nigdy marines.</li>`;
     })
     .join('');
   const unlocks = ws

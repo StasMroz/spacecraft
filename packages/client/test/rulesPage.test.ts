@@ -29,6 +29,12 @@ describe('rules page', () => {
     expect(html).toContain('Gwardziści');
     expect(html.slice(0, html.indexOf('<details'))).toMatch(/boss wsparcia — <b>Psychophage/);
   });
+  it('describes the v21 melta consistently: one direct hit, no pierce claims', () => {
+    expect(defaultContent.weapon('meltagun').projectile.pierce).toBe(0);
+    expect(html).not.toMatch(/przebiciu celów|przebija wszystko|najmniejsze/);
+    expect(html).toContain('po trafieniu pierwszego celu');
+    expect(html).toContain('tylko pierwszego wroga');
+  });
   it('DPS matrix uses the shared expectedDps', () => {
     const w = defaultContent.weaponOrder[0]!;
     const e = defaultContent.enemy('hormagaunt');

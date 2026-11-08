@@ -1,5 +1,9 @@
 # Changelog
 
+## v23
+
+- Poprawka opisu: akapit zasad „Meltagun: błysk na końcu zasięgu” mówił jeszcze o „przebiciu celów”. Teraz: po trafieniu pierwszego celu pocisk leci dalej do końca zasięgu bez kolejnych trafień i błyska raz (zgodnie z v21). Test pilnuje, by zasady i kompendium nie zawierały starych twierdzeń o przebiciu melty. Mechanika bez zmian.
+
 ## v22
 
 - Katastrofa okrętu Imperium — zdarzenie zwykłych fal (nie misja): fala 4 i co 3 fale (4, 7, 10…, nigdy fala Carnifexa ani Psychophage). 4 s po starcie fali komunikat i czerwony krąg z rosnącym cieniem; przez 3,5 s spada płonący okręt ciągnący ogień i dym. Miejsce zawsze 380–800 px od marines, ≥ 260 px od wyłomów, poza ścianami. Uderzenie rani tylko Tyranidów (120 obr., promień 150 px).
