@@ -120,7 +120,7 @@ export function weaponSpecials(c: ContentRegistry): string {
       );
     if (p.endBurst)
       s.push(
-        `wybuch na końcu zasięgu (pudło albo po przebiciu — promień leci do max; nie po wyjściu z areny): ${n(p.endBurst.damage)} obrażeń w promieniu ${p.endBurst.radius} px (na krawędzi ${pct(p.endBurst.edgeFactor)})${p.endBurst.strength !== undefined ? `, S${p.endBurst.strength} AP${ap(p.endBurst.ap)}` : ''}, ${p.endBurst.friendlyFire ? '<b>rani też marines</b>' : 'tylko wrogowie'}`,
+        `wybuch na końcu zasięgu (pudło albo po trafieniu — promień leci do max${p.pierce === 0 ? ', trafia bezpośrednio tylko pierwszego wroga' : ''}; nie po wyjściu z areny): ${n(p.endBurst.damage)} obrażeń w promieniu ${p.endBurst.radius} px (na krawędzi ${pct(p.endBurst.edgeFactor)})${p.endBurst.strength !== undefined ? `, S${p.endBurst.strength} AP${ap(p.endBurst.ap)}` : ''}, ${p.endBurst.friendlyFire ? '<b>rani też marines</b>' : 'tylko wrogowie'}`,
       );
     if (w.braceDelay !== undefined)
       s.push(

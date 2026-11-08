@@ -1,5 +1,11 @@
 # Changelog
 
+## v21
+
+- Meltagun bez przebicia: każdy strzał trafia bezpośrednio tylko pierwszego wroga na linii (także gdy pancerz go zatrzyma), potem promień leci dalej do końca zasięgu i robi jeden wybuch jak dotąd (albo na pełnej ścianie). Pudło w celu za niską osłoną nie zużywa tego trafienia.
+- Odstęp między strzałami 0,87 s → 1,13 s.
+- Bez zmian: trafienie 300 S9 AP4, wybuch 50–30 w promieniu 66 px S4 AP0, zasięg / czas lotu / prędkość, magazynek 6, przeładowanie 2,2 s, odrzut i ruch, inne bronie.
+
 ## v20
 
 - Menu: numer wersji gry (v0.6.1, z GAME_VERSION) widoczny od razu pod tytułem zamiast na dole karty poza ekranem; w podglądzie dev z sufiksem -dev+sha. Lista „Previous versions” nadal zależy od versions.json.

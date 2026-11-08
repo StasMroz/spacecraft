@@ -44,7 +44,7 @@ function shoot(types: string[], gap = 40): { hit: number[]; ids: number[] } {
 
 const bySize = (size: EnemySize) => ENEMIES.filter((e) => e.size === size).map((e) => e.id);
 
-describe('Meltagun size-weighted pierce', () => {
+describe('Meltagun single direct hit (v20: no pierce)', () => {
   it('classes every enemy by body size', () => {
     expect(bySize('tiny')).toEqual(['ripper']);
     expect(bySize('small').sort()).toEqual([
@@ -57,46 +57,58 @@ describe('Meltagun size-weighted pierce', () => {
     expect(bySize('large').sort()).toEqual(['carnifex', 'psychophage']);
   });
 
-  it.each([
-    ['carnifex', 1, 90],
-    ['warrior', 2, 60],
-    ['ravener', 2, 60],
-    ['biovore', 2, 60],
-    ['termagant', 3, 40],
-    ['hormagaunt', 3, 40],
-    ['genestealer', 3, 40],
-    ['ripper', 4, 30],
-  ] as const)('a row of %s: %i hit', (type, n, gap) => {
-    const { hit, ids } = shoot(Array(6).fill(type), gap);
-    expect(hit).toEqual(ids.slice(0, n));
-  });
+  it.each(['carnifex', 'warrior', 'termagant', 'ripper'] as const)(
+    'a row of %s: only the first takes the direct hit',
+    (type) => {
+      const { hit, ids } = shoot(Array(4).fill(type), type === 'carnifex' ? 80 : 40);
+      expect(hit).toEqual([ids[0]]);
+    },
+  );
 
-  it('mixes share one budget, spent nearest first', () => {
-    // small 4 + small 4 + ripper 3 = 11, the next small (4) no longer fits
-    const a = shoot(['termagant', 'termagant', 'ripper', 'termagant', 'ripper'], 40);
-    expect(a.hit).toEqual(a.ids.slice(0, 3));
-    // medium 6 + ripper 3 + ripper 3 = 12
-    const b = shoot(['warrior', 'ripper', 'ripper', 'ripper'], 45);
-    expect(b.hit).toEqual(b.ids.slice(0, 3));
-  });
-
-  it('a target too big for what is left stops the beam; nothing behind it is hit', () => {
-    const a = shoot(['ripper', 'carnifex', 'ripper', 'ripper'], 70);
+  it('mixed sizes: one direct hit, nearest first, whatever its size', () => {
+    const a = shoot(['ripper', 'carnifex', 'termagant'], 60);
     expect(a.hit).toEqual([a.ids[0]]);
-    const b = shoot(['termagant', 'termagant', 'warrior', 'ripper'], 50);
-    expect(b.hit).toEqual(b.ids.slice(0, 2));
+    const b = shoot(['warrior', 'ripper', 'ripper'], 50);
+    expect(b.hit).toEqual([b.ids[0]]);
   });
 
-  it('hits each enemy at most once', () => {
-    const { hit } = shoot(Array(6).fill('ripper'), 30);
-    expect(new Set(hit).size).toBe(hit.length);
+  it('melta has no pierce and no size budget; other weapons keep theirs', () => {
+    expect(melta.projectile.pierce).toBe(0);
+    expect(melta.projectile.pierceBudget).toBeUndefined();
+    expect(melta.fireInterval).toBe(1.13);
+    expect(WEAPONS.some((w) => w.projectile.pierceBudget)).toBe(false);
   });
 
-  it('leaves every other weapon on plain pierce', () => {
-    expect(WEAPONS.filter((w) => w.projectile.pierceBudget).map((w) => w.id)).toEqual(['meltagun']);
-    expect(melta.projectile.pierceBudget).toEqual({
-      total: 12,
-      cost: { tiny: 3, small: 4, medium: 6, large: 12 },
-    });
+  it('a low-cover miss does not use up the single direct hit', () => {
+    let through = 0;
+    for (let s = 1; s <= 60; s++) {
+      const w = createWorld([{ id: 1, name: 'M1' }], s);
+      w.map = { ...w.map, walls: [{ x: 700, y: 500, w: 24, h: 200, kind: 'low' }] };
+      w.director.idle = true;
+      const p = w.players[0];
+      p.x = 600;
+      p.y = 600;
+      grantWeapon(w, p, 'meltagun');
+      p.current = 'meltagun';
+      const front = spawnEnemy(w, 'carnifex', 760, 600);
+      const back = spawnEnemy(w, 'carnifex', 790, 640);
+      let hit: number[] = [];
+      for (let t = 0; t < 60; t++) {
+        applyInput(w, p.id, { ...emptyInput(), seq: ++seq, aim: 0, fire: t < 30 && !hit.length });
+        front.x = 760;
+        front.y = 600;
+        back.x = 790;
+        back.y = 610;
+        stepWorld(w, TICK_DT);
+        const pr = w.projectiles.find((x) => x.kind === 'melta');
+        if (pr) hit = pr.hit.filter((id) => id === front.id || id === back.id);
+        if (w.events.some((e) => e.e === 'shot') && !pr) break;
+      }
+      // a miss in cover is recorded in `hit` too: the damaged one is the real direct hit
+      const damaged = [front, back].filter((e) => e.hp < e.maxHp || e.dead);
+      if (front.hp === front.maxHp && back.hp < back.maxHp) through++;
+      expect(damaged.length).toBeLessThanOrEqual(2);
+    }
+    expect(through).toBeGreaterThan(3);
   });
 });

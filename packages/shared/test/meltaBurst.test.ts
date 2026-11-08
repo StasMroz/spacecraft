@@ -114,13 +114,13 @@ describe('Meltagun end-of-range burst', () => {
     expect(b.x - p.x).toBeLessThan(RANGE + 80);
   });
 
-  it('keeps flying to max range after pierce is spent (no early death on last target)', () => {
+  it('after its one direct hit the beam flies on to max range for a single burst', () => {
     const w = world();
     const p = w.players[0];
-    // Four rippers spend the whole pierce budget well before max range.
-    const gaunts = [80, 110, 140, 170].map((dx) => spawnEnemy(w, 'ripper', p.x + dx, p.y));
+    const first = spawnEnemy(w, 'warrior', p.x + 80, p.y);
+    first.hp = first.maxHp = 1e6;
     const evs = fireOnce(w);
-    expect(gaunts.every((g) => g.dead || g.hp < g.maxHp)).toBe(true);
+    expect(first.hp).toBeLessThan(first.maxHp);
     const booms = meltaBooms(evs);
     expect(booms).toHaveLength(1);
     expect(booms[0]!.x - p.x).toBeGreaterThan(RANGE * 0.9);
