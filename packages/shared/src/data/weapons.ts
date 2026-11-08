@@ -182,7 +182,7 @@ export const WEAPONS: WeaponDef[] = [
     projectile: {
       kind: 'melta',
       speed: 1200,
-      lifetime: 0.2,
+      lifetime: 0.17,
       radius: 11,
       damage: 300,
       strength: 9,

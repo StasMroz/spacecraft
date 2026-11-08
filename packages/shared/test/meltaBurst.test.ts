@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { TICK_DT } from '../src/constants.js';
 import { WEAPONS } from '../src/data/index.js';
+import { WEAPON_MUZZLE } from '../src/data/muzzle.js';
 import {
   applyInput,
   createWorld,
@@ -59,6 +60,14 @@ describe('Meltagun end-of-range burst', () => {
     expect(burst.radius / fx.radius).toBeGreaterThanOrEqual(0.5);
     expect(burst.radius / fx.radius).toBeLessThanOrEqual(0.6);
     expect(burst.friendlyFire).toBeFalsy();
+  });
+
+  it('reaches 85% of the former 240 px range (204 px)', () => {
+    expect(RANGE).toBeCloseTo(240 * 0.85, 6);
+    const w = world();
+    const p = w.players[0];
+    const b = meltaBooms(fireOnce(w))[0]!;
+    expect(b.x - p.x).toBeLessThan(240 + WEAPON_MUZZLE.meltagun!.forward);
   });
 
   it('a miss bursts once at max range', () => {

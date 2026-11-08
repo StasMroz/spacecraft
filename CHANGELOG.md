@@ -1,5 +1,9 @@
 # Changelog
 
+## v13
+
+- Meltagun: zasięg mniejszy o 15% — z 240 px do 204 px (prędkość 1200 px/s bez zmian, czas lotu pocisku 0,2 s → 0,17 s). Błysk na końcu zasięgu, kompendium i zasady liczą zasięg z tych samych danych. Obrażenia, szybkostrzelność i inne bronie bez zmian.
+
 ## v12
 
 - Odłączona tabela wyników: menu i ekran końca gry bez rankingu (HONOURED DEAD / LEADERS) i bez komunikatu o zapisie wyniku; gra nie czyta ani nie wysyła wyników do leaderboardu (Firestore / serwer HTTP / localStorage).
