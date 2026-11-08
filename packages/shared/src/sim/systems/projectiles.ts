@@ -98,10 +98,6 @@ function hitEnemies(
   hits.sort((a, b) => a.t - b.t);
   for (const { enemy } of hits) {
     if (pr.dead) return;
-    if (coverMiss(world, pr, enemy.x, enemy.y)) {
-      pr.hit.push(enemy.id); // missed in cover: no second roll, the shot flies on
-      continue;
-    }
     // Pierce spent but coasting to an end-of-range burst: ignore further targets.
     if (pr.pierceLeft < 0) return;
     if (pr.pierceBudget) {
@@ -167,10 +163,6 @@ function hitPlayers(world: World, pr: Projectile, x0: number, y0: number): void 
     const r = PLAYER.radius + pr.radius;
     if (segmentDist2(x0, y0, pr.x, pr.y, p.x, p.y) <= r * r) {
       if (pr.hit.includes(-p.id)) continue;
-      if (coverMiss(world, pr, p.x, p.y)) {
-        pr.hit.push(-p.id); // missed the marine in cover: flies on
-        continue;
-      }
       if (tryDeflect(world, pr, p)) return;
       if (pr.damage > 0) {
         // Armour faces the incoming shot: source direction = against its travel (or its
@@ -251,47 +243,42 @@ function tryDeflect(world: World, pr: Projectile, p: Player): boolean {
 const WALL_GAP = 2;
 
 /**
- * Where this tick's segment is stopped by a full wall (t along it), or null. Low cover never
- * stops a shot: it only records the low walls crossed (away from the muzzle) for `inCover`.
+ * Where this tick's segment is stopped by a wall (t along it), or null. Full walls always stop
+ * it. Low cover farther than COVER.ignoreNear from the muzzle stops it with COVER.stopChance,
+ * rolled once per shot and wall, nearest first (a shot stopped by one is never rolled at a
+ * farther one); cover within ignoreNear of the shooter is always fired over.
  */
 function wallStop(world: World, pr: Projectile, x0: number, y0: number): number | null {
   const len = Math.hypot(pr.x - x0, pr.y - y0);
   if (len < 1e-6) return null;
   let best: number | null = null;
+  const low: { i: number; t: number }[] = [];
   world.map.walls.forEach((w, i) => {
     const t = segmentEntry(x0, y0, pr.x, pr.y, w);
     if (t === null) return;
     if (w.kind === 'low') {
-      if (pr.cover?.includes(i)) return;
-      const ox = pr.ox ?? x0;
-      const oy = pr.oy ?? y0;
-      if (rectDist(w, ox, oy) <= COVER.ignoreNear) return;
-      (pr.cover ??= []).push(i);
+      if (!pr.cover?.includes(i)) low.push({ i, t });
       return;
     }
-    if (best === null || t < best) best = Math.max(0, t - WALL_GAP / len);
+    if (best === null || t < best) best = t;
   });
-  return best;
+  low.sort((a, b) => a.t - b.t || a.i - b.i);
+  const ox = pr.ox ?? x0;
+  const oy = pr.oy ?? y0;
+  for (const { i, t } of low) {
+    if (best !== null && t >= best) break;
+    (pr.cover ??= []).push(i);
+    if (rectDist(world.map.walls[i]!, ox, oy) <= COVER.ignoreNear) continue;
+    if (world.rng.chance(COVER.stopChance)) {
+      best = t;
+      break;
+    }
+  }
+  return best === null ? null : Math.max(0, best - WALL_GAP / len);
 }
 
 const rectDist = (w: WallDef, x: number, y: number): number =>
   Math.hypot(x - Math.max(w.x, Math.min(x, w.x + w.w)), y - Math.max(w.y, Math.min(y, w.y + w.h)));
-
-/**
- * Cover roll for a target this shot is about to hit: if it hugs the far side of a low wall the
- * shot flew over, the shot misses it with COVER.missChance (once per target) and flies on.
- */
-function coverMiss(world: World, pr: Projectile, x: number, y: number): boolean {
-  if (!pr.cover?.length) return false;
-  const ox = pr.ox ?? x;
-  const oy = pr.oy ?? y;
-  const far = Math.hypot(x - ox, y - oy);
-  const hugging = pr.cover.some((i) => {
-    const w = world.map.walls[i]!;
-    return rectDist(w, x, y) <= COVER.hugDist && rectDist(w, ox, oy) < far;
-  });
-  return hugging && world.rng.chance(COVER.missChance);
-}
 
 /** `atRange` = the projectile ran out of lifetime inside the arena (not a hit, not off-map). */
 function detonate(world: World, pr: Projectile, atRange = false): void {

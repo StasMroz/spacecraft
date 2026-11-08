@@ -9,7 +9,7 @@ export interface ArenaSize {
 /**
  * Axis-aligned wall block (world px, top-left + size). Both kinds block movement and melee for
  * marines and Tyranids alike. `full` also blocks shots, blasts and line of sight; `low` cover can
- * be seen and shot over, and shots fly over it; a target hugging its far side is harder to hit (COVER in maps/walls.ts).
+ * be seen and shot over, and shots fly over it near the shooter, otherwise may stop on it (COVER in maps/walls.ts).
  */
 export interface WallDef {
   x: number;

@@ -79,36 +79,30 @@ describe('Meltagun single direct hit (v20: no pierce)', () => {
     expect(WEAPONS.some((w) => w.projectile.pierceBudget)).toBe(false);
   });
 
-  it('a low-cover miss does not use up the single direct hit', () => {
-    let through = 0;
-    for (let s = 1; s <= 60; s++) {
+  it('far low cover: the beam either stops ON it and flashes there, or flies on to max range', () => {
+    let onCover = 0;
+    let atRange = 0;
+    for (let s = 1; s <= 80; s++) {
       const w = createWorld([{ id: 1, name: 'M1' }], s);
-      w.map = { ...w.map, walls: [{ x: 700, y: 500, w: 24, h: 200, kind: 'low' }] };
+      w.map = { ...w.map, walls: [{ x: 720, y: 500, w: 24, h: 200, kind: 'low' }] };
       w.director.idle = true;
       const p = w.players[0];
       p.x = 600;
       p.y = 600;
       grantWeapon(w, p, 'meltagun');
       p.current = 'meltagun';
-      const front = spawnEnemy(w, 'carnifex', 760, 600);
-      const back = spawnEnemy(w, 'carnifex', 790, 640);
-      let hit: number[] = [];
-      for (let t = 0; t < 60; t++) {
-        applyInput(w, p.id, { ...emptyInput(), seq: ++seq, aim: 0, fire: t < 30 && !hit.length });
-        front.x = 760;
-        front.y = 600;
-        back.x = 790;
-        back.y = 610;
+      const booms: number[] = [];
+      for (let t = 0; t < 30; t++) {
+        applyInput(w, p.id, { ...emptyInput(), seq: ++seq, aim: 0, fire: t === 0 });
         stepWorld(w, TICK_DT);
-        const pr = w.projectiles.find((x) => x.kind === 'melta');
-        if (pr) hit = pr.hit.filter((id) => id === front.id || id === back.id);
-        if (w.events.some((e) => e.e === 'shot') && !pr) break;
+        for (const e of w.events) if (e.e === 'boom') booms.push(e.x);
       }
-      // a miss in cover is recorded in `hit` too: the damaged one is the real direct hit
-      const damaged = [front, back].filter((e) => e.hp < e.maxHp || e.dead);
-      if (front.hp === front.maxHp && back.hp < back.maxHp) through++;
-      expect(damaged.length).toBeLessThanOrEqual(2);
+      expect(booms).toHaveLength(1); // exactly one flash per shot
+      if (booms[0]! >= 700 && booms[0]! <= 722) onCover++;
+      else if (booms[0]! > 800) atRange++;
     }
-    expect(through).toBeGreaterThan(3);
+    expect(onCover + atRange).toBe(80);
+    expect(onCover).toBeGreaterThan(24);
+    expect(atRange).toBeGreaterThan(24);
   });
 });

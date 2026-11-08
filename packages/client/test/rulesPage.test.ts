@@ -29,6 +29,12 @@ describe('rules page', () => {
     expect(html).toContain('Gwardziści');
     expect(html.slice(0, html.indexOf('<details'))).toMatch(/boss wsparcia — <b>Psychophage/);
   });
+  it('describes the v24 low cover: free near the shooter, 50% stop on far cover, no old miss rule', () => {
+    expect(html).toContain('do 70 px od strzelca');
+    expect(html).toContain('<b>50%</b> szansy, że zatrzyma się NA niej');
+    expect(html).not.toMatch(/przyklejony|trudniejszy do trafienia|30%<\/b> szansy, że go minie/);
+  });
+
   it('describes the v21 melta consistently: one direct hit, no pierce claims', () => {
     expect(defaultContent.weapon('meltagun').projectile.pierce).toBe(0);
     expect(html).not.toMatch(/przebiciu celów|przebija wszystko|najmniejsze/);

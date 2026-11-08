@@ -162,6 +162,32 @@ describe('Guardsmen', () => {
     expect(w.projectiles.filter((p) => p.kind === 'lasgun')).toHaveLength(0);
   });
 
+  it('lasgun shots over far low cover: some stop on it, some reach the Tyranid', () => {
+    const w = withAllies();
+    const a = w.allies[0]!;
+    w.allies = [a];
+    const wx = a.x + 150;
+    w.map = {
+      ...w.map,
+      walls: [...w.map.walls, { x: wx, y: a.y - 300, w: 24, h: 600, kind: 'low' }],
+    };
+    const e = spawnEnemy(w, 'carnifex', a.x + 320, a.y);
+    e.hp = e.maxHp = 1e6;
+    let onCover = 0;
+    let reached = 0;
+    for (let t = 0; t < 300; t++) {
+      e.x = a.x + 320;
+      e.y = a.y;
+      stepWorld(w, TICK_DT);
+      for (const ev of w.events) {
+        if (ev.e === 'bnc' && ev.k === 'lasgun' && Math.abs(ev.x - wx) < 12) onCover++;
+        if ((ev.e === 'hit' || ev.e === 'bnc') && ev.k === 'lasgun' && ev.x > a.x + 260) reached++;
+      }
+    }
+    expect(onCover).toBeGreaterThan(3);
+    expect(reached).toBeGreaterThan(3);
+  });
+
   it('after surviving the wave they follow the nearest marine', () => {
     for (const seed of [1, 2, 5, 7, 9]) {
       const w = withAllies(seed, 2);

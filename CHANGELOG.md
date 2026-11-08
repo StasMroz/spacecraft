@@ -1,5 +1,12 @@
 # Changelog
 
+## v24
+
+- Niska osłona, nowy wariant (decyzja balansu, nie zasada 40k): osłona do 70 jednostek świata od strzelca — pociski swobodnie nad nią przelatują. Osłona dalej — 50% szans, że pocisk zatrzyma się NA osłonie (iskra, jak na ścianie); inaczej leci dalej. Losowane raz na pocisk i osłonę (bez losowania co tick), od najbliższej; kilka osłon losuje się osobno. Dotyczy pocisków marines, Tyranidów i Gwardzistów.
+- Usunięto starą regułę: 30% szans chybienia celu do 60 px za osłoną.
+- Pełne ściany i ruch bez zmian. Melta bez zmian (bez przebicia, co 1,13 s); zatrzymana na osłonie robi błysk końcowy na osłonie — tak samo jak na pełnej ścianie.
+- Zasady, testy (walls, meltaPierce, crash, rulesPage) i baseline determinizmu zaktualizowane.
+
 ## v23
 
 - Poprawka opisu: akapit zasad „Meltagun: błysk na końcu zasięgu” mówił jeszcze o „przebiciu celów”. Teraz: po trafieniu pierwszego celu pocisk leci dalej do końca zasięgu bez kolejnych trafień i błyska raz (zgodnie z v21). Test pilnuje, by zasady i kompendium nie zawierały starych twierdzeń o przebiciu melty. Mechanika bez zmian.

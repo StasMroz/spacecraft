@@ -147,57 +147,111 @@ describe('projectiles', () => {
     expect(shoot([full(750, 400, 32, 400)], 900, 1, 'frag_grenade').hit).toBe(false);
   });
 
-  it('every shot flies over low cover and hits a target beyond it', () => {
-    for (let s = 1; s <= 60; s++) {
-      const r = shoot([low(800, 400, 32, 400)], 1000, s);
-      expect(r.hit).toBe(true);
-      // nothing sparks on the barricade itself
-      expect(r.evs.some((x) => x.e === 'bnc' && x.x >= 790 && x.x <= 840)).toBe(false);
+  /** One shot only; `hit` = the target took damage, `stopX` = where it sparked on a wall. */
+  const once = (walls: WallDef[], enemyX: number, seed: number, weapon = 'bolt_rifle') => {
+    const w = world(walls, seed);
+    const p = w.players[0];
+    grantWeapon(w, p, weapon);
+    p.current = weapon;
+    const e = spawnEnemy(w, 'carnifex', enemyX, 600);
+    e.hp = e.maxHp = 1e9;
+    const evs: GameEvent[] = [];
+    for (let t = 0; t < 40; t++) {
+      e.x = enemyX;
+      e.y = 600;
+      evs.push(...run(w, 1, { aim: 0, fire: t === 0 }));
+    }
+    const shots = evs.filter((x) => x.e === 'shot').length;
+    const stop = evs.find((x) => x.e === 'bnc' && x.x < enemyX - 60);
+    // reached the target = damaged it or bounced off its carapace (Carnifex armour)
+    const reached = e.hp < 1e9 || evs.some((x) => x.e === 'bnc' && x.x > enemyX - 60);
+    return { hit: reached, stopX: stop && 'x' in stop ? stop.x : null, shots, evs };
+  };
+  const rate = (f: (s: number) => boolean, n = 200) => {
+    let k = 0;
+    for (let s = 1; s <= n; s++) if (f(s)) k++;
+    return k / n;
+  };
+
+  it(`far low cover stops ~${COVER.stopChance * 100}% of shots ON the cover, the rest hit behind it`, () => {
+    let stopped = 0;
+    let hit = 0;
+    const n = 200;
+    for (let s = 1; s <= n; s++) {
+      const r = once([low(800, 400, 32, 400)], 1000, s);
+      expect(r.shots).toBe(1);
+      expect(r.hit && r.stopX !== null).toBe(false); // never both
+      if (r.stopX !== null) {
+        stopped++;
+        expect(r.stopX).toBeGreaterThanOrEqual(790);
+        expect(r.stopX).toBeLessThanOrEqual(802);
+      }
+      if (r.hit) hit++;
+    }
+    expect(stopped + hit).toBe(n);
+    expect(stopped / n).toBeGreaterThan(COVER.stopChance - 0.1);
+    expect(stopped / n).toBeLessThan(COVER.stopChance + 0.1);
+  });
+
+  it('one roll per shot and wall: a thick barricade does not stop more often', () => {
+    const thin = rate((s) => once([low(800, 400, 32, 400)], 1100, s).hit);
+    const thick = rate((s) => once([low(800, 400, 200, 400)], 1100, s).hit);
+    expect(Math.abs(thin - thick)).toBeLessThan(0.12);
+  });
+
+  it('two far barricades: rolled separately (~25% get through both)', () => {
+    const r = rate((s) => once([low(760, 400, 24, 400), low(900, 400, 24, 400)], 1100, s).hit);
+    expect(r).toBeGreaterThan(0.15);
+    expect(r).toBeLessThan(0.35);
+  });
+
+  it(`cover up to ${COVER.ignoreNear} px from the shooter is always fired over; just beyond it rolls`, () => {
+    // marine centre at x=600, the muzzle origin is the marine
+    expect(rate((s) => once([low(600 + COVER.ignoreNear, 400, 32, 400)], 1000, s).hit, 60)).toBe(1);
+    expect(rate((s) => once([low(630, 400, 32, 400)], 1000, s).hit, 60)).toBe(1);
+    expect(
+      rate((s) => once([low(600 + COVER.ignoreNear + 4, 400, 32, 400)], 1000, s).hit, 120),
+    ).toBeLessThan(0.75);
+  });
+
+  it('same seed, same decision (deterministic, no per-tick reroll)', () => {
+    for (let s = 1; s <= 20; s++) {
+      const a = once([low(800, 400, 32, 400)], 1000, s);
+      const b = once([low(800, 400, 32, 400)], 1000, s);
+      expect([a.hit, a.stopX]).toEqual([b.hit, b.stopX]);
     }
   });
 
-  it(`a target hugging the far side of low cover is missed ~${COVER.missChance * 100}% (the shot flies on)`, () => {
-    let missed = 0;
-    const n = 160;
-    for (let s = 1; s <= n; s++) if (!shoot([low(800, 400, 32, 400)], 870, s).hit) missed++;
-    expect(missed / n).toBeGreaterThan(COVER.missChance - 0.12);
-    expect(missed / n).toBeLessThan(COVER.missChance + 0.12);
+  it('a target standing before far cover is hit normally', () => {
+    expect(rate((s) => once([low(900, 400, 32, 400)], 800, s).hit, 60)).toBe(1);
   });
 
-  it('a missed shot in cover keeps flying and hits what is behind', () => {
-    let behind = 0;
-    for (let s = 1; s <= 80; s++) {
-      const w = world([low(800, 400, 32, 400)], s);
-      const p = w.players[0];
-      const front = spawnEnemy(w, 'carnifex', 870, 600);
-      const back = spawnEnemy(w, 'carnifex', 1150, 600);
-      front.hp = front.maxHp = back.hp = back.maxHp = 1e9;
-      for (let t = 0; t < 40; t++) {
-        front.x = 870;
-        back.x = 1150;
-        front.y = back.y = 600;
-        run(w, 1, { aim: 0, fire: t === 0 });
+  it('Tyranid spit: fired over near cover, ~half stopped by far cover, never through a full wall', () => {
+    const hits = (walls: WallDef[], seeds = 40) => {
+      let k = 0;
+      for (let s = 1; s <= seeds; s++) {
+        const w = world(walls, s);
+        w.players[0].aim = Math.PI; // back to the spitter: no front-plate ricochet
+        const e = spawnEnemy(w, 'termagant', 950, 600);
+        e.attackCooldown = 0;
+        let fired = false;
+        for (let t = 0; t < 60; t++) {
+          e.x = 950;
+          e.y = 600;
+          const ev = run(w, 1, { aim: Math.PI });
+          if (ev.some((x) => x.e === 'spit')) fired = true;
+          if (fired) e.attackCooldown = 99; // exactly one spit
+        }
+        if (w.players[0].hp < 1e9) k++;
       }
-      if (front.hp === 1e9 && back.hp < 1e9) behind++;
-      expect(p.x).toBeLessThan(800);
-    }
-    expect(behind).toBeGreaterThan(5);
-  });
-
-  it('Tyranid spit flies over low cover to the marine, never through a full wall', () => {
-    const hurt = (walls: WallDef[]) => {
-      const w = world(walls, 5);
-      w.players[0].aim = Math.PI; // back to the spitter: no front-plate ricochet
-      const e = spawnEnemy(w, 'termagant', 950, 600);
-      for (let t = 0; t < 120; t++) {
-        e.x = 950;
-        e.y = 600;
-        run(w, 1, { aim: Math.PI });
-      }
-      return w.players[0].hp < 1e9;
+      return k / seeds;
     };
-    expect(hurt([low(760, 450, 32, 300)])).toBe(true);
-    expect(hurt([full(760, 450, 32, 300)])).toBe(false);
+    const open = hits([], 80); // spit has spread: not every one lands even in the open
+    expect(hits([low(900, 450, 32, 300)], 80)).toBe(open); // within 70 of the spitter: free
+    const far = hits([low(760, 450, 32, 300)], 80);
+    expect(far / open).toBeGreaterThan(0.3);
+    expect(far / open).toBeLessThan(0.7);
+    expect(hits([full(760, 450, 32, 300)])).toBe(0);
   });
 
   it('firing over your own cover is free', () => {

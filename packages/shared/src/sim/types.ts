@@ -220,7 +220,7 @@ export interface Projectile {
   /** Where the shot was fired (low cover right next to it does not stop it). */
   ox?: number;
   oy?: number;
-  /** Low-cover walls (map indices) this shot already rolled against. */
+  /** Low-cover walls (map indices) this shot already crossed or rolled against (one roll each). */
   cover?: number[];
   /** Enemy ids already hit (so piercing shots hit each target once). */
   hit: number[];
