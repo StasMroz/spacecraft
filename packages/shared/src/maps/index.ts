@@ -3,6 +3,7 @@ import type { MapDef } from './types.js';
 import { WAVE_MAP } from './wave.js';
 
 export * from './types.js';
+export { COVER, WAVE_WALLS } from './walls.js';
 export { WAVE_MAP };
 
 /** Map played when nothing else is chosen (every current session, wire message and board). */

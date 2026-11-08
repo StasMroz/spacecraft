@@ -5,6 +5,56 @@ import type { SpatialHash } from '../spatialHash.js';
 import { allocId } from '../world.js';
 import type { Enemy, Player, World } from '../types.js';
 import { damagePlayer, explode } from './combat.js';
+import {
+  buildFlowField,
+  flowDirection,
+  pushOutOfWalls,
+  segmentBlocked,
+  type FlowField,
+} from '../walls.js';
+
+/** Path field towards the marines, rebuilt every FLOW_TICKS ticks. */
+const FLOW_TICKS = 6;
+const flowCache = new WeakMap<World, { tick: number; field: FlowField }>();
+
+function flowField(world: World): FlowField {
+  const c = flowCache.get(world);
+  if (c && world.tick - c.tick < FLOW_TICKS) return c.field;
+  const goals = world.players.filter((p) => p.state === 'alive');
+  const field = buildFlowField(world.map.arena, world.map.walls, goals);
+  flowCache.set(world, { tick: world.tick, field });
+  return field;
+}
+
+/**
+ * Where to head for the target: straight at it with a per-enemy flank angle while the way is
+ * clear (the swarm fans out instead of trailing in one line), else down the path field.
+ */
+function heading(
+  world: World,
+  e: Enemy,
+  r: number,
+  target: Player,
+  nx: number,
+  ny: number,
+  d: number,
+): { x: number; y: number } {
+  const walls = world.map.walls;
+  if (walls.length && segmentBlocked(walls, e.x, e.y, target.x, target.y, undefined, r * 0.8)) {
+    const f = flowDirection(flowField(world), e.x, e.y);
+    if (f) return f;
+  }
+  const spread = FLANK.maxAngle * Math.min(1, Math.max(0, (d - FLANK.near) / FLANK.far));
+  const a = (((e.id * 0.6180339887) % 1) - 0.5) * 2 * spread;
+  const c = Math.cos(a);
+  const sn = Math.sin(a);
+  return { x: nx * c - ny * sn, y: nx * sn + ny * c };
+}
+
+/** Fan-out while closing in: up to ±maxAngle (rad) beyond `near` px, full at near + far. */
+const FLANK = { maxAngle: 0.5, near: 120, far: 360 } as const;
+/** Personal space as a multiple of the touching distance; overlap is also corrected directly. */
+const SEPARATION = { space: 1.25, steer: 1.6, correct: 0.35 } as const;
 
 function nearestAlivePlayer(world: World, x: number, y: number): Player | undefined {
   let best: Player | undefined;
@@ -117,6 +167,7 @@ export function updateEnemies(world: World, hash: SpatialHash<Enemy>, dt: number
         e.y = clamp(e.y + e.vy * dt, def.radius, world.map.arena.height - def.radius);
         if (d <= def.burrow!.emergeDistance) {
           e.burrowed = false;
+          pushOutOfWalls(e, def.radius, world.map.walls);
           e.attackCooldown = 0.35;
           e.vx = nx * speed * 1.5;
           e.vy = ny * speed * 1.5;
@@ -131,12 +182,19 @@ export function updateEnemies(world: World, hash: SpatialHash<Enemy>, dt: number
         switch (def.behavior) {
           case 'melee':
           case 'kamikaze': {
-            desiredX = nx * speed;
-            desiredY = ny * speed;
+            const h = heading(world, e, def.radius, target, nx, ny, d);
+            desiredX = h.x * speed;
+            desiredY = h.y * speed;
             break;
           }
           case 'ranged': {
             const r = def.ranged!;
+            if (segmentBlocked(world.map.walls, e.x, e.y, target.x, target.y, 'full')) {
+              const h = heading(world, e, def.radius, target, nx, ny, d);
+              desiredX = h.x * speed;
+              desiredY = h.y * speed;
+              break;
+            }
             // Synapse makes shooters bolder: they close in further.
             const pref = r.preferredDistance * (e.synSpeed > 1 ? 0.7 : 1) * (e.hunt ? 0.5 : 1);
             let radial = 0;
@@ -157,7 +215,12 @@ export function updateEnemies(world: World, hash: SpatialHash<Enemy>, dt: number
       // Melee contact damage (dashing uses the charge damage).
       const reach = def.radius + PLAYER.radius + 4;
       const contact = e.chargePhase === 2 ? def.charge!.damage : def.contactDamage;
-      if (contact > 0 && d <= reach && e.attackCooldown <= 0) {
+      if (
+        contact > 0 &&
+        d <= reach &&
+        e.attackCooldown <= 0 &&
+        !segmentBlocked(world.map.walls, e.x, e.y, target.x, target.y)
+      ) {
         e.attackCooldown = def.contactCooldown;
         e.attackAnim = 0.3;
         damagePlayer(world, target, contact * e.synDamage, { fromX: e.x, fromY: e.y });
@@ -190,10 +253,10 @@ export function updateEnemies(world: World, hash: SpatialHash<Enemy>, dt: number
       // Separation from neighbours.
       let sx = 0;
       let sy = 0;
-      hash.query(e.x, e.y, def.radius * 2 + 10, (o) => {
+      hash.query(e.x, e.y, (def.radius + 40) * SEPARATION.space, (o) => {
         if (o === e || o.dead || o.burrowed) return;
         const or = world.content.enemy(o.type).radius;
-        const minD = def.radius + or;
+        const minD = (def.radius + or) * SEPARATION.space;
         const dx = e.x - o.x;
         const dy = e.y - o.y;
         const d2 = dx * dx + dy * dy;
@@ -204,16 +267,20 @@ export function updateEnemies(world: World, hash: SpatialHash<Enemy>, dt: number
           sy += (dy / d) * push;
         }
       });
-      desiredX += sx * speed * 1.5;
-      desiredY += sy * speed * 1.5;
+      desiredX += sx * speed * SEPARATION.steer;
+      desiredY += sy * speed * SEPARATION.steer;
 
       // Steering towards desired velocity (knockback decays naturally).
       const k = Math.min(1, def.accel * dt);
       e.vx += (desiredX - e.vx) * k;
       e.vy += (desiredY - e.vy) * k;
     }
-    e.x = clamp(e.x + e.vx * dt, def.radius, world.map.arena.width - def.radius);
-    e.y = clamp(e.y + e.vy * dt, def.radius, world.map.arena.height - def.radius);
+    e.x = e.x + e.vx * dt;
+    e.y = e.y + e.vy * dt;
+    if (!charging) resolveOverlap(world, e, def.radius, hash);
+    pushOutOfWalls(e, def.radius, world.map.walls);
+    e.x = clamp(e.x, def.radius, world.map.arena.width - def.radius);
+    e.y = clamp(e.y, def.radius, world.map.arena.height - def.radius);
 
     // Enemies never push marines (keeps client prediction exact); push the enemy out instead.
     for (const p of world.players) {
@@ -232,6 +299,30 @@ export function updateEnemies(world: World, hash: SpatialHash<Enemy>, dt: number
   world.enemies = world.enemies.filter((e) => !e.dead);
 }
 
+/** Moves `e` part of the way out of any body it still overlaps (no stacking in a tight swarm). */
+function resolveOverlap(world: World, e: Enemy, r: number, hash: SpatialHash<Enemy>): void {
+  let px = 0;
+  let py = 0;
+  hash.query(e.x, e.y, r + 40, (o) => {
+    if (o === e || o.dead || o.burrowed) return;
+    const minD = r + world.content.enemy(o.type).radius;
+    const dx = e.x - o.x;
+    const dy = e.y - o.y;
+    const d2 = dx * dx + dy * dy;
+    if (d2 >= minD * minD) return;
+    if (d2 < 1e-6) {
+      // Exactly stacked: split deterministically by id.
+      px += e.id < o.id ? -minD : minD;
+      return;
+    }
+    const d = Math.sqrt(d2);
+    px += (dx / d) * (minD - d);
+    py += (dy / d) * (minD - d);
+  });
+  e.x += px * SEPARATION.correct;
+  e.y += py * SEPARATION.correct;
+}
+
 function spit(world: World, e: Enemy, target: Player, radius: number): void {
   const spec = world.content.enemy(e.type).ranged!.projectile;
   e.attackAnim = 0.3;
@@ -241,6 +332,8 @@ function spit(world: World, e: Enemy, target: Player, radius: number): void {
     id: allocId(world),
     owner: 'enemy',
     ownerId: e.id,
+    ox: e.x,
+    oy: e.y,
     kind: spec.kind,
     x: e.x + Math.cos(a) * radius,
     y: e.y + Math.sin(a) * radius,

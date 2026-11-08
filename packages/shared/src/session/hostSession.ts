@@ -340,7 +340,7 @@ export class HostSession {
             extra.my,
             marineMoveSpeed(this.content.weapon(p.current), p.fireSlow),
             TICK_DT,
-            world.map.arena,
+            world.map,
           );
           p.lastInputSeq = Math.max(p.lastInputSeq, extra.seq);
         }

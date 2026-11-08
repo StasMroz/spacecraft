@@ -1,5 +1,6 @@
 /** Rules & instructions (Polish), plus the generated compendium. */
 import {
+  COVER,
   GAME_VERSION,
   MARINE_AIM_RECOIL,
   MARINE_DIRECTIONAL_ARMOUR,
@@ -146,6 +147,13 @@ export function rulesHtml(c: ContentRegistry): string {
     <li><b>Plazma się grzeje</b>: powyżej kreski strzały są przeładowane (mocniejsze), na szczycie broń się przegrzewa i rani strzelca.</li>
     <li><b>Siła vs Wytrzymałość i pancerz</b>: lekka broń odbija się od pancerza Carnifexa, Meltagun przebija wszystko.</li>
     ${bursts}
+  </ul>
+</section>
+<section id="sciany"><h2>Ściany i osłony</h2>
+  <ul>
+    <li><b>Pełna ściana</b> (szary grodź): nie da się przez nią przejść ani zaatakować wręcz, zatrzymuje pociski i wybuchy, a to, co za nią, jest zasłonięte (cień).</li>
+    <li><b>Niska osłona</b> (barykada w żółte pasy): blokuje ruch i walkę wręcz, ale widać i strzela się nad nią. Każdy pocisk, który ją przecina, ma <b>${Math.round(COVER.stopChance * 100)}%</b> szansy, że zatrzyma się na osłonie — chyba że strzelec stoi przy niej (do ${COVER.ignoreNear} px), wtedy strzela swobodnie. To decyzja balansu, nie zasada z 40k.</li>
+    <li>Tyranidzi obchodzą ściany, a ci strzelający plują tylko, gdy widzą cel.</li>
   </ul>
 </section>
 <section id="odrzut"><h2>Odrzut</h2>

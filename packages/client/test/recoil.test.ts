@@ -25,9 +25,8 @@ describe('client recoil mirror', () => {
       const fire = t % 50 < 20;
       const now = t * TICK_DT * 1000;
       applyInput(w, 1, { ...emptyInput(), seq: t + 1, my: 1, aim: 0.5, fire });
-      const fired = w.projectiles.length;
       stepWorld(w, TICK_DT);
-      const shot = w.projectiles.length !== fired;
+      const shot = w.events.some((e) => e.e === 'shot' && e.p === 1);
       if (!shot && t > 0) {
         // no new kick this tick: the mirror's recovery must land on the host value
         expect(Math.abs(m.angle(now) - p.recoil)).toBeLessThan(1 / 2000 + 1e-5);

@@ -1,4 +1,5 @@
 import { MAX_PLAYERS, PICKUP } from '../../constants.js';
+import { pushOutOfWalls } from '../walls.js';
 import type { DirectorConfig, PerTeamSize, WaveTableEntry } from '../../data/index.js';
 import { clamp, dist2 } from '../../math/vec.js';
 import { allocId, alivePlayers } from '../world.js';
@@ -452,6 +453,7 @@ function makeEnemy(world: World, type: string, x: number, y: number, hpMul: numb
     spawnTimer: def.spawner ? def.spawner.interval * world.rng.range(0.4, 1) : 0,
     hunt: world.director.hunting,
   };
+  if (!e.burrowed) pushOutOfWalls(e, def.radius, world.map.walls);
   return e;
 }
 
@@ -492,7 +494,10 @@ export function spawnCrate(world: World): void {
       weights[w.id] = w.crateWeight;
   }
   const weapon = world.rng.weighted(weights);
-  const [x, y] = pickSpawnPoint(world, cfg.minDistance, cfg.maxDistance, 60);
+  const at = pickSpawnPoint(world, cfg.minDistance, cfg.maxDistance, 60);
+  const pos = { x: at[0], y: at[1] };
+  pushOutOfWalls(pos, 24, world.map.walls);
+  const { x, y } = pos;
   world.pickups.push({
     id: allocId(world),
     kind: weapon ? 'weapon' : 'medkit',

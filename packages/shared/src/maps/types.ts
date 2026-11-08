@@ -7,6 +7,19 @@ export interface ArenaSize {
 }
 
 /**
+ * Axis-aligned wall block (world px, top-left + size). Both kinds block movement and melee for
+ * marines and Tyranids alike. `full` also blocks shots, blasts and line of sight; `low` cover can
+ * be seen and shot over, but each crossing shot may be stopped by it (COVER in maps/walls.ts).
+ */
+export interface WallDef {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  kind: 'full' | 'low';
+}
+
+/**
  * Where the squad deploys: marines stand on a ring around (x, y) whose radius grows with the
  * squad, max(ringMin, teamSize * ringPerMarine); a lone marine stands exactly on (x, y).
  */
@@ -24,8 +37,8 @@ export interface PlayerSpawnDef {
  *
  * Future maps (harder variants of the wave map) are new entries, typically a spread of the wave
  * map with a tuned `director` / `arena` (see `defineMap`). Not yet modelled, add fields here
- * when a map needs them: obstacles / blocking terrain, floor theme / scenery for the renderer,
- * per-map player stats or weapon pools.
+ * when a map needs them: floor theme / scenery for the renderer, per-map player stats or weapon
+ * pools.
  */
 export interface MapDef {
   /** Stable id (future wire / leaderboard key). Lowercase, [a-z0-9_-]. Never rename once released. */
@@ -37,6 +50,7 @@ export interface MapDef {
   description?: string;
   arena: ArenaSize;
   playerSpawn: PlayerSpawnDef;
+  walls: readonly WallDef[];
   /** Waves, squad-size scaling, breaches (spawn points), drops, bosses and the wave table. */
   director: DirectorConfig;
 }

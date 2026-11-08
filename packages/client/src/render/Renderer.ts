@@ -8,6 +8,7 @@ import {
   muzzlePoint,
   PLAYER,
   ENEMY_FLAG,
+  type WallDef,
   type ChapterDef,
   type ContentRegistry,
   type EnemyDef,
@@ -21,6 +22,7 @@ import { chapterUiColor } from './colors.js';
 import type { Assets } from './assets.js';
 import { Camera } from './camera.js';
 import { Particles } from './particles.js';
+import { visibleTo } from './visibility.js';
 import {
   DEFAULT_ENEMY_VISUAL,
   DEFAULT_PROJECTILE_VISUAL,
@@ -157,6 +159,103 @@ export class Renderer {
   }
 
   /** Ruined hive-city dressing around the arena + creep patches (deterministic). */
+  /** Local marine's eye, for full-wall line of sight (null = spectating: see everything). */
+  private viewer: { x: number; y: number } | null = null;
+
+  private hiddenFromViewer(x: number, y: number): boolean {
+    return !visibleTo(this.content.map.walls, this.viewer, x, y);
+  }
+
+  /** Darkness cast away from the local marine by every full wall. */
+  private drawSightShadows(): void {
+    const v = this.viewer;
+    if (!v) return;
+    const { ctx } = this;
+    const far = 6000;
+    ctx.save();
+    ctx.fillStyle = 'rgba(4, 3, 2, 0.88)';
+    ctx.beginPath();
+    for (const w of this.content.map.walls) {
+      if (w.kind !== 'full') continue;
+      const corners: [number, number][] = [
+        [w.x, w.y],
+        [w.x + w.w, w.y],
+        [w.x + w.w, w.y + w.h],
+        [w.x, w.y + w.h],
+      ];
+      // Silhouette corners: extreme angles around the direction to the wall's centre.
+      const mid = Math.atan2(w.y + w.h / 2 - v.y, w.x + w.w / 2 - v.x);
+      const rel = (p: [number, number]) => {
+        let d = Math.atan2(p[1] - v.y, p[0] - v.x) - mid;
+        while (d > Math.PI) d -= 2 * Math.PI;
+        while (d < -Math.PI) d += 2 * Math.PI;
+        return d;
+      };
+      const sorted = [...corners].sort((p, q) => rel(p) - rel(q));
+      const a = sorted[0]!;
+      const b = sorted[3]!;
+      const out = (p: [number, number]): [number, number] => {
+        const l = Math.hypot(p[0] - v.x, p[1] - v.y) || 1;
+        return [p[0] + ((p[0] - v.x) / l) * far, p[1] + ((p[1] - v.y) / l) * far];
+      };
+      // Same winding for every wall so overlapping shadows union under 'nonzero'.
+      const fa = out(a);
+      const fb = out(b);
+      ctx.moveTo(a[0], a[1]);
+      ctx.lineTo(fa[0], fa[1]);
+      ctx.lineTo(fb[0], fb[1]);
+      ctx.lineTo(b[0], b[1]);
+      ctx.closePath();
+    }
+    ctx.fill('nonzero');
+    ctx.restore();
+  }
+
+  private drawWalls(): void {
+    const { ctx } = this;
+    for (const w of this.content.map.walls) this.drawWall(ctx, w);
+  }
+
+  private drawWall(ctx: CanvasRenderingContext2D, w: WallDef): void {
+    ctx.save();
+    if (w.kind === 'full') {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+      ctx.fillRect(w.x + 6, w.y + 8, w.w, w.h);
+      ctx.fillStyle = '#3b3a3f';
+      ctx.fillRect(w.x, w.y, w.w, w.h);
+      ctx.fillStyle = '#5c5b63';
+      ctx.fillRect(w.x + 3, w.y + 3, w.w - 6, w.h - 6);
+      ctx.strokeStyle = '#18171b';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(w.x, w.y, w.w, w.h);
+      ctx.fillStyle = '#2a292e';
+      const horiz = w.w >= w.h;
+      for (let t = 24; t < (horiz ? w.w : w.h) - 8; t += 48)
+        if (horiz) ctx.fillRect(w.x + t, w.y + 3, 4, w.h - 6);
+        else ctx.fillRect(w.x + 3, w.y + t, w.w - 6, 4);
+    } else {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+      ctx.fillRect(w.x + 3, w.y + 4, w.w, w.h);
+      ctx.fillStyle = '#6e5a3a';
+      ctx.fillRect(w.x, w.y, w.w, w.h);
+      ctx.beginPath();
+      ctx.rect(w.x, w.y, w.w, w.h);
+      ctx.clip();
+      ctx.strokeStyle = '#d8a530';
+      ctx.lineWidth = 6;
+      for (let t = -w.h; t < w.w + w.h; t += 22) {
+        ctx.beginPath();
+        ctx.moveTo(w.x + t, w.y + w.h);
+        ctx.lineTo(w.x + t + w.h, w.y);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = '#2b2116';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(w.x + 1, w.y + 1, w.w - 2, w.h - 2);
+    }
+    ctx.restore();
+  }
+
   private buildScenery(): void {
     const W = this.content.map.arena.width;
     const H = this.content.map.arena.height;
@@ -295,6 +394,8 @@ export class Renderer {
 
   render(f: RenderFrame): void {
     const { ctx, camera } = this;
+    const mine = f.b.players.find((p) => p.id === f.myId);
+    this.viewer = f.me ?? (mine && mine.st === 'alive' ? { x: mine.x, y: mine.y } : null);
     this.particles.update(f.dt);
     this.time = f.nowMs / 1000;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -325,6 +426,8 @@ export class Renderer {
     this.drawPlayers(f);
     this.drawProjectiles(f);
     this.drawParticles();
+    this.drawSightShadows();
+    this.drawWalls();
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.drawVignette();
@@ -658,6 +761,7 @@ export class Renderer {
       const last = this.lastHp.get(id);
       if (last !== undefined && hp < last) this.hitFlash.set(id, 0.08);
       this.lastHp.set(id, hp);
+      if (this.hiddenFromViewer(x, y)) continue;
       const typeId = this.content.enemyIds[typeIdx] ?? '';
       const def: EnemyDef | undefined = this.content.enemies.get(typeId);
       const vis = ENEMY_VISUALS[typeId] ?? DEFAULT_ENEMY_VISUAL;

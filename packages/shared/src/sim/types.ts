@@ -165,6 +165,11 @@ export interface Projectile {
    */
   sx?: number;
   sy?: number;
+  /** Where the shot was fired (low cover right next to it does not stop it). */
+  ox?: number;
+  oy?: number;
+  /** Low-cover walls (map indices) this shot already rolled against. */
+  cover?: number[];
   /** Enemy ids already hit (so piercing shots hit each target once). */
   hit: number[];
   /** Ricocheted off a marine's front plate: harmless to everyone, fading out. */

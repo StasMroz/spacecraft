@@ -1,3 +1,4 @@
+import { visibleTo } from './visibility.js';
 import {
   PLAYER,
   ROLE_COLOR,
@@ -398,6 +399,12 @@ export class Hud {
     return chapterUiColor(this.content.chapter(c));
   }
 
+  /** Full walls hide what is behind them from the local marine (minimap dots, boss HP). */
+  private sees(s: HudState, x: number, y: number): boolean {
+    const me = s.me && s.me.st === 'alive' ? s.me : null;
+    return visibleTo(this.content.map.walls, me, x, y);
+  }
+
   /** Boss health bar centred on `cx` (under the timer; compact: top of the band); returns its height (0 = none). */
   private bossBar(
     ctx: CanvasRenderingContext2D,
@@ -411,7 +418,7 @@ export class Hud {
     let count = 0;
     for (const e of s.snap.enemies) {
       const d = this.content.enemies.get(this.content.enemyIds[e[1]] ?? '');
-      if (!d?.boss) continue;
+      if (!d?.boss || !this.sees(s, e[2], e[3])) continue;
       count++;
       if (!def || e[5] > hp) {
         def = d;
@@ -668,7 +675,8 @@ export class Hud {
     }
     // every xeno looks the same (no straggler highlight)
     ctx.fillStyle = '#c05ad0';
-    for (const e of s.snap.enemies) ctx.fillRect(x0 + e[2] * k - 1, y0 + e[3] * k - 1, 2, 2);
+    for (const e of s.snap.enemies)
+      if (this.sees(s, e[2], e[3])) ctx.fillRect(x0 + e[2] * k - 1, y0 + e[3] * k - 1, 2, 2);
     for (const p of s.snap.pickups) {
       ctx.fillStyle = p.k === 'medkit' ? '#9be07a' : HUD.gold;
       ctx.fillRect(x0 + p.x * k - 2.5, y0 + p.y * k - 2.5, 5, 5);

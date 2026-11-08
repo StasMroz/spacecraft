@@ -1,5 +1,12 @@
 # Changelog
 
+## v16
+
+- Ściany na mapie Hive Siege: pełne ściany (szara grodź) blokują ruch, walkę wręcz, pociski, wybuchy i widoczność — co za nimi, jest w cieniu, także na minimapie i pasku HP bossa. Niskie osłony (barykady w żółte pasy) blokują ruch i walkę wręcz, ale widać i strzela się nad nimi; każdy pocisk przecinający osłonę ma 35% szansy zatrzymania, chyba że strzelec stoi przy niej (do 70 px).
+- Tyranidzi obchodzą ściany (pole przepływu), strzelający plują tylko przy widocznym celu.
+- Biegające potwory mniej się nakładają: większa przestrzeń osobista i rozpychanie w roju.
+- Protokół sieci 6 (stare klienty niezgodne). Melta 50–30 bez zmian; strona zasad opisuje ściany.
+
 ## v15
 
 - Meltagun, wybuch na końcu zasięgu: 50 obrażeń w środku, 30 na krawędzi (było 50 → 20; `edgeFactor` 0,4 → 0,6). Promień 66 px, S4 AP0, zasięg, obrażenia pocisku i przebicie z v14 bez zmian.

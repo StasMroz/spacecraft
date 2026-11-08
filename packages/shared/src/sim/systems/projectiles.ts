@@ -8,7 +8,9 @@ import {
   MARINE_DEFLECTION,
   MARINE_GUARD,
 } from '../../data/index.js';
+import { COVER } from '../../maps/walls.js';
 import type { Enemy, Player, Projectile, World } from '../types.js';
+import { segmentEntry } from '../walls.js';
 import { damageEnemy, damagePlayer, explode } from './combat.js';
 
 /** Largest enemy radius; used to pad broad-phase queries. */
@@ -34,9 +36,20 @@ export function updateProjectiles(world: World, enemyHash: SpatialHash<Enemy>, d
       detonate(world, pr, !outside);
       continue;
     }
-    if (pr.deflected) continue; // a ricochet hits nothing
-    if (pr.owner === 'player') hitEnemies(world, pr, x0, y0, enemyHash);
-    else hitPlayers(world, pr, x0, y0);
+    const wallT = wallStop(world, pr, x0, y0);
+    if (wallT !== null) {
+      // Stop just short of the wall; whatever stood before it this tick is still hit.
+      pr.x = x0 + (pr.x - x0) * wallT;
+      pr.y = y0 + (pr.y - y0) * wallT;
+    }
+    if (!pr.deflected) {
+      if (pr.owner === 'player') hitEnemies(world, pr, x0, y0, enemyHash);
+      else hitPlayers(world, pr, x0, y0);
+    }
+    if (wallT !== null && !pr.dead) {
+      world.events.push({ e: 'bnc', x: Math.round(pr.x), y: Math.round(pr.y), k: pr.kind });
+      detonate(world, pr, true);
+    }
   }
   world.projectiles = world.projectiles.filter((p) => !p.dead);
 }
@@ -218,6 +231,34 @@ function tryDeflect(world: World, pr: Projectile, p: Player): boolean {
     k: pr.kind,
   });
   return true;
+}
+
+const WALL_GAP = 2;
+
+/**
+ * Where this tick's segment is stopped by a wall (t along it), or null. Full walls always stop
+ * it; low cover rolls COVER.stopChance once per wall per shot, except next to the muzzle.
+ */
+function wallStop(world: World, pr: Projectile, x0: number, y0: number): number | null {
+  const len = Math.hypot(pr.x - x0, pr.y - y0);
+  if (len < 1e-6) return null;
+  let best: number | null = null;
+  world.map.walls.forEach((w, i) => {
+    const t = segmentEntry(x0, y0, pr.x, pr.y, w);
+    if (t === null || (best !== null && t >= best)) return;
+    if (w.kind === 'low') {
+      if (pr.cover?.includes(i)) return;
+      (pr.cover ??= []).push(i);
+      const ox = pr.ox ?? x0;
+      const oy = pr.oy ?? y0;
+      const cx = Math.max(w.x, Math.min(ox, w.x + w.w));
+      const cy = Math.max(w.y, Math.min(oy, w.y + w.h));
+      if (Math.hypot(ox - cx, oy - cy) <= COVER.ignoreNear) return;
+      if (!world.rng.chance(COVER.stopChance)) return;
+    }
+    best = Math.max(0, t - WALL_GAP / len);
+  });
+  return best;
 }
 
 /** `atRange` = the projectile ran out of lifetime inside the arena (not a hit, not off-map). */

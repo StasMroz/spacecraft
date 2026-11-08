@@ -193,6 +193,8 @@ export function fireWeapon(world: World, p: Player, def: WeaponDef, braced = fal
       ownerId: p.id,
       sx: p.x,
       sy: p.y,
+      ox: p.x,
+      oy: p.y,
       kind: sc ? `${spec.kind}_super` : spec.kind,
       x: mx,
       y: my,

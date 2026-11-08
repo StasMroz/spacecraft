@@ -9,6 +9,7 @@ import {
 import { dist } from '../../math/vec.js';
 import { allocId } from '../world.js';
 import { dropCaps } from './director.js';
+import { segmentBlocked } from '../walls.js';
 import type { Enemy, Player, World } from '../types.js';
 
 export interface DamageOpts {
@@ -172,6 +173,7 @@ export function explode(
       const def = world.content.enemy(enemy.type);
       const d = dist(x, y, enemy.x, enemy.y) - def.radius;
       if (d > spec.radius) continue;
+      if (segmentBlocked(world.map.walls, x, y, enemy.x, enemy.y, 'full')) continue;
       damageEnemy(world, enemy, falloff(Math.max(0, d)), {
         strength: spec.strength,
         ap: spec.ap,
@@ -187,6 +189,7 @@ export function explode(
       if (p.state !== 'alive') continue;
       const d = dist(x, y, p.x, p.y) - PLAYER.radius;
       if (d > spec.radius) continue;
+      if (segmentBlocked(world.map.walls, x, y, p.x, p.y, 'full')) continue;
       // Player-fired explosions deal reduced self/team damage.
       const mul = opts.sourcePlayerId !== undefined ? 0.25 : 1;
       damagePlayer(world, p, falloff(Math.max(0, d)) * mul, { fromX: x, fromY: y });

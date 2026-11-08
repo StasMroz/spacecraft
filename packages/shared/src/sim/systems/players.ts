@@ -43,7 +43,7 @@ export function updatePlayerMovement(world: World, dt: number): void {
     const speed = p.sprint.sprinting ? marineSprintSpeed() : marineMoveSpeed(def, p.fireSlow);
     const x0 = p.x;
     const y0 = p.y;
-    stepPlayerMovement(p, mx, my, speed, dt, world.map.arena);
+    stepPlayerMovement(p, mx, my, speed, dt, world.map);
     p.moveFrac = speed > 0 ? Math.min(1, Math.hypot(p.x - x0, p.y - y0) / (speed * dt)) : 0;
   }
 }

@@ -1,7 +1,9 @@
-import { ARENA, PLAYER } from '../../constants.js';
+import { PLAYER } from '../../constants.js';
 import { clamp } from '../../math/vec.js';
 import { MARINE_SPRINT, sprintWeaponReady, type SprintState } from '../../data/sprint.js';
-import type { ArenaSize } from '../../maps/types.js';
+import type { ArenaSize, WallDef } from '../../maps/types.js';
+import { WAVE_MAP } from '../../maps/wave.js';
+import { pushOutOfWalls } from '../walls.js';
 
 /**
  * Player movement for one input frame. Pure & deterministic: the client calls
@@ -13,9 +15,10 @@ export function stepPlayerMovement(
   my: number,
   speed: number,
   dt: number,
-  /** Map playfield; defaults to the wave map's arena. */
-  arena: ArenaSize = ARENA,
+  /** Map playfield and walls; defaults to the wave map. */
+  field: { arena: ArenaSize; walls: readonly WallDef[] } = WAVE_MAP,
 ): void {
+  const { arena } = field;
   let dx = clamp(mx, -1, 1);
   let dy = clamp(my, -1, 1);
   const l = Math.sqrt(dx * dx + dy * dy);
@@ -25,6 +28,10 @@ export function stepPlayerMovement(
   }
   pos.x = clamp(pos.x + dx * speed * dt, PLAYER.radius, arena.width - PLAYER.radius);
   pos.y = clamp(pos.y + dy * speed * dt, PLAYER.radius, arena.height - PLAYER.radius);
+  if (pushOutOfWalls(pos, PLAYER.radius, field.walls)) {
+    pos.x = clamp(pos.x, PLAYER.radius, arena.width - PLAYER.radius);
+    pos.y = clamp(pos.y, PLAYER.radius, arena.height - PLAYER.radius);
+  }
 }
 
 export const playerMoveSpeed = (moveSpeedMul: number): number => PLAYER.speed * moveSpeedMul;

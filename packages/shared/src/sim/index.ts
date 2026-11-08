@@ -3,6 +3,7 @@ export * from './world.js';
 export * from './simulation.js';
 export * from './snapshot.js';
 export * from './spatialHash.js';
+export * from './walls.js';
 export {
   stepPlayerMovement,
   playerMoveSpeed,
