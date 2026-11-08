@@ -188,9 +188,9 @@ export const WEAPONS: WeaponDef[] = [
       strength: 9,
       ap: 4,
       pierce: 3,
+      pierceBudget: { total: 12, cost: { tiny: 3, small: 4, medium: 6, large: 12 } },
       knockback: 220,
-      // A miss still flashes the floor at max range: ~23% of the frag's damage, ~55% of its radius.
-      endBurst: { radius: 66, damage: 25, edgeFactor: 0.35, strength: 4, ap: 0 },
+      endBurst: { radius: 66, damage: 50, edgeFactor: 0.4, strength: 4, ap: 0 },
     },
     unlockAtWave: 6,
     crateWeight: 5,

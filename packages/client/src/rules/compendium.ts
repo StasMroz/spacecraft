@@ -26,6 +26,8 @@ import {
   type ContentRegistry,
   type EnemyDef,
   type WeaponDef,
+  type EnemySize,
+  type PierceBudget,
 } from '@sms/shared';
 import { escapeHtml as esc } from '../ui/format.js';
 
@@ -54,6 +56,17 @@ const unlockLabel = (w: WeaponDef): string =>
       ? 'tylko skrzynie'
       : `fala ${w.unlockAtWave}`;
 
+const SIZE_LABEL: Record<EnemySize, string> = {
+  large: 'duże',
+  medium: 'średnie',
+  small: 'małe',
+  tiny: 'najmniejsze',
+};
+const pierceBudgetLabel = (b: PierceBudget) =>
+  (Object.keys(SIZE_LABEL) as EnemySize[])
+    .map((s) => `${Math.floor(b.total / b.cost[s])} ${SIZE_LABEL[s]}`)
+    .join(' / ');
+
 /** Weapon base stats. */
 export function weaponTable(c: ContentRegistry): string {
   const rows = c.weaponOrder.map((w) => {
@@ -69,7 +82,7 @@ export function weaponTable(c: ContentRegistry): string {
       `${n(w.reloadTime, 2)} s`,
       deg(w.spread),
       `${Math.round(range)} px`,
-      `${p.pierce}`,
+      p.pierceBudget ? pierceBudgetLabel(p.pierceBudget) : `${p.pierce}`,
       `${pct(w.moveSpeedMul)} / ${pct(w.moveSpeedMul * w.fireMoveMul)}`,
       unlockLabel(w),
       w.crateWeight ? `${w.crateWeight}` : '—',

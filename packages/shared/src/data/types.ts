@@ -16,6 +16,15 @@ export interface ExplosionSpec {
   ap?: number;
 }
 
+/**
+ * One shot's pierce budget, spent per enemy hit by its size class, nearest first. A target that
+ * costs more than what is left stops the shot without being hit; nothing behind it is hit either.
+ */
+export interface PierceBudget {
+  total: number;
+  cost: Readonly<Record<EnemySize, number>>;
+}
+
 export interface ProjectileSpec {
   /** Visual + audio key; the client maps it to sprites/particles. */
   kind: string;
@@ -27,6 +36,8 @@ export interface ProjectileSpec {
   damage: number;
   /** How many *additional* enemies the projectile can pass through. */
   pierce: number;
+  /** Size-weighted pierce: replaces `pierce` when set (see PierceBudget). */
+  pierceBudget?: PierceBudget;
   /**
    * 40k-style profile vs Tyranids (data/profile.ts): Strength vs Toughness scales `damage`,
    * AP (positive, 2 = "AP-2") worsens their armour save. Omit strength = ignores both.
@@ -137,6 +148,8 @@ export interface WeaponDef {
   sprites: { icon: string; pickup: string; held: string };
 }
 
+export type EnemySize = 'tiny' | 'small' | 'medium' | 'large';
+
 export type EnemyBehavior = 'melee' | 'ranged' | 'kamikaze';
 
 export interface EnemyRangedSpec {
@@ -207,6 +220,8 @@ export interface EnemyDef {
   /** Steering responsiveness (1/s). */
   accel: number;
   radius: number;
+  /** Body class for size-weighted pierce (ProjectileSpec.pierceBudget). */
+  size: EnemySize;
   /** Knockback resistance; higher = harder to push. */
   mass: number;
   behavior: EnemyBehavior;

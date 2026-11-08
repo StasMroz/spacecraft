@@ -1,5 +1,5 @@
 import type { Rng } from '../math/rng.js';
-import type { ContentRegistry, ExplosionSpec, SprintState } from '../data/index.js';
+import type { ContentRegistry, ExplosionSpec, PierceBudget, SprintState } from '../data/index.js';
 import type { MapDef } from '../maps/types.js';
 
 export type PlayerState = 'alive' | 'downed' | 'dead';
@@ -148,6 +148,9 @@ export interface Projectile {
   radius: number;
   damage: number;
   pierceLeft: number;
+  /** Size-weighted pierce budget left (data ProjectileSpec.pierceBudget). */
+  pierceBudgetLeft?: number;
+  pierceBudget?: PierceBudget;
   /** 40k profile vs Tyranids (undefined strength = ignores Toughness / Save). */
   strength?: number;
   ap: number;

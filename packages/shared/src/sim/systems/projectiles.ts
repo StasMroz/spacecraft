@@ -82,6 +82,14 @@ function hitEnemies(
     if (pr.dead) return;
     // Pierce spent but coasting to an end-of-range burst: ignore further targets.
     if (pr.pierceLeft < 0) return;
+    if (pr.pierceBudget) {
+      const cost = pr.pierceBudget.cost[world.content.enemy(enemy.type).size];
+      if (cost > pr.pierceBudgetLeft!) {
+        spendPierce(pr);
+        return;
+      }
+      pr.pierceBudgetLeft! -= cost;
+    }
     pr.hit.push(enemy.id);
     if (pr.explosion) {
       // Mass-reactive: direct hit (if any) and then the blast on the target.
@@ -121,12 +129,14 @@ function hitEnemies(
         world.events.push({ e: 'bnc', x: Math.round(enemy.x), y: Math.round(enemy.y), k: pr.kind });
     } else if (pr.kind !== 'flame' && pr.kind !== 'slash')
       world.events.push({ e: 'hit', x: Math.round(enemy.x), y: Math.round(enemy.y), k: pr.kind });
-    if (pr.pierceLeft-- <= 0) {
-      // Melta (endBurst): keep flying to max range for the ground flash even after the last pierce.
-      // Other beams die on the final target as before.
-      if (!pr.endBurst) pr.dead = true;
-    }
+    if (pr.pierceBudget ? pr.pierceBudgetLeft! <= 0 : pr.pierceLeft-- <= 0) spendPierce(pr);
   }
+}
+
+/** Melta (endBurst) keeps flying to max range for the ground flash; other shots die here. */
+function spendPierce(pr: Projectile): void {
+  pr.pierceLeft = -1;
+  if (!pr.endBurst) pr.dead = true;
 }
 
 function hitPlayers(world: World, pr: Projectile, x0: number, y0: number): void {

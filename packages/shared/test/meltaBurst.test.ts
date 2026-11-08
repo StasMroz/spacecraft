@@ -53,13 +53,10 @@ const meltaBooms = (evs: GameEvent[]) =>
   evs.filter((e): e is Extract<GameEvent, { e: 'boom' }> => e.e === 'boom' && e.k === 'melta');
 
 describe('Meltagun end-of-range burst', () => {
-  it('is configured in the melta data at ~20–25% of frag damage and ~50–60% of its radius', () => {
-    const fx = frag.projectile.explosion!;
-    expect(burst.damage / fx.damage).toBeGreaterThanOrEqual(0.2);
-    expect(burst.damage / fx.damage).toBeLessThanOrEqual(0.25);
-    expect(burst.radius / fx.radius).toBeGreaterThanOrEqual(0.5);
-    expect(burst.radius / fx.radius).toBeLessThanOrEqual(0.6);
-    expect(burst.friendlyFire).toBeFalsy();
+  it('bursts for 50 at the centre falling to 20 at the edge (r 66, S4 AP0, enemies only)', () => {
+    expect(burst).toEqual({ radius: 66, damage: 50, edgeFactor: 0.4, strength: 4, ap: 0 });
+    expect(burst.damage * burst.edgeFactor).toBeCloseTo(20, 9);
+    expect(frag.projectile.explosion).toBeDefined();
   });
 
   it('reaches 85% of the former 240 px range (204 px)', () => {
@@ -120,8 +117,8 @@ describe('Meltagun end-of-range burst', () => {
   it('keeps flying to max range after pierce is spent (no early death on last target)', () => {
     const w = world();
     const p = w.players[0];
-    // pierce: 3 → four hits spend it; pack gaunts on the beam line well before max range
-    const gaunts = [80, 110, 140, 170].map((dx) => spawnEnemy(w, 'termagant', p.x + dx, p.y));
+    // Four rippers spend the whole pierce budget well before max range.
+    const gaunts = [80, 110, 140, 170].map((dx) => spawnEnemy(w, 'ripper', p.x + dx, p.y));
     const evs = fireOnce(w);
     expect(gaunts.every((g) => g.dead || g.hp < g.maxHp)).toBe(true);
     const booms = meltaBooms(evs);
