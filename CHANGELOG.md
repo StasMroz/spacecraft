@@ -1,5 +1,10 @@
 # Changelog
 
+## v19
+
+- Poprawka: pociski przelatują nad niskimi osłonami (barykady w żółte pasy) — zawsze, pociski marine i Tyranidów, nic już na nich nie znika (wcześniej 35% strzałów zatrzymywało się na osłonie). Pełne grodzie nadal zatrzymują pociski, wybuchy i widok; niska osłona nadal blokuje ruch i walkę wręcz.
+- Zgodnie z pierwotną propozycją („można strzelać, zmniejsza się prawdopodobieństwo trafienia”): cel przyklejony do drugiej strony niskiej osłony (do 60 px) pocisk mija z szansą 30% i leci dalej (może trafić coś za nim). Osłona tuż przy strzelcu (do 70 px) się nie liczy. To decyzja balansu, nie zasada 40k.
+
 ## v18
 
 - Nowy boss wsparcia: Psychophage. Pojawia się sam (1 sztuka) w fali 5 i co 3 fale (5, 8, 11…), nigdy w fali Carnifexa. 700 HP (skalowane jak inne wg fali i drużyny), T9, zapis 3+, prędkość 110, promień 30 px, klasa duża (melta: koszt 12), 40 pkt, pewna apteczka.

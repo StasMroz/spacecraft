@@ -152,7 +152,7 @@ export function rulesHtml(c: ContentRegistry): string {
 <section id="sciany"><h2>Ściany i osłony</h2>
   <ul>
     <li><b>Pełna ściana</b> (szary grodź): nie da się przez nią przejść ani zaatakować wręcz, zatrzymuje pociski i wybuchy, a to, co za nią, jest zasłonięte (cień).</li>
-    <li><b>Niska osłona</b> (barykada w żółte pasy): blokuje ruch i walkę wręcz, ale widać i strzela się nad nią. Każdy pocisk, który ją przecina, ma <b>${Math.round(COVER.stopChance * 100)}%</b> szansy, że zatrzyma się na osłonie — chyba że strzelec stoi przy niej (do ${COVER.ignoreNear} px), wtedy strzela swobodnie. To decyzja balansu, nie zasada z 40k.</li>
+    <li><b>Niska osłona</b> (barykada w żółte pasy): blokuje ruch i walkę wręcz, ale widać i strzela się nad nią. Pociski (marine i Tyranidów) zawsze nad nią przelatują — nigdy się na niej nie zatrzymują. Cel przyklejony do jej drugiej strony (do ${COVER.hugDist} px) jest trudniejszy do trafienia: pocisk ma <b>${Math.round(COVER.missChance * 100)}%</b> szansy, że go minie i poleci dalej. Osłona tuż przy strzelcu (do ${COVER.ignoreNear} px) się nie liczy. To decyzja balansu, nie zasada z 40k.</li>
     <li><b>Kwas</b>: pudło Termaganta lub Warriora zostawia na podłodze małą kałużę kwasu (2,5–3 s), a Carnifex z dystansu (200–560 px, co ~6 s) rzuca kulę kwasu, która zostawia dużą plamę (promień 80 px, 6 s) — także gdy trafi. Kwas parzy co 0,5 s każdego marine w plamie (Termagant 3, Warrior 4, Carnifex 6 obrażeń; pancerz nie chroni), nigdy przez pełną ścianę. Wartości to balans gry, nie zasady 40k.</li>
     <li>Tyranidzi obchodzą ściany, a ci strzelający plują tylko, gdy widzą cel.</li>
   </ul>

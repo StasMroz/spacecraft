@@ -1,11 +1,12 @@
 import type { WallDef } from './types.js';
 
 /**
- * Low cover, balance choice (not 40k canon): a shot crossing low cover is stopped with
- * `stopChance`, unless the cover is within `ignoreNear` px of where the shot was fired (firing
- * over your own barricade is free).
+ * Low cover, balance choice (not 40k canon): every shot flies over low cover (it never stops
+ * there). A target hugging the far side (within `hugDist` px of a low wall the shot crossed) is
+ * harder to hit: the shot misses it with `missChance` and flies on. Cover within `ignoreNear` px
+ * of where the shot was fired doesn't count (firing over your own barricade is free).
  */
-export const COVER = { stopChance: 0.35, ignoreNear: 70 } as const;
+export const COVER = { missChance: 0.3, hugDist: 60, ignoreNear: 70 } as const;
 
 const full = (x: number, y: number, w: number, h: number): WallDef => ({
   x,
