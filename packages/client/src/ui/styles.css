@@ -116,6 +116,12 @@ h2 {
   color: var(--muted);
   margin: 6px 0 0;
 }
+.version-tag {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
 .dev-badge {
   display: inline-block;
   margin-top: 8px;

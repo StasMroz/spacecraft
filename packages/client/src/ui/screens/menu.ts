@@ -1,11 +1,11 @@
-import { GAME_VERSION, sanitizeName, type ContentRegistry } from '@sms/shared';
+import { sanitizeName, type ContentRegistry } from '@sms/shared';
 import { DEV_PREVIEW } from '../../devPreview.js';
 import { storage } from '../../util/storage.js';
 import { $, html } from '../dom.js';
 import { createChapterPicker } from '../chapters.js';
 import { escapeHtml } from '../format.js';
 import { prefs } from '../prefs.js';
-import { createVersionsLink } from '../versions.js';
+import { createVersionsLink, versionLabel } from '../versions.js';
 import { createMixerPanel, type MixerControls } from '../mixerPanel.js';
 
 export interface MenuActions {
@@ -34,6 +34,7 @@ export function createMenuScreen(actions: MenuActions, opts: MenuOptions): HTMLE
       <img class="emblem" src="${escapeHtml(opts.baseUrl)}ui/emblem.png" alt="" width="256" height="128">
       <h1>${escapeHtml(main)}${sub ? `<span>: ${escapeHtml(sub)}</span>` : ''}</h1>
       <p class="tagline">${escapeHtml(opts.content.subtitle)}</p>
+      <div class="version-tag" id="version">${escapeHtml(versionLabel())}</div>
       ${DEV_PREVIEW ? `<div class="dev-badge" title="Unversioned dev preview — scores go to a separate DEV board">DEV PREVIEW ${escapeHtml(DEV_PREVIEW)}</div>` : ''}
       <div class="scroll">The hive spires have gone dark. Hold the breach until the last bolt is spent.</div>
     </div>
@@ -57,7 +58,7 @@ export function createMenuScreen(actions: MenuActions, opts: MenuOptions): HTMLE
           Stand next to a downed battle-brother to revive them. Wargear unlocks over time; supply crates drop on the map. Plasma runs hot: past the line shots are supercharged, at the top it vents and burns you.
         </div>
         <div id="mixer"></div>
-        <div class="muted small" id="meta"><a class="rules-link" href="rules.html">ZASADY / RULES</a> · <a class="rules-link" href="feedback.html">PETYCJE</a> · v${GAME_VERSION}${DEV_PREVIEW ? `-dev+${escapeHtml(DEV_PREVIEW)}` : ''}${opts.dedicated ? ' · dedicated host mode' : ' · P2P (browser-hosted)'}</div>
+        <div class="muted small" id="meta"><a class="rules-link" href="rules.html">ZASADY / RULES</a> · <a class="rules-link" href="feedback.html">PETYCJE</a>${opts.dedicated ? ' · dedicated host mode' : ' · P2P (browser-hosted)'}</div>
       </div>
     </div>
     <p class="disclaimer">Unofficial, non-commercial fan project. Not affiliated with or endorsed by Games Workshop. Warhammer 40,000 and related marks are trademarks of Games Workshop Ltd. All art and sound here is procedurally generated.</p>

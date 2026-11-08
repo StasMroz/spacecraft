@@ -1,5 +1,9 @@
 # Changelog
 
+## v20
+
+- Menu: numer wersji gry (v0.6.1, z GAME_VERSION) widoczny od razu pod tytułem zamiast na dole karty poza ekranem; w podglądzie dev z sufiksem -dev+sha. Lista „Previous versions” nadal zależy od versions.json.
+
 ## v19
 
 - Poprawka: pociski przelatują nad niskimi osłonami (barykady w żółte pasy) — zawsze, pociski marine i Tyranidów, nic już na nich nie znika (wcześniej 35% strzałów zatrzymywało się na osłonie). Pełne grodzie nadal zatrzymują pociski, wybuchy i widok; niska osłona nadal blokuje ruch i walkę wręcz.

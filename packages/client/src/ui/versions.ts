@@ -19,6 +19,11 @@ export function siteRoot(base = import.meta.env.BASE_URL): string {
   return base.replace(/(v\d+\.\d+\.\d+|dev)\/?$/, '');
 }
 
+/** Version shown in the menu: the build's real GAME_VERSION, plus the dev-preview sha if any. */
+export function versionLabel(version = GAME_VERSION, preview: string | null = DEV_PREVIEW): string {
+  return `v${version}${preview ? `-dev+${preview}` : ''}`;
+}
+
 export async function loadVersions(): Promise<VersionEntry[]> {
   try {
     const r = await fetch(`${siteRoot()}versions.json`, { cache: 'no-cache' });
