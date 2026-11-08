@@ -1,5 +1,9 @@
 # Changelog
 
+## v15
+
+- Meltagun, wybuch na końcu zasięgu: 50 obrażeń w środku, 30 na krawędzi (było 50 → 20; `edgeFactor` 0,4 → 0,6). Promień 66 px, S4 AP0, zasięg, obrażenia pocisku i przebicie z v14 bez zmian.
+
 ## v14
 
 - Meltagun, wybuch na końcu zasięgu: 50 obrażeń w środku, 20 na krawędzi (było 25 → 8,75); promień 66 px, S4 AP0 bez zmian.

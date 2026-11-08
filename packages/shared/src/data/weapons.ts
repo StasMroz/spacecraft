@@ -190,7 +190,7 @@ export const WEAPONS: WeaponDef[] = [
       pierce: 3,
       pierceBudget: { total: 12, cost: { tiny: 3, small: 4, medium: 6, large: 12 } },
       knockback: 220,
-      endBurst: { radius: 66, damage: 50, edgeFactor: 0.4, strength: 4, ap: 0 },
+      endBurst: { radius: 66, damage: 50, edgeFactor: 0.6, strength: 4, ap: 0 },
     },
     unlockAtWave: 6,
     crateWeight: 5,

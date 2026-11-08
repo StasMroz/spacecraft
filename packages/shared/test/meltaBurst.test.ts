@@ -53,9 +53,9 @@ const meltaBooms = (evs: GameEvent[]) =>
   evs.filter((e): e is Extract<GameEvent, { e: 'boom' }> => e.e === 'boom' && e.k === 'melta');
 
 describe('Meltagun end-of-range burst', () => {
-  it('bursts for 50 at the centre falling to 20 at the edge (r 66, S4 AP0, enemies only)', () => {
-    expect(burst).toEqual({ radius: 66, damage: 50, edgeFactor: 0.4, strength: 4, ap: 0 });
-    expect(burst.damage * burst.edgeFactor).toBeCloseTo(20, 9);
+  it('bursts for 50 at the centre falling to 30 at the edge (r 66, S4 AP0, enemies only)', () => {
+    expect(burst).toEqual({ radius: 66, damage: 50, edgeFactor: 0.6, strength: 4, ap: 0 });
+    expect(burst.damage * burst.edgeFactor).toBeCloseTo(30, 9);
     expect(frag.projectile.explosion).toBeDefined();
   });
 
