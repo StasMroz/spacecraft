@@ -3,6 +3,9 @@ import { RECOIL_WIRE } from '../data/recoil.js';
 import type {
   EnemySnap,
   AcidSnap,
+  AllySnap,
+  CrashSnap,
+  WreckSnap,
   PickupSnap,
   PlayerSnap,
   ProjectileSnap,
@@ -42,6 +45,8 @@ export type WireStats = Record<
 >;
 
 const MAGIC = 0x5a;
+const ALLY_SCALES = [1, 10, 10, 100, 1, 1];
+const CRASH_SCALES = [10, 10, 1, 10, 100];
 
 class Writer {
   buf = new Uint8Array(4096);
@@ -510,6 +515,9 @@ function snapFits(s: Snapshot): boolean {
   for (const p of s.pickups)
     if (!exact(p.x, 10) || !exact(p.y, 10) || !exact(p.life, 10)) return false;
   for (const a of s.ac ?? []) if (!a.every((v, k) => exact(v, k === 0 ? 1 : 10))) return false;
+  for (const a of s.al ?? []) if (!a.every((v, k) => exact(v, ALLY_SCALES[k]!))) return false;
+  if (s.cr && !s.cr.every((v, k) => exact(v, CRASH_SCALES[k]!))) return false;
+  for (const w of s.wk ?? []) if (!w.every((v) => exact(v, 1))) return false;
   return (
     s.players.every(playerFits) &&
     exact(s.time, 1000) &&
@@ -594,6 +602,14 @@ export function createWireCodec(stats?: WireStats): WireCodec {
       w.uv(a[0]);
       for (let k = 1; k < 6; k++) w.sv(fx(a[k]!, 10));
     }
+    const al = s.al ?? [];
+    w.uv(al.length);
+    for (const a of al) for (let k = 0; k < 6; k++) w.sv(fx(a[k]!, ALLY_SCALES[k]!));
+    w.uv(s.cr ? 1 : 0);
+    if (s.cr) for (let k = 0; k < 5; k++) w.sv(fx(s.cr[k]!, CRASH_SCALES[k]!));
+    const wk = s.wk ?? [];
+    w.uv(wk.length);
+    for (const x of wk) for (let k = 0; k < 5; k++) w.sv(x[k]!);
     section('pickups');
     w.uv(s.events.length);
     const anchors: Anchors = new Map(prow);
@@ -636,6 +652,12 @@ export function createWireCodec(stats?: WireStats): WireCodec {
       const v = [1, 2, 3, 4, 5].map(() => r.sv() / 10);
       ac.push([id, v[0]!, v[1]!, v[2]!, v[3]!, v[4]!]);
     }
+    const al: AllySnap[] = [];
+    for (let n = r.uv(); n > 0; n--)
+      al.push(ALLY_SCALES.map((sc) => r.sv() / sc) as unknown as AllySnap);
+    const cr = r.uv() ? (CRASH_SCALES.map((sc) => r.sv() / sc) as unknown as CrashSnap) : undefined;
+    const wk: WreckSnap[] = [];
+    for (let n = r.uv(); n > 0; n--) wk.push([0, 0, 0, 0, 0].map(() => r.sv()) as WreckSnap);
     const events: GameEvent[] = [];
     for (let n = r.uv(); n > 0; n--) events.push(readEvent(r, sym, anchors));
     return {
@@ -649,6 +671,9 @@ export function createWireCodec(stats?: WireStats): WireCodec {
       projectiles: pr as unknown as ProjectileSnap[],
       pickups,
       ac,
+      al,
+      ...(cr ? { cr } : {}),
+      wk,
       sp,
       events,
     };

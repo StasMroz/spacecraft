@@ -1,5 +1,14 @@
 # Changelog
 
+## v22
+
+- Katastrofa okrętu Imperium — zdarzenie zwykłych fal (nie misja): fala 4 i co 3 fale (4, 7, 10…, nigdy fala Carnifexa ani Psychophage). 4 s po starcie fali komunikat i czerwony krąg z rosnącym cieniem; przez 3,5 s spada płonący okręt ciągnący ogień i dym. Miejsce zawsze 380–800 px od marines, ≥ 260 px od wyłomów, poza ścianami. Uderzenie rani tylko Tyranidów (120 obr., promień 150 px).
+- Po 4 s dymu: 3–5 losowych ścian wraku (≈40% pełne, reszta niskie), nigdy na marines, wrogach, sojusznikach, wyłomach i strefie startu; ≥ 90 px odstępu od innych ścian i sprawdzenie, że cała mapa pozostaje osiągalna (brak zamkniętych kieszeni). Limit 20 ścian wraku na rozgrywkę. Ściany działają jak zwykłe (ruch, predykcja klienta, ścieżki, LOS, pociski, cień).
+- Ocaleni Gwardziści Astra Militarum: 3 (solo) / 4 / 4 / 5 na katastrofę, maks. 6 naraz; 60 HP, lasgun 8 obr. S3 AP0, 420 px, co 0,5 s, tylko do widocznych Tyranidów (nie przez pełną ścianę), nigdy nie ranią marines. W fali katastrofy bronią wraku (≤ 110 px), po jej przeżyciu chodzą za najbliższym marine (70–150 px, omijają ściany) i walczą dalej. Tyranidzi mogą ich zagryźć; kwas ich nie rani. Złote kropki na minimapie.
+- Kompendium/zasady: tabela fal i wstęp pokazują Psychophage (fale 5, 8, 11…) i katastrofy (brak z v18 uzupełniony), nowe opisy katastrofy i Gwardzistów.
+- Lore (Lexicanum: Guardsman, Lasgun, Astra Militarum): lasgun to standardowa broń każdego Gwardzisty Imperium. Spadający okręt, ocaleni, liczby, czasy, HP i obrażenia to adaptacja balansu gry (prośba z tablicy), nie zasady 40k.
+- Protokół sieci 9 (sojusznicy, katastrofa, ściany wraku w migawce). Melta (v21) i niska osłona (v19) bez zmian.
+
 ## v21
 
 - Meltagun bez przebicia: każdy strzał trafia bezpośrednio tylko pierwszego wroga na linii (także gdy pancerz go zatrzyma), potem promień leci dalej do końca zasięgu i robi jeden wybuch jak dotąd (albo na pełnej ścianie). Pudło w celu za niską osłoną nie zużywa tego trafienia.

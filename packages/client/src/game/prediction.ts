@@ -5,7 +5,9 @@ import {
   stepPlayerMovement,
   stepSprint,
   TICK_DT,
+  type ArenaSize,
   type PlayerInput,
+  type WallDef,
   type SprintState,
 } from '@sms/shared';
 
@@ -26,6 +28,8 @@ interface PendingInput {
  */
 export class Predictor {
   pos = { x: 0, y: 0 };
+  /** Map playfield + walls (incl. wreck walls from the latest snapshot); undefined = wave map. */
+  field: { arena: ArenaSize; walls: readonly WallDef[] } | undefined;
   /** Position before the latest predicted tick (for sub-tick render blending). */
   prev = { x: 0, y: 0 };
   /** Predicted sprint state (same pure state machine as the host; rewound on every snapshot). */
@@ -66,7 +70,8 @@ export class Predictor {
     const walk = typeof walkSpeed === 'number' ? walkSpeed : walkSpeed(this.sprint);
     this.pending.push({ input, walk, canMove, sprintOk });
     if (this.pending.length > 120) this.pending.shift();
-    if (canMove) stepPlayerMovement(this.pos, input.mx, input.my, this.speed(walk), TICK_DT);
+    if (canMove)
+      stepPlayerMovement(this.pos, input.mx, input.my, this.speed(walk), TICK_DT, this.field);
   }
 
   private stepSprintFor(input: PlayerInput, sprintOk: boolean): void {
@@ -109,7 +114,7 @@ export class Predictor {
       for (const p of this.pending) {
         if (!p.canMove) continue;
         if (sprint) this.stepSprintFor(p.input, p.sprintOk);
-        stepPlayerMovement(next, p.input.mx, p.input.my, this.speed(p.walk), TICK_DT);
+        stepPlayerMovement(next, p.input.mx, p.input.my, this.speed(p.walk), TICK_DT, this.field);
       }
     const dx = before.x - next.x;
     const dy = before.y - next.y;

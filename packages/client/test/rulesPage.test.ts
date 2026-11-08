@@ -18,6 +18,17 @@ describe('rules page', () => {
     for (const e of defaultContent.enemies.values()) expect(html).toContain(e.name);
     expect(html).toContain('<details>');
   });
+  it('wave table and intro name the support boss and the crash waves', () => {
+    const f = html.slice(html.indexOf('<h3>Fale</h3>'));
+    const rows = f.slice(0, f.indexOf('</table>')).split('<tr>');
+    const row = (w: number) => rows.find((r) => r.startsWith(`<th scope="row">${w}</th>`)) ?? '';
+    expect(row(5)).toContain('Psychophage');
+    expect(row(6)).not.toContain('Psychophage');
+    expect(row(4)).toContain('katastrofa');
+    expect(html).toContain('Katastrofa okrętu Imperium');
+    expect(html).toContain('Gwardziści');
+    expect(html.slice(0, html.indexOf('<details'))).toMatch(/boss wsparcia — <b>Psychophage/);
+  });
   it('DPS matrix uses the shared expectedDps', () => {
     const w = defaultContent.weaponOrder[0]!;
     const e = defaultContent.enemy('hormagaunt');

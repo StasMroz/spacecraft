@@ -4,6 +4,7 @@ import { clamp, dist2 } from '../../math/vec.js';
 import type { SpatialHash } from '../spatialHash.js';
 import { allocId } from '../world.js';
 import type { Enemy, Player, World } from '../types.js';
+import { biteAlly } from './allies.js';
 import { damagePlayer, explode } from './combat.js';
 import {
   buildFlowField,
@@ -16,6 +17,9 @@ import {
 /** Path field towards the marines, rebuilt every FLOW_TICKS ticks. */
 const FLOW_TICKS = 6;
 const flowCache = new WeakMap<World, { tick: number; field: FlowField }>();
+
+/** Shared path field towards the alive marines (also used by Guardsmen following them). */
+export const marineFlowField = (world: World): FlowField => flowField(world);
 
 function flowField(world: World): FlowField {
   const c = flowCache.get(world);
@@ -268,6 +272,15 @@ export function updateEnemies(world: World, hash: SpatialHash<Enemy>, dt: number
         world.events.push({ e: 'bite', p: target.id, t: e.type });
         // A Hormagaunt leap ends on impact; a Carnifex ploughs on.
         if (e.chargePhase === 2 && def.charge!.duration < 0.5) e.chargeTimer = 0;
+      } else if (
+        contact > 0 &&
+        e.attackCooldown <= 0 &&
+        world.allies.length &&
+        biteAlly(world, e.x, e.y, def.radius + 4, contact * e.synDamage)
+      ) {
+        // A Guardsman in reach gets bitten instead (Tyranids still hunt the marines).
+        e.attackCooldown = def.contactCooldown;
+        e.attackAnim = 0.3;
       }
 
       // Kamikaze fuse.

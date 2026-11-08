@@ -3,6 +3,7 @@
  * so the page is always correct for the version it ships with. Pure functions -> HTML strings.
  */
 import {
+  CRASH,
   GAME_VERSION,
   MARINE_AIM_RECOIL,
   MARINE_DEFLECTION,
@@ -311,15 +312,27 @@ export function waveTable(c: ContentRegistry, waves = 15): string {
     const hp = 1 + w.hpScalePerWave * (i - 1);
     const boss = i >= d.bosses.firstWave && (i - d.bosses.firstWave) % d.bosses.everyWave === 0;
     const appearance = boss ? (i - d.bosses.firstWave) / d.bosses.everyWave : 0;
+    const sup = d.support;
+    const support =
+      sup && i >= sup.firstWave && (i - sup.firstWave) % sup.everyWave === 0
+        ? `${esc(c.enemy(sup.enemy).name)} (1 os., wsparcie)`
+        : '';
+    const crash = i >= CRASH.firstWave && (i - CRASH.firstWave) % CRASH.everyWave === 0;
+    const extra = [support, crash ? 'katastrofa okrętu Imperium' : ''].filter(Boolean);
     rows.push([
       `${i}`,
       n(budget, 1),
       n(pace, 1),
       `${Math.round(maxAlive)}`,
       `×${n(hp, 2)}`,
-      boss
-        ? `${esc(c.enemy(d.bosses.enemy).name)} (1 os.: ${perTeam(d.bosses.count, 0) + appearance * d.bosses.extraPerAppearance})`
-        : '—',
+      [
+        boss
+          ? `${esc(c.enemy(d.bosses.enemy).name)} (1 os.: ${perTeam(d.bosses.count, 0) + appearance * d.bosses.extraPerAppearance})`
+          : '',
+        ...extra,
+      ]
+        .filter(Boolean)
+        .join(' + ') || '—',
     ]);
   }
   const ids = [...c.enemies.keys()];
@@ -334,7 +347,7 @@ export function waveTable(c: ContentRegistry, waves = 15): string {
     }),
     'matrix',
   );
-  return `${table(['Fala', 'Budżet zagrożenia (solo)', 'Zagrożenie / s (solo)', 'Limit żywych (solo)', 'Życie wrogów', 'Boss'], rows, 'matrix')}
+  return `${table(['Fala', 'Budżet zagrożenia (solo)', 'Zagrożenie / s (solo)', 'Limit żywych (solo)', 'Życie wrogów', 'Boss / zdarzenie'], rows, 'matrix')}
   <p class="muted">Budżet fali = (${w.budget.base} + ${w.budget.perWave}·(n−1)^${n(w.budget.exponent, 2)}) × mnożnik drużyny. Każdy wróg „kosztuje” tyle, ile wynosi jego zagrożenie. Życie rośnie o ${pct(w.hpScalePerWave)} na falę, razy mnożnik drużyny. Limit żywych: ${d.maxAlive.base} + ${d.maxAlive.perWave}/falę (maks. ${d.maxAlive.cap}). Pierwsza fala po ${w.firstDelay} s, przerwa między falami ${w.breather} s. Gdy zostanie ≤ ${w.reveal.remaining} wrogów (lub ${pct(w.reveal.fraction)} fali), albo minie ${w.reveal.afterSec} s, resztki są ujawniane i polują (×${n(w.reveal.speedMul, 2)} prędkości). Po ${w.forceNextAfter} s fala następna rusza i tak.</p>
   <h4>Skład fal (szansa na typ przy losowaniu, 1 gracz)</h4>${weights}
   <p class="muted">W większej drużynie wagi elit mnożone są przez „udział elit” z tabeli wyżej.</p>`;

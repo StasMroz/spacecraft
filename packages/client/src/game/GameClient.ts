@@ -14,6 +14,7 @@ import {
   effectiveFire,
   PLAYER,
   type SprintState,
+  snapWalls,
 } from '@sms/shared';
 import type { AudioEngine } from '../audio/AudioEngine.js';
 import { config } from '../config.js';
@@ -256,6 +257,10 @@ export class GameClient extends Emitter<GameClientEvents> {
   private onSnapshot(snap: Snapshot): void {
     this.buffer.push(snap, performance.now());
     const me = this.me(snap);
+    this.predictor.field = {
+      arena: this.content.map.arena,
+      walls: snapWalls(this.content.map.walls, snap.wk),
+    };
     if (me) this.predictor.reconcile(me.x, me.y, me.seq, me.st === 'alive', hostSprint(me));
     if (me?.st === 'alive' && !me.sp) this.recoil.sync(me.rc, me.w, performance.now());
     else this.recoil.reset();

@@ -4,6 +4,7 @@ import { remainingEnemies } from './systems/director.js';
 import { isBraced } from './systems/weapons.js';
 import type { Enemy, Player, PlayerState, World } from './types.js';
 import type { GameEvent, PickupKind } from './types.js';
+import type { WallDef } from '../maps/types.js';
 
 /** Per-player data sent every tick. */
 export interface PlayerSnap {
@@ -94,6 +95,13 @@ export interface PickupSnap {
 /** Acid on the floor: [id, x, y, radius, life s, duration s] (x/y/life 0.1 steps). */
 export type AcidSnap = [number, number, number, number, number, number];
 
+/** Guardsman: [id, x, y, aim, hp% (0-100), follows a marine (1) or holds the wreck (0)]. */
+export type AllySnap = [number, number, number, number, number, number];
+/** Crash in progress: [x, y, phase (1 falling, 2 smoking), seconds left, from-angle]. */
+export type CrashSnap = [number, number, number, number, number];
+/** Wreck wall: [x, y, w, h, kind (0 low, 1 full)]. */
+export type WreckSnap = [number, number, number, number, number];
+
 export interface Snapshot {
   tick: number;
   time: number;
@@ -106,6 +114,11 @@ export interface Snapshot {
   pickups: PickupSnap[];
   /** Acid pools (optional so a JSON snapshot without it still reads). */
   ac?: AcidSnap[];
+  /** Guardsmen (crash survivors). */
+  al?: AllySnap[];
+  cr?: CrashSnap;
+  /** Wreck walls added this run (clients add them to the map walls). */
+  wk?: WreckSnap[];
   /** BREACH_STATE per director spawn point (content.director.spawnPoints order). */
   sp: number[];
   events: GameEvent[];
@@ -232,7 +245,45 @@ export function buildSnapshot(world: World, bleedOutTime: number): Snapshot {
       round(Math.max(0, a.life), 1),
       a.duration,
     ]),
+    al: world.allies.map((a) => [
+      a.id,
+      round(a.x),
+      round(a.y),
+      round(a.aim, 2),
+      Math.max(0, Math.round((a.hp / a.maxHp) * 100)),
+      a.follow ? 1 : 0,
+    ]),
+    ...(world.crash
+      ? {
+          cr: [
+            round(world.crash.x),
+            round(world.crash.y),
+            world.crash.phase === 'fall' ? 1 : 2,
+            round(Math.max(0, world.crash.t), 1),
+            round(world.crash.from, 2),
+          ] as CrashSnap,
+        }
+      : {}),
+    wk: world.wreck.map((w) => [w.x, w.y, w.w, w.h, w.kind === 'full' ? 1 : 0]),
     sp: breachStates(world),
     events: world.events,
   };
+}
+
+const wreckCache = new WeakMap<readonly WallDef[], { n: number; walls: readonly WallDef[] }>();
+
+/** The map's walls plus the snapshot's wreck walls (wrecks only ever grow; cached by count). */
+export function snapWalls(
+  base: readonly WallDef[],
+  wk: readonly WreckSnap[] | undefined,
+): readonly WallDef[] {
+  if (!wk?.length) return base;
+  const c = wreckCache.get(base);
+  if (c && c.n === wk.length) return c.walls;
+  const walls = [
+    ...base,
+    ...wk.map(([x, y, w, h, k]): WallDef => ({ x, y, w, h, kind: k ? 'full' : 'low' })),
+  ];
+  wreckCache.set(base, { n: wk.length, walls });
+  return walls;
 }

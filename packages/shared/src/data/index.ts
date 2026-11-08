@@ -15,6 +15,7 @@ export * from './sprint.js';
 export * from './guard.js';
 export * from './muzzle.js';
 export * from './recoil.js';
+export * from './crash.js';
 export { WEAPONS, ENEMIES, DIRECTOR, CHAPTERS, CRATE_DROP_FACTOR, MEDKIT_DROP_FACTOR };
 
 /**
@@ -63,6 +64,7 @@ export class ContentRegistry {
       if (e.ranged) kinds.add(e.ranged.projectile.kind);
       if (e.lobAttack) kinds.add(e.lobAttack.projectile.kind);
     }
+    kinds.add('lasgun');
     this.projectileKinds = [...kinds];
   }
 

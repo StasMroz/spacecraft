@@ -60,6 +60,7 @@ export const PROJECTILE_VISUALS: Record<string, ProjectileVisual> = {
     trailShape: 'smoke',
     fallbackRadius: 12,
   },
+  lasgun: { color: '#ff5040', glow: true, trail: 30, trailColor: '#ff2010', fallbackRadius: 3 },
   psyash: {
     color: '#d8a0ff',
     glow: true,

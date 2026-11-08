@@ -12,6 +12,8 @@ import {
   leaderboardBoard,
   dropRates,
   type ContentRegistry,
+  CRASH,
+  GUARDSMAN,
 } from '@sms/shared';
 import { boardFor } from '../devPreview.js';
 import { escapeHtml as esc } from '../ui/format.js';
@@ -70,7 +72,7 @@ export function rulesHtml(c: ContentRegistry): string {
   <a href="#cel">Cel</a><a href="#sterowanie">Sterowanie</a><a href="#sprint">Sprint</a><a href="#tryby">Tryby</a><a href="#multi">Multiplayer</a><a href="#glos">Czat głosowy</a><a href="#bron">Broń</a><a href="#odrzut">Odrzut</a><a href="#pancerz">Pancerz</a><a href="#postawa">Postawa obronna</a><a href="#wrogowie">Tyranidzi</a><a href="#punkty">Punkty</a><a href="#rady">Rady</a><a href="#kompendium">Kompendium</a>
 </nav>
 <section id="cel"><h2>Cel gry</h2>
-  <p>Jesteś Space Marine broniącym zrujnowanej iglicy ula. Tyranidzi atakują <b>falami</b> z wyłomów w ścianach i szybów w podłodze. Następna fala rusza dopiero, gdy zginie cała poprzednia (po ${d.waves.breather} s przerwy). Każda fala jest większa, a potwory mają więcej życia. Co ${d.bosses.everyWave}. fala od ${d.bosses.firstWave}. prowadzi boss — <b>${esc(boss)}</b>.</p>
+  <p>Jesteś Space Marine broniącym zrujnowanej iglicy ula. Tyranidzi atakują <b>falami</b> z wyłomów w ścianach i szybów w podłodze. Następna fala rusza dopiero, gdy zginie cała poprzednia (po ${d.waves.breather} s przerwy). Każda fala jest większa, a potwory mają więcej życia. Co ${d.bosses.everyWave}. fala od ${d.bosses.firstWave}. prowadzi boss — <b>${esc(boss)}</b>.${d.support ? ` Od fali ${d.support.firstWave}. co ${d.support.everyWave}. falę dołącza boss wsparcia — <b>${esc(c.enemy(d.support.enemy).name)}</b>.` : ''}</p>
   <p>Gra kończy się, gdy padnie cały oddział. Liczy się czas przetrwania i punkty za zabicia.</p>
 </section>
 <section id="sterowanie"><h2>Sterowanie</h2>
@@ -155,6 +157,8 @@ export function rulesHtml(c: ContentRegistry): string {
     <li><b>Niska osłona</b> (barykada w żółte pasy): blokuje ruch i walkę wręcz, ale widać i strzela się nad nią. Pociski (marine i Tyranidów) zawsze nad nią przelatują — nigdy się na niej nie zatrzymują. Cel przyklejony do jej drugiej strony (do ${COVER.hugDist} px) jest trudniejszy do trafienia: pocisk ma <b>${Math.round(COVER.missChance * 100)}%</b> szansy, że go minie i poleci dalej. Osłona tuż przy strzelcu (do ${COVER.ignoreNear} px) się nie liczy. To decyzja balansu, nie zasada z 40k.</li>
     <li><b>Kwas</b>: pudło Termaganta lub Warriora zostawia na podłodze małą kałużę kwasu (2,5–3 s), a Carnifex z dystansu (200–560 px, co ~6 s) rzuca kulę kwasu, która zostawia dużą plamę (promień 80 px, 6 s) — także gdy trafi. Kwas parzy co 0,5 s każdego marine w plamie (Termagant 3, Warrior 4, Carnifex 6 obrażeń; pancerz nie chroni), nigdy przez pełną ścianę. Wartości to balans gry, nie zasady 40k.</li>
     <li>Tyranidzi obchodzą ściany, a ci strzelający plują tylko, gdy widzą cel.</li>
+    <li><b>Katastrofa okrętu Imperium</b> (fala ${CRASH.firstWave} i co ${CRASH.everyWave} fale, ${CRASH.delay} s po starcie fali): czerwony krąg i cień pokazują, gdzie za ${CRASH.fallTime} s spadnie płonący okręt (zawsze ≥ ${CRASH.minPlayerDist} px od marines). Uderzenie rani tylko Tyranidów (${CRASH.impact.damage} obr., ${CRASH.impact.radius} px). Gdy po ${CRASH.smokeTime} s opadnie dym, zostają losowe ściany wraku (pełne i niskie, nigdy nie zamykają przejść) i ${CRASH.soldiers[0]}–${CRASH.soldiers[CRASH.soldiers.length - 1]} ocalałych Gwardzistów (maks. ${CRASH.maxAllies} naraz).</li>
+    <li><b>Gwardziści</b> (lasgun ${GUARDSMAN.lasgun.damage} obr. S${GUARDSMAN.lasgun.strength} AP${GUARDSMAN.lasgun.ap}, ${GUARDSMAN.range} px, ${GUARDSMAN.hp} HP): w fali katastrofy bronią wraku, a jeśli ją przeżyją, chodzą za najbliższym marine (złoty pierścień) i strzelają do widocznych Tyranidów. Nie ranią marines; Tyranidzi mogą ich zagryźć. To adaptacja balansu, nie zasady 40k.</li>
   </ul>
 </section>
 <section id="odrzut"><h2>Odrzut</h2>

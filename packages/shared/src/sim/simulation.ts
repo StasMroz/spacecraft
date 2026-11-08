@@ -3,6 +3,8 @@ import { SpatialHash } from './spatialHash.js';
 import { updateDirector } from './systems/director.js';
 import { updateEnemies } from './systems/enemies.js';
 import { updateAcid } from './systems/acid.js';
+import { updateAllies } from './systems/allies.js';
+import { updateCrash } from './systems/crash.js';
 import { updatePickups } from './systems/pickups.js';
 import { updatePlayerMovement, updatePlayerStatus } from './systems/players.js';
 import { updateProjectiles } from './systems/projectiles.js';
@@ -42,7 +44,9 @@ export function stepWorld(world: World, dt: number = TICK_DT): void {
   updateDirector(world, dt);
   // Weapons unlock at the start of their wave (after the director's 'surge' event).
   if (world.director.wave !== prevWave) unlockWaveWeapons(world, world.director.wave);
+  updateCrash(world, dt);
   updateEnemies(world, enemyHash, dt);
+  updateAllies(world, dt);
 
   rebuildHash(world);
   updateProjectiles(world, enemyHash, dt);

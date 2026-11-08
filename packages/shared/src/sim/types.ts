@@ -6,7 +6,7 @@ import type {
   PierceBudget,
   SprintState,
 } from '../data/index.js';
-import type { MapDef } from '../maps/types.js';
+import type { MapDef, WallDef } from '../maps/types.js';
 
 export type PlayerState = 'alive' | 'downed' | 'dead';
 
@@ -145,6 +145,34 @@ export interface Enemy {
 
 export type ProjectileOwner = 'player' | 'enemy';
 
+/** Astra Militarum survivor of a ship crash (data/crash.ts GUARDSMAN). */
+export interface Ally {
+  id: number;
+  x: number;
+  y: number;
+  aim: number;
+  hp: number;
+  maxHp: number;
+  cooldown: number;
+  /** Wreck it guards during the crash wave. */
+  homeX: number;
+  homeY: number;
+  /** Survived its wave: now follows the nearest marine. */
+  follow: boolean;
+  dead: boolean;
+}
+
+/** A ship on its way down (fall) or the smoking impact site (smoke). */
+export interface CrashState {
+  x: number;
+  y: number;
+  phase: 'fall' | 'smoke';
+  /** Seconds left in this phase. */
+  t: number;
+  /** Direction the ship comes from (rad). */
+  from: number;
+}
+
 /** Acid on the floor (data AcidPoolSpec). */
 export interface AcidPool {
   id: number;
@@ -223,6 +251,15 @@ export type GameEvent =
   /** `k` = projectile kind for a end-of-range burst (e.g. 'melta'); absent = a normal blast. */
   | { e: 'boom'; x: number; y: number; r: number; k?: string }
   | { e: 'spit'; x: number; y: number; t?: string }
+  /** Imperial ship seen falling onto (x, y). */
+  | { e: 'crash'; x: number; y: number }
+  /** Ship impact at (x, y). */
+  | { e: 'crashHit'; x: number; y: number }
+  /** n Guardsmen climbed out of the wreck at (x, y). */
+  | { e: 'allies'; x: number; y: number; n: number }
+  /** Guardsman hurt / killed. */
+  | { e: 'ahit'; x: number; y: number }
+  | { e: 'adie'; x: number; y: number }
   /** Acid pool splashed down (radius r). */
   | { e: 'acid'; x: number; y: number; r: number }
   | { e: 'bite'; p: number; t?: string }
@@ -329,6 +366,12 @@ export interface World {
   projectiles: Projectile[];
   pickups: Pickup[];
   acid: AcidPool[];
+  allies: Ally[];
+  crash: CrashState | null;
+  /** Last wave a crash was rolled for (-1 none). */
+  crashWave: number;
+  /** Wreck walls added to `map.walls` (also in the snapshot for clients). */
+  wreck: WallDef[];
   director: DirectorState;
   events: GameEvent[];
   teamSize: number;

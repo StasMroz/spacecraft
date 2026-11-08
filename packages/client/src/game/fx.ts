@@ -439,6 +439,31 @@ export function playEvent(ev: GameEvent, fx: FxContext): void {
       });
       break;
     }
+    case 'crash':
+      fx.notify('⚠ OKRĘT IMPERIUM SPADA — zejdź z czerwonego kręgu!', 'warn');
+      audio.play('explosion', { x: ev.x, y: ev.y, volume: 0.3 });
+      break;
+    case 'crashHit': {
+      audio.play('explosion', { x: ev.x, y: ev.y });
+      P.burst(ev.x, ev.y, 40, {
+        speed: 380,
+        color: '#ffa030',
+        maxLife: 0.9,
+        size: 5,
+        additive: true,
+      });
+      P.burst(ev.x, ev.y, 24, { speed: 160, color: '#3a3430', maxLife: 1.6, size: 9 });
+      const d = Math.hypot(ev.x - r.camera.x, ev.y - r.camera.y);
+      r.camera.addShake(Math.max(0, 14 - d / 80));
+      break;
+    }
+    case 'allies':
+      if (ev.n > 0)
+        fx.notify(`Ocaleni Gwardziści (${ev.n}) bronią wraku — po fali pójdą z wami`, 'good');
+      break;
+    case 'adie':
+      P.burst(ev.x, ev.y, 8, { speed: 120, color: '#8a1010', maxLife: 0.5, size: 3 });
+      break;
     case 'acid': {
       P.burst(ev.x, ev.y, 6 + Math.round(ev.r / 8), {
         speed: 60 + ev.r,

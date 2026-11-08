@@ -33,6 +33,10 @@ export function createWorld(
     projectiles: [],
     pickups: [],
     acid: [],
+    allies: [],
+    crash: null,
+    crashWave: -1,
+    wreck: [],
     director: {
       queue: [],
       activeUntil: d.spawnPoints.map(() => -1),

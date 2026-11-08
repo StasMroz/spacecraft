@@ -15,6 +15,9 @@ import {
   type PlayerSnap,
   type Snapshot,
   type SprintState,
+  CRASH,
+  GUARDSMAN,
+  snapWalls,
 } from '@sms/shared';
 import { lerp, lerpAngle } from '../game/interpolation.js';
 import { drawBreach } from './breaches.js';
@@ -162,8 +165,11 @@ export class Renderer {
   /** Local marine's eye, for full-wall line of sight (null = spectating: see everything). */
   private viewer: { x: number; y: number } | null = null;
 
+  /** Map walls + wreck walls of the frame being drawn. */
+  private walls: readonly WallDef[] = [];
+
   private hiddenFromViewer(x: number, y: number): boolean {
-    return !visibleTo(this.content.map.walls, this.viewer, x, y);
+    return !visibleTo(this.walls, this.viewer, x, y);
   }
 
   /** Darkness cast away from the local marine by every full wall. */
@@ -175,7 +181,7 @@ export class Renderer {
     ctx.save();
     ctx.fillStyle = 'rgba(4, 3, 2, 0.88)';
     ctx.beginPath();
-    for (const w of this.content.map.walls) {
+    for (const w of this.walls) {
       if (w.kind !== 'full') continue;
       const corners: [number, number][] = [
         [w.x, w.y],
@@ -213,7 +219,7 @@ export class Renderer {
 
   private drawWalls(): void {
     const { ctx } = this;
-    for (const w of this.content.map.walls) this.drawWall(ctx, w);
+    for (const w of this.walls) this.drawWall(ctx, w);
   }
 
   private drawWall(ctx: CanvasRenderingContext2D, w: WallDef): void {
@@ -412,6 +418,7 @@ export class Renderer {
     );
     ctx.imageSmoothingEnabled = true;
 
+    this.walls = snapWalls(this.content.map.walls, f.b.wk);
     this.drawFloor();
     this.drawCreep(f.b.time);
     ctx.drawImage(this.decals, 0, 0, this.content.map.arena.width, this.content.map.arena.height);
@@ -421,14 +428,17 @@ export class Renderer {
     // Breach holes / vents (spawn points) are part of the terrain too.
     this.drawBreaches();
     this.drawAcid(f);
+    this.drawCrashSite(f);
     this.drawPickups(f);
     this.drawCorpses();
     this.drawEnemies(f);
+    this.drawAllies(f);
     this.drawPlayers(f);
     this.drawProjectiles(f);
     this.drawParticles();
     this.drawSightShadows();
     this.drawWalls();
+    this.drawFallingShip(f);
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.drawVignette();
@@ -536,6 +546,156 @@ export class Renderer {
     ctx.beginPath();
     ctx.ellipse(x, y + r * 0.35, r, r * 0.6, 0, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  /** Crash warning on the floor (falling) and the smoking impact crater (smoke). */
+  private drawCrashSite(f: RenderFrame): void {
+    const cr = f.b.cr;
+    if (!cr) return;
+    const [x, y, ph, t] = cr;
+    const { ctx } = this;
+    const time = f.nowMs / 1000;
+    ctx.save();
+    if (ph === 1) {
+      const k = 1 - Math.min(1, t / CRASH.fallTime);
+      ctx.strokeStyle = `rgba(255,70,40,${0.5 + 0.4 * Math.sin(time * 12)})`;
+      ctx.lineWidth = 4;
+      ctx.setLineDash([18, 12]);
+      ctx.lineDashOffset = -time * 40;
+      ctx.beginPath();
+      ctx.arc(x, y, CRASH.impact.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // the ship's shadow grows as it comes down
+      ctx.fillStyle = `rgba(0,0,0,${0.15 + 0.4 * k})`;
+      ctx.beginPath();
+      ctx.ellipse(x, y, 30 + 90 * k, 14 + 40 * k, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      const g = ctx.createRadialGradient(x, y, 10, x, y, CRASH.impact.radius);
+      g.addColorStop(0, 'rgba(255,140,40,0.55)');
+      g.addColorStop(0.5, 'rgba(60,30,20,0.6)');
+      g.addColorStop(1, 'rgba(20,15,10,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x, y, CRASH.impact.radius, 0, Math.PI * 2);
+      ctx.fill();
+      if (Math.random() < f.dt * 30)
+        this.particles.spawn({
+          x: x + (Math.random() - 0.5) * 120,
+          y: y + (Math.random() - 0.5) * 120,
+          vx: (Math.random() - 0.5) * 30,
+          vy: -20 - Math.random() * 30,
+          maxLife: 2.2,
+          size: 14,
+          grow: 3,
+          color: Math.random() < 0.2 ? '#7a4a20' : '#3a3632',
+          shape: 'smoke',
+          additive: false,
+        });
+    }
+    ctx.restore();
+  }
+
+  /** The burning Imperial ship diving in from `from`, trailing fire and smoke. */
+  private drawFallingShip(f: RenderFrame): void {
+    const cr = f.b.cr;
+    if (!cr || cr[2] !== 1) return;
+    const [x, y, , t, from] = cr;
+    const { ctx } = this;
+    const k = Math.min(1, t / CRASH.fallTime); // 1 = far away, 0 = impact
+    const sx = x + Math.cos(from) * 1400 * k;
+    const sy = y + Math.sin(from) * 1400 * k - 500 * k;
+    const ang = Math.atan2(y - sy, x - sx);
+    const scale = 1.6 - 0.6 * k;
+    if (Math.random() < f.dt * 60)
+      this.particles.spawn({
+        x: sx - Math.cos(ang) * 50 * scale,
+        y: sy - Math.sin(ang) * 50 * scale,
+        vx: (Math.random() - 0.5) * 40,
+        vy: (Math.random() - 0.5) * 40,
+        maxLife: 1.4,
+        size: 16,
+        grow: 2.5,
+        color: Math.random() < 0.5 ? '#ff8a20' : '#2a2622',
+        shape: 'smoke',
+        additive: Math.random() < 0.5,
+      });
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.rotate(ang);
+    ctx.scale(scale, scale);
+    // hull: a gothic wedge with a prow, engine block and fins
+    ctx.fillStyle = '#5a5850';
+    ctx.strokeStyle = '#1a1816';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(70, 0);
+    ctx.lineTo(20, -22);
+    ctx.lineTo(-50, -26);
+    ctx.lineTo(-60, -40);
+    ctx.lineTo(-70, -26);
+    ctx.lineTo(-70, 26);
+    ctx.lineTo(-60, 40);
+    ctx.lineTo(-50, 26);
+    ctx.lineTo(20, 22);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#b8902a'; // aquila stripe
+    ctx.fillRect(-20, -4, 50, 8);
+    // fire licking along the hull
+    ctx.globalCompositeOperation = 'lighter';
+    const g = ctx.createRadialGradient(60, 0, 4, 40, 0, 70);
+    g.addColorStop(0, 'rgba(255,240,180,0.9)');
+    g.addColorStop(0.4, 'rgba(255,120,30,0.7)');
+    g.addColorStop(1, 'rgba(255,60,0,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.ellipse(40, 0, 70, 34, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  /** Guardsmen: khaki flak armour, dark helmet, lasgun; small HP bar; gold ring = follows you. */
+  private drawAllies(f: RenderFrame): void {
+    const { ctx } = this;
+    const r = GUARDSMAN.radius;
+    for (const [, x, y, a, hp, follow] of f.b.al ?? []) {
+      if (this.hiddenFromViewer(x, y)) continue;
+      this.drawShadow(x, y, r);
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(a);
+      ctx.strokeStyle = '#2a2a24';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(4, 3);
+      ctx.lineTo(r + 12, 3);
+      ctx.stroke();
+      ctx.fillStyle = '#7a7450';
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#3e4a32';
+      ctx.beginPath();
+      ctx.arc(-1, 0, r * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      if (follow) {
+        ctx.strokeStyle = 'rgba(230,190,80,0.7)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(x, y, r + 4, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      if (hp < 100) {
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(x - r, y - r - 8, r * 2, 3);
+        ctx.fillStyle = '#6ac040';
+        ctx.fillRect(x - r, y - r - 8, (r * 2 * hp) / 100, 3);
+      }
+    }
   }
 
   /** Acid pools: bright toxic green with a bubbling rim, fading as they dry up. */
