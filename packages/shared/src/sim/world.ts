@@ -32,6 +32,7 @@ export function createWorld(
     enemies: [],
     projectiles: [],
     pickups: [],
+    acid: [],
     director: {
       queue: [],
       activeUntil: d.spawnPoints.map(() => -1),

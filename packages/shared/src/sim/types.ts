@@ -1,5 +1,11 @@
 import type { Rng } from '../math/rng.js';
-import type { ContentRegistry, ExplosionSpec, PierceBudget, SprintState } from '../data/index.js';
+import type {
+  AcidPoolSpec,
+  ContentRegistry,
+  ExplosionSpec,
+  PierceBudget,
+  SprintState,
+} from '../data/index.js';
 import type { MapDef } from '../maps/types.js';
 
 export type PlayerState = 'alive' | 'downed' | 'dead';
@@ -122,6 +128,8 @@ export interface Enemy {
   synDamage: number;
   /** > 0 for a moment after attacking (animation). */
   attackAnim: number;
+  /** Cooldown of the secondary lobbed attack (EnemyDef.lobAttack). */
+  lobCooldown?: number;
   dead: boolean;
   /** Spawned by another enemy (spore mine from a Biovore...): counts toward the wave, never drops. */
   child: boolean;
@@ -134,6 +142,20 @@ export interface Enemy {
 }
 
 export type ProjectileOwner = 'player' | 'enemy';
+
+/** Acid on the floor (data AcidPoolSpec). */
+export interface AcidPool {
+  id: number;
+  x: number;
+  y: number;
+  r: number;
+  life: number;
+  duration: number;
+  damage: number;
+  interval: number;
+  /** Seconds to the next burn tick. */
+  next: number;
+}
 
 export interface Projectile {
   id: number;
@@ -175,6 +197,7 @@ export interface Projectile {
   /** Ricocheted off a marine's front plate: harmless to everyone, fading out. */
   deflected?: boolean;
   dead: boolean;
+  pool?: AcidPoolSpec;
 }
 
 export type PickupKind = 'weapon' | 'medkit';
@@ -198,6 +221,8 @@ export type GameEvent =
   /** `k` = projectile kind for a end-of-range burst (e.g. 'melta'); absent = a normal blast. */
   | { e: 'boom'; x: number; y: number; r: number; k?: string }
   | { e: 'spit'; x: number; y: number; t?: string }
+  /** Acid pool splashed down (radius r). */
+  | { e: 'acid'; x: number; y: number; r: number }
   | { e: 'bite'; p: number; t?: string }
   | { e: 'overheat'; p: number }
   | { e: 'emerge'; x: number; y: number; t: string }
@@ -301,6 +326,7 @@ export interface World {
   enemies: Enemy[];
   projectiles: Projectile[];
   pickups: Pickup[];
+  acid: AcidPool[];
   director: DirectorState;
   events: GameEvent[];
   teamSize: number;

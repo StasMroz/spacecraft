@@ -2,6 +2,7 @@ import { NET } from '../constants.js';
 import { RECOIL_WIRE } from '../data/recoil.js';
 import type {
   EnemySnap,
+  AcidSnap,
   PickupSnap,
   PlayerSnap,
   ProjectileSnap,
@@ -508,6 +509,7 @@ function snapFits(s: Snapshot): boolean {
     if (!p.every((v, k) => exact(v, k === 0 ? 1 : PROJ_SCALES[k - 1]))) return false;
   for (const p of s.pickups)
     if (!exact(p.x, 10) || !exact(p.y, 10) || !exact(p.life, 10)) return false;
+  for (const a of s.ac ?? []) if (!a.every((v, k) => exact(v, k === 0 ? 1 : 10))) return false;
   return (
     s.players.every(playerFits) &&
     exact(s.time, 1000) &&
@@ -586,6 +588,12 @@ export function createWireCodec(stats?: WireStats): WireCodec {
       w.sv(fx(p.y, 10));
       w.sv(fx(p.life, 10));
     }
+    const ac = s.ac ?? [];
+    w.uv(ac.length);
+    for (const a of ac) {
+      w.uv(a[0]);
+      for (let k = 1; k < 6; k++) w.sv(fx(a[k]!, 10));
+    }
     section('pickups');
     w.uv(s.events.length);
     const anchors: Anchors = new Map(prow);
@@ -622,6 +630,12 @@ export function createWireCodec(stats?: WireStats): WireCodec {
       const life = r.sv() / 10;
       pickups.push({ id, k, ...(wpn ? { w: wpn } : {}), x, y, life });
     }
+    const ac: AcidSnap[] = [];
+    for (let n = r.uv(); n > 0; n--) {
+      const id = r.uv();
+      const v = [1, 2, 3, 4, 5].map(() => r.sv() / 10);
+      ac.push([id, v[0]!, v[1]!, v[2]!, v[3]!, v[4]!]);
+    }
     const events: GameEvent[] = [];
     for (let n = r.uv(); n > 0; n--) events.push(readEvent(r, sym, anchors));
     return {
@@ -634,6 +648,7 @@ export function createWireCodec(stats?: WireStats): WireCodec {
       enemies: en as unknown as EnemySnap[],
       projectiles: pr as unknown as ProjectileSnap[],
       pickups,
+      ac,
       sp,
       events,
     };

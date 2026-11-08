@@ -89,6 +89,9 @@ export interface PickupSnap {
   life: number;
 }
 
+/** Acid on the floor: [id, x, y, radius, life s, duration s] (x/y/life 0.1 steps). */
+export type AcidSnap = [number, number, number, number, number, number];
+
 export interface Snapshot {
   tick: number;
   time: number;
@@ -99,6 +102,8 @@ export interface Snapshot {
   enemies: EnemySnap[];
   projectiles: ProjectileSnap[];
   pickups: PickupSnap[];
+  /** Acid pools (optional so a JSON snapshot without it still reads). */
+  ac?: AcidSnap[];
   /** BREACH_STATE per director spawn point (content.director.spawnPoints order). */
   sp: number[];
   events: GameEvent[];
@@ -216,6 +221,14 @@ export function buildSnapshot(world: World, bleedOutTime: number): Snapshot {
       y: round(p.y),
       life: round(p.life, 1),
     })),
+    ac: world.acid.map((a) => [
+      a.id,
+      round(a.x),
+      round(a.y),
+      a.r,
+      round(Math.max(0, a.life), 1),
+      a.duration,
+    ]),
     sp: breachStates(world),
     events: world.events,
   };

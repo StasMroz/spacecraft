@@ -439,6 +439,16 @@ export function playEvent(ev: GameEvent, fx: FxContext): void {
       });
       break;
     }
+    case 'acid': {
+      P.burst(ev.x, ev.y, 6 + Math.round(ev.r / 8), {
+        speed: 60 + ev.r,
+        color: '#b8ff3a',
+        maxLife: 0.45,
+        size: 3,
+        additive: true,
+      });
+      break;
+    }
     case 'bite': {
       const p = fx.players(ev.p);
       const def = ev.t ? content.enemies.get(ev.t) : undefined;

@@ -52,6 +52,14 @@ export const PROJECTILE_VISUALS: Record<string, ProjectileVisual> = {
     trailColor: '#a0e030',
     fallbackRadius: 6,
   },
+  bioacid: {
+    color: '#b8ff3a',
+    glow: true,
+    trail: 30,
+    trailColor: '#7ac020',
+    trailShape: 'smoke',
+    fallbackRadius: 12,
+  },
   spore: {
     color: '#a8c040',
     glow: false,

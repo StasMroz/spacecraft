@@ -1,5 +1,14 @@
 # Changelog
 
+## v17
+
+- Kwasoplujki szybsze: pocisk Termaganta (fleshborer) 430 → 560 px/s, Warriora (deathspitter) 480 → 620 px/s. Obrażenia i szybkostrzelność bez zmian.
+- Pudło plujki zostawia kałużę kwasu: Termagant promień 20 px na 2,5 s (3 obrażenia co 0,5 s), Warrior 28 px na 3 s (4 co 0,5 s). Kałuża powstaje, gdy pocisk skończy zasięg albo zatrzyma się na ścianie; nie po trafieniu marine, rykoszecie od pancerza ani wylocie poza mapę.
+- Carnifex dostaje atak dystansowy: kula kwasu na 200–560 px, co ok. 6 s, tylko na widocznego marine i nigdy w trakcie szarży; 15 obrażeń przy trafieniu i duża plama (80 px, 6 s, 6 obrażeń co 0,5 s) tam, gdzie stał marine — także po trafieniu. Szarża i walka wręcz bez zmian.
+- Kwas parzy każdego marine w plamie (pancerz nie chroni, bez nietykalności po trafieniu), nigdy przez pełną ścianę; plamy za pełną ścianą są w cieniu. Najstarsze plamy znikają ponad limit 48.
+- Lore (Lexicanum): deathspitter strzela żrącymi larwami, których płyn rozpryskuje się szeroko i topi pancerz; fleshborer — chrząszcze wydzielające enzym trawienny; Carnifex (Screamer-Killer) pluje bio-plazmą, inne warianty noszą Venom Cannon / Acid Maw. Trwałe kałuże, czasy, promienie i obrażenia to adaptacja balansu gry, nie zasady 40k.
+- Protokół sieci 7 (pule kwasu w migawce); stare klienty niezgodne. Melta 50–30 i ściany z v16 bez zmian.
+
 ## v16
 
 - Ściany na mapie Hive Siege: pełne ściany (szara grodź) blokują ruch, walkę wręcz, pociski, wybuchy i widoczność — co za nimi, jest w cieniu, także na minimapie i pasku HP bossa. Niskie osłony (barykady w żółte pasy) blokują ruch i walkę wręcz, ale widać i strzela się nad nimi; każdy pocisk przecinający osłonę ma 35% szansy zatrzymania, chyba że strzelec stoi przy niej (do 70 px).

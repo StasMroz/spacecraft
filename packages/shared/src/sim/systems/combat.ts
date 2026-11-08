@@ -116,8 +116,10 @@ export function damagePlayer(
   player: Player,
   amount: number,
   source?: DamageSource,
+  /** Damage over time (acid): ignores and grants no hurt i-frames, so it never shields a marine. */
+  opts?: { dot?: boolean },
 ): void {
-  if (player.state !== 'alive' || player.invuln > 0 || amount <= 0) return;
+  if (player.state !== 'alive' || (player.invuln > 0 && !opts?.dot) || amount <= 0) return;
   if (source) {
     const dx = 'dirX' in source ? source.dirX : source.fromX - player.x;
     const dy = 'dirX' in source ? source.dirY : source.fromY - player.y;
@@ -125,7 +127,7 @@ export function damagePlayer(
     amount *= armourMul(player.aim, dx, dy, front);
   }
   player.hp -= amount;
-  player.invuln = PLAYER.hurtInvuln;
+  if (!opts?.dot) player.invuln = PLAYER.hurtInvuln;
   world.events.push({ e: 'hurt', p: player.id, d: Math.round(amount) });
   if (player.hp <= 0) {
     player.hp = 0;

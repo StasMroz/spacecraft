@@ -54,6 +54,25 @@ export interface ProjectileSpec {
    * max range. Not after a deflection, not when it leaves the arena.
    */
   endBurst?: ExplosionSpec;
+  /**
+   * Acid pool left on the floor where the shot lands without hitting a marine (end of range or
+   * stopped by a wall; not after a deflection or off-map). `onHit` also leaves it under a struck
+   * marine (big lobbed globs). Burns marines inside it, never through a full wall.
+   */
+  pool?: AcidPoolSpec;
+  /** Lobbed: lands at the target's position at firing time (lifetime capped to that distance). */
+  lob?: boolean;
+}
+
+export interface AcidPoolSpec {
+  radius: number;
+  /** Seconds before it dries up. */
+  duration: number;
+  /** Damage per burn tick to every marine inside (armour ignored). */
+  damage: number;
+  /** Seconds between burn ticks. */
+  interval: number;
+  onHit?: boolean;
 }
 
 /**
@@ -228,6 +247,11 @@ export interface EnemyDef {
   contactDamage: number;
   contactCooldown: number;
   ranged?: EnemyRangedSpec;
+  /**
+   * Secondary ranged attack of a melee beast (Carnifex acid glob): fired at a visible marine
+   * between `minDistance` and `range`, on its own cooldown, never while charging.
+   */
+  lobAttack?: EnemyRangedSpec & { minDistance: number };
   explode?: EnemyExplodeSpec;
   charge?: EnemyChargeSpec;
   burrow?: EnemyBurrowSpec;

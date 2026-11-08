@@ -66,6 +66,8 @@ export const MARINE_DEFLECTION = {
     fleshborer: 0.6,
     /** Tyranid Warrior deathspitter, the stronger shot (v0.6.0: 21 %, −30 %). */
     deathspitter: 0.147,
+    /** Carnifex acid glob: a bucket of acid, not a bolt — nothing to ricochet. */
+    bioacid: 0,
   } as Readonly<Record<string, number>>,
   /** Any future direct-fire projectile not in the table. */
   defaultChance: 0.15,

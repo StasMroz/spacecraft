@@ -2,6 +2,7 @@ import { TICK_DT } from '../constants.js';
 import { SpatialHash } from './spatialHash.js';
 import { updateDirector } from './systems/director.js';
 import { updateEnemies } from './systems/enemies.js';
+import { updateAcid } from './systems/acid.js';
 import { updatePickups } from './systems/pickups.js';
 import { updatePlayerMovement, updatePlayerStatus } from './systems/players.js';
 import { updateProjectiles } from './systems/projectiles.js';
@@ -45,6 +46,7 @@ export function stepWorld(world: World, dt: number = TICK_DT): void {
 
   rebuildHash(world);
   updateProjectiles(world, enemyHash, dt);
+  updateAcid(world, dt);
   updatePickups(world, dt);
   updatePlayerStatus(world, dt);
   world.enemies = world.enemies.filter((e) => !e.dead);

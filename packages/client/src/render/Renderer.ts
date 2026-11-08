@@ -420,6 +420,7 @@ export class Renderer {
     this.drawProps();
     // Breach holes / vents (spawn points) are part of the terrain too.
     this.drawBreaches();
+    this.drawAcid(f);
     this.drawPickups(f);
     this.drawCorpses();
     this.drawEnemies(f);
@@ -535,6 +536,44 @@ export class Renderer {
     ctx.beginPath();
     ctx.ellipse(x, y + r * 0.35, r, r * 0.6, 0, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  /** Acid pools: bright toxic green with a bubbling rim, fading as they dry up. */
+  private drawAcid(f: RenderFrame): void {
+    const { ctx } = this;
+    const time = f.nowMs / 1000;
+    for (const [id, x, y, r, life, dur] of f.b.ac ?? []) {
+      const fade = Math.min(1, life / Math.max(0.5, dur * 0.35));
+      ctx.save();
+      ctx.globalAlpha = 0.25 + 0.6 * fade;
+      const g = ctx.createRadialGradient(x, y, r * 0.1, x, y, r);
+      g.addColorStop(0, 'rgba(190,255,60,0.85)');
+      g.addColorStop(0.7, 'rgba(120,210,30,0.6)');
+      g.addColorStop(1, 'rgba(80,140,20,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(210,255,90,0.9)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 5]);
+      ctx.lineDashOffset = -time * 12;
+      ctx.beginPath();
+      ctx.arc(x, y, r * 0.92, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // a few bubbles
+      ctx.fillStyle = 'rgba(230,255,150,0.8)';
+      for (let k = 0; k < 3 + Math.floor(r / 20); k++) {
+        const a = id * 1.7 + k * 2.39;
+        const rr = r * 0.6 * ((k * 0.37 + id * 0.13) % 1);
+        const s = 1.5 + 2 * Math.abs(Math.sin(time * 3 + k + id));
+        ctx.beginPath();
+        ctx.arc(x + Math.cos(a) * rr, y + Math.sin(a) * rr, s, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
   }
 
   private drawPickups(f: RenderFrame): void {

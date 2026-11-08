@@ -59,7 +59,10 @@ export class ContentRegistry {
       // Supercharged heat-weapon shots get their own visual.
       if (w.heat) kinds.add(`${w.projectile.kind}_super`);
     }
-    for (const e of enemies) if (e.ranged) kinds.add(e.ranged.projectile.kind);
+    for (const e of enemies) {
+      if (e.ranged) kinds.add(e.ranged.projectile.kind);
+      if (e.lobAttack) kinds.add(e.lobAttack.projectile.kind);
+    }
     this.projectileKinds = [...kinds];
   }
 

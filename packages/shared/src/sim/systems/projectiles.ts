@@ -11,6 +11,7 @@ import {
 import { COVER } from '../../maps/walls.js';
 import type { Enemy, Player, Projectile, World } from '../types.js';
 import { segmentEntry } from '../walls.js';
+import { spawnAcid } from './acid.js';
 import { damageEnemy, damagePlayer, explode } from './combat.js';
 
 /** Largest enemy radius; used to pad broad-phase queries. */
@@ -34,6 +35,8 @@ export function updateProjectiles(world: World, enemyHash: SpatialHash<Enemy>, d
       pr.x < 0 || pr.y < 0 || pr.x > world.map.arena.width || pr.y > world.map.arena.height;
     if (pr.life <= 0 || outside) {
       detonate(world, pr, !outside);
+      // A miss splashes acid where it lands (not off-map, not a harmless ricochet).
+      if (pr.pool && !outside && !pr.deflected) spawnAcid(world, pr.x, pr.y, pr.pool);
       continue;
     }
     const wallT = wallStop(world, pr, x0, y0);
@@ -49,6 +52,7 @@ export function updateProjectiles(world: World, enemyHash: SpatialHash<Enemy>, d
     if (wallT !== null && !pr.dead) {
       world.events.push({ e: 'bnc', x: Math.round(pr.x), y: Math.round(pr.y), k: pr.kind });
       detonate(world, pr, true);
+      if (pr.pool && !pr.deflected) spawnAcid(world, pr.x, pr.y, pr.pool);
     }
   }
   world.projectiles = world.projectiles.filter((p) => !p.dead);
@@ -175,6 +179,7 @@ function hitPlayers(world: World, pr: Projectile, x0: number, y0: number): void 
       }
       world.events.push({ e: 'hit', x: Math.round(pr.x), y: Math.round(pr.y), k: pr.kind });
       pr.dead = true;
+      if (pr.pool?.onHit) spawnAcid(world, p.x, p.y, pr.pool);
       return;
     }
   }

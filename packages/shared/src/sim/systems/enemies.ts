@@ -1,5 +1,5 @@
 import { PLAYER } from '../../constants.js';
-import type { EnemyDef } from '../../data/index.js';
+import type { EnemyDef, ProjectileSpec } from '../../data/index.js';
 import { clamp, dist2 } from '../../math/vec.js';
 import type { SpatialHash } from '../spatialHash.js';
 import { allocId } from '../world.js';
@@ -205,9 +205,23 @@ export function updateEnemies(world: World, hash: SpatialHash<Enemy>, dt: number
             if (world.rng.chance(dt * 0.3)) e.strafe = -e.strafe;
             if (d <= r.range && e.attackCooldown <= 0) {
               e.attackCooldown = r.cooldown * world.rng.range(0.85, 1.15);
-              spit(world, e, target, def.radius);
+              spit(world, e, target, def.radius, r.projectile, d);
             }
             break;
+          }
+        }
+        const lob = def.lobAttack;
+        if (lob) {
+          e.lobCooldown = Math.max(0, (e.lobCooldown ?? lob.cooldown * 0.5) - dt);
+          if (
+            e.chargePhase === 0 &&
+            e.lobCooldown <= 0 &&
+            d >= lob.minDistance &&
+            d <= lob.range &&
+            !segmentBlocked(world.map.walls, e.x, e.y, target.x, target.y, 'full')
+          ) {
+            e.lobCooldown = lob.cooldown * world.rng.range(0.85, 1.15);
+            spit(world, e, target, def.radius, lob.projectile, d);
           }
         }
       }
@@ -323,8 +337,14 @@ function resolveOverlap(world: World, e: Enemy, r: number, hash: SpatialHash<Ene
   e.y += py * SEPARATION.correct;
 }
 
-function spit(world: World, e: Enemy, target: Player, radius: number): void {
-  const spec = world.content.enemy(e.type).ranged!.projectile;
+function spit(
+  world: World,
+  e: Enemy,
+  target: Player,
+  radius: number,
+  spec: ProjectileSpec,
+  d: number,
+): void {
   e.attackAnim = 0.3;
   // Aim straight with a little spread; marines can dodge by moving. Lobbed spores lead a bit.
   const a = Math.atan2(target.y - e.y, target.x - e.x) + world.rng.range(-0.08, 0.08);
@@ -339,7 +359,7 @@ function spit(world: World, e: Enemy, target: Player, radius: number): void {
     y: e.y + Math.sin(a) * radius,
     vx: Math.cos(a) * spec.speed,
     vy: Math.sin(a) * spec.speed,
-    life: spec.lifetime,
+    life: spec.lob ? Math.min(spec.lifetime, Math.max(0, d - radius) / spec.speed) : spec.lifetime,
     radius: spec.radius,
     damage: spec.damage * e.synDamage,
     pierceLeft: 0,
@@ -347,6 +367,7 @@ function spit(world: World, e: Enemy, target: Player, radius: number): void {
     drag: spec.drag ?? 0,
     knockback: 0,
     explosion: spec.explosion,
+    ...(spec.pool ? { pool: spec.pool } : {}),
     hit: [],
     dead: false,
   });
