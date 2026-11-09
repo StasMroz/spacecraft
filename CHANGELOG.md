@@ -1,5 +1,11 @@
 # Changelog
 
+## v26
+
+- Meltagun przywrócony do stanu sprzed naszych nerfów (bazowy ref `3dc3dba` / v12, tuż przed v13 zasięg −15%): lifetime 0,2 (zasięg 240 px), pierce 3 (do 4 trafień), endBurst 25 dmg / edgeFactor 0,35 / r 66 / S4 AP0. Bez pierceBudget.
+- Jedyna zmiana względem pierwotnego: szybkostrzelność −40% → fireInterval = 0,87 / 0,6 = 1,45 s (nie względem 1,13 z v21; nie odstęp × 1,4).
+- Zasady, kompendium i testy melty zaktualizowane. Niskie osłony v24, katastrofa, menu i reszta gry bez zmian.
+
 ## v25
 
 - Menu: wyraźny główny przycisk ▶ SOLO DEPLOY; HOST SQUAD i dołączanie kodem pokoju zebrane w sekcji „PLAY WITH FRIENDS”.

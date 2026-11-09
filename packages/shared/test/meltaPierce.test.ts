@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { TICK_DT } from '../src/constants.js';
-import { ENEMIES, WEAPONS, type EnemySize } from '../src/data/index.js';
+import { WEAPONS } from '../src/data/index.js';
 import {
   applyInput,
   createWorld,
@@ -13,8 +13,8 @@ import { spawnEnemy } from '../src/sim/systems/director.js';
 
 const melta = WEAPONS.find((w) => w.id === 'meltagun')!;
 
-function world(): World {
-  const w = createWorld([{ id: 1, name: 'M1' }], 7);
+function world(seed = 7): World {
+  const w = createWorld([{ id: 1, name: 'M1' }], seed);
   w.director.idle = true;
   const p = w.players[0];
   p.x = 600;
@@ -26,8 +26,8 @@ function world(): World {
 
 let seq = 0;
 /** Lines up `types` along +x, fires one melta shot and returns the ids it hit, in order. */
-function shoot(types: string[], gap = 40): { hit: number[]; ids: number[] } {
-  const w = world();
+function shoot(types: string[], gap = 40, seed = 7): { hit: number[]; ids: number[] } {
+  const w = world(seed);
   const p = w.players[0];
   const ids = types.map((t, i) => spawnEnemy(w, t, p.x + 60 + i * gap, p.y).id);
   let hit: number[] = [];
@@ -42,46 +42,37 @@ function shoot(types: string[], gap = 40): { hit: number[]; ids: number[] } {
   return { hit, ids };
 }
 
-const bySize = (size: EnemySize) => ENEMIES.filter((e) => e.size === size).map((e) => e.id);
-
-describe('Meltagun single direct hit (v20: no pierce)', () => {
-  it('classes every enemy by body size', () => {
-    expect(bySize('tiny')).toEqual(['ripper']);
-    expect(bySize('small').sort()).toEqual([
-      'genestealer',
-      'hormagaunt',
-      'spore_mine',
-      'termagant',
-    ]);
-    expect(bySize('medium').sort()).toEqual(['biovore', 'ravener', 'warrior']);
-    expect(bySize('large').sort()).toEqual(['carnifex', 'psychophage']);
-  });
-
-  it.each(['carnifex', 'warrior', 'termagant', 'ripper'] as const)(
-    'a row of %s: only the first takes the direct hit',
-    (type) => {
-      const { hit, ids } = shoot(Array(4).fill(type), type === 'carnifex' ? 80 : 40);
-      expect(hit).toEqual([ids[0]]);
-    },
-  );
-
-  it('mixed sizes: one direct hit, nearest first, whatever its size', () => {
-    const a = shoot(['ripper', 'carnifex', 'termagant'], 60);
-    expect(a.hit).toEqual([a.ids[0]]);
-    const b = shoot(['warrior', 'ripper', 'ripper'], 50);
-    expect(b.hit).toEqual([b.ids[0]]);
-  });
-
-  it('melta has no pierce and no size budget; other weapons keep theirs', () => {
-    expect(melta.projectile.pierce).toBe(0);
+describe('Meltagun pierce (original pierce: 3 = up to 4 hits)', () => {
+  it('data matches the pre-nerf weapon (v12) with fire rate −40%', () => {
+    expect(melta.projectile.pierce).toBe(3);
     expect(melta.projectile.pierceBudget).toBeUndefined();
-    expect(melta.fireInterval).toBe(1.13);
-    expect(WEAPONS.some((w) => w.projectile.pierceBudget)).toBe(false);
+    expect(melta.projectile.lifetime).toBe(0.2);
+    expect(melta.projectile.speed).toBe(1200);
+    expect(melta.projectile.endBurst).toEqual({
+      radius: 66,
+      damage: 25,
+      edgeFactor: 0.35,
+      strength: 4,
+      ap: 0,
+    });
+    // 0.87 / 0.6 = 1.45
+    expect(melta.fireInterval).toBeCloseTo(0.87 / 0.6, 9);
   });
 
-  it('far low cover: the beam either stops ON it and flashes there, or flies on to max range', () => {
+  it('a row of gaunts: pierce 3 yields four hits, then the beam coasts', () => {
+    const { hit, ids } = shoot(Array(6).fill('termagant'), 40);
+    expect(hit).toEqual(ids.slice(0, 4));
+  });
+
+  it('mixed sizes: up to four direct hits, nearest first', () => {
+    const a = shoot(['ripper', 'carnifex', 'termagant', 'warrior', 'ripper'], 60);
+    expect(a.hit).toEqual(a.ids.slice(0, 4));
+  });
+
+  it('far low cover (v24): the beam either stops ON it and flashes there, or flies on to max range', () => {
     let onCover = 0;
     let atRange = 0;
+    const RANGE = melta.projectile.speed * melta.projectile.lifetime;
     for (let s = 1; s <= 80; s++) {
       const w = createWorld([{ id: 1, name: 'M1' }], s);
       w.map = { ...w.map, walls: [{ x: 720, y: 500, w: 24, h: 200, kind: 'low' }] };
@@ -97,9 +88,9 @@ describe('Meltagun single direct hit (v20: no pierce)', () => {
         stepWorld(w, TICK_DT);
         for (const e of w.events) if (e.e === 'boom') booms.push(e.x);
       }
-      expect(booms).toHaveLength(1); // exactly one flash per shot
+      expect(booms).toHaveLength(1);
       if (booms[0]! >= 700 && booms[0]! <= 722) onCover++;
-      else if (booms[0]! > 800) atRange++;
+      else if (booms[0]! > RANGE * 0.85) atRange++;
     }
     expect(onCover + atRange).toBe(80);
     expect(onCover).toBeGreaterThan(24);

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { TICK_DT } from '../src/constants.js';
 import { WEAPONS } from '../src/data/index.js';
-import { WEAPON_MUZZLE } from '../src/data/muzzle.js';
 import {
   applyInput,
   createWorld,
@@ -53,18 +52,13 @@ const meltaBooms = (evs: GameEvent[]) =>
   evs.filter((e): e is Extract<GameEvent, { e: 'boom' }> => e.e === 'boom' && e.k === 'melta');
 
 describe('Meltagun end-of-range burst', () => {
-  it('bursts for 50 at the centre falling to 30 at the edge (r 66, S4 AP0, enemies only)', () => {
-    expect(burst).toEqual({ radius: 66, damage: 50, edgeFactor: 0.6, strength: 4, ap: 0 });
-    expect(burst.damage * burst.edgeFactor).toBeCloseTo(30, 9);
-    expect(frag.projectile.explosion).toBeDefined();
-  });
-
-  it('reaches 85% of the former 240 px range (204 px)', () => {
-    expect(RANGE).toBeCloseTo(240 * 0.85, 6);
-    const w = world();
-    const p = w.players[0];
-    const b = meltaBooms(fireOnce(w))[0]!;
-    expect(b.x - p.x).toBeLessThan(240 + WEAPON_MUZZLE.meltagun!.forward);
+  it('is configured in the melta data at ~20–25% of frag damage and ~50–60% of its radius', () => {
+    const fx = frag.projectile.explosion!;
+    expect(burst.damage / fx.damage).toBeGreaterThanOrEqual(0.2);
+    expect(burst.damage / fx.damage).toBeLessThanOrEqual(0.25);
+    expect(burst.radius / fx.radius).toBeGreaterThanOrEqual(0.5);
+    expect(burst.radius / fx.radius).toBeLessThanOrEqual(0.6);
+    expect(burst.friendlyFire).toBeFalsy();
   });
 
   it('a miss bursts once at max range', () => {
@@ -114,13 +108,13 @@ describe('Meltagun end-of-range burst', () => {
     expect(b.x - p.x).toBeLessThan(RANGE + 80);
   });
 
-  it('after its one direct hit the beam flies on to max range for a single burst', () => {
+  it('keeps flying to max range after pierce is spent (no early death on last target)', () => {
     const w = world();
     const p = w.players[0];
-    const first = spawnEnemy(w, 'warrior', p.x + 80, p.y);
-    first.hp = first.maxHp = 1e6;
+    // pierce: 3 → four hits spend it; pack gaunts on the beam line well before max range
+    const gaunts = [80, 110, 140, 170].map((dx) => spawnEnemy(w, 'termagant', p.x + dx, p.y));
     const evs = fireOnce(w);
-    expect(first.hp).toBeLessThan(first.maxHp);
+    expect(gaunts.every((g) => g.dead || g.hp < g.maxHp)).toBe(true);
     const booms = meltaBooms(evs);
     expect(booms).toHaveLength(1);
     expect(booms[0]!.x - p.x).toBeGreaterThan(RANGE * 0.9);

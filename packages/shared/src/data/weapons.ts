@@ -171,7 +171,8 @@ export const WEAPONS: WeaponDef[] = [
     slot: 5,
     description: 'Short-range thermal beam. Wasted on gaunts; turns a Carnifex into slag.',
     roles: ['ANTI-TANK', 'SHORT RANGE'],
-    fireInterval: 1.13,
+    // Original (v12 / 3dc3dba) restored; fire rate −40% → interval = 0.87 / 0.6.
+    fireInterval: 1.45,
     automatic: true,
     magazine: 6,
     reloadTime: 2.2,
@@ -182,15 +183,15 @@ export const WEAPONS: WeaponDef[] = [
     projectile: {
       kind: 'melta',
       speed: 1200,
-      lifetime: 0.17,
+      lifetime: 0.2,
       radius: 11,
       damage: 300,
       strength: 9,
       ap: 4,
-      // v20: no pierce — one direct hit per shot, then the beam coasts on to its end-range burst.
-      pierce: 0,
+      pierce: 3,
       knockback: 220,
-      endBurst: { radius: 66, damage: 50, edgeFactor: 0.6, strength: 4, ap: 0 },
+      // A miss still flashes the floor at max range: ~23% of the frag's damage, ~55% of its radius.
+      endBurst: { radius: 66, damage: 25, edgeFactor: 0.35, strength: 4, ap: 0 },
     },
     unlockAtWave: 6,
     crateWeight: 5,

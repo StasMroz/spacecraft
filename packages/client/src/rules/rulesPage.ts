@@ -147,7 +147,7 @@ export function rulesHtml(c: ContentRegistry): string {
     <li><b>Strzelanie spowalnia</b>: ciężka broń spowalnia zawsze, a przy wciśniętym spuście jeszcze bardziej.</li>
     <li><b>Zaparcie</b>: niektóre ciężkie bronie, gdy stoisz w miejscu, strzelają szybciej i celniej.</li>
     <li><b>Plazma się grzeje</b>: powyżej kreski strzały są przeładowane (mocniejsze), na szczycie broń się przegrzewa i rani strzelca.</li>
-    <li><b>Siła vs Wytrzymałość i pancerz</b>: lekka broń odbija się od pancerza Carnifexa, Meltagun przebija każdy pancerz, ale bezpośrednio trafia tylko pierwszego wroga na linii (bez przebicia), a na końcu zasięgu zawsze robi jeden wybuch.</li>
+    <li><b>Siła vs Wytrzymałość i pancerz</b>: lekka broń odbija się od pancerza Carnifexa, Meltagun przebija każdy pancerz i do trzech kolejnych celów na linii (pierce 3), a na końcu zasięgu zawsze robi jeden wybuch.</li>
     ${bursts}
   </ul>
 </section>

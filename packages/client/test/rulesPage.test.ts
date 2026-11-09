@@ -35,11 +35,14 @@ describe('rules page', () => {
     expect(html).not.toMatch(/przyklejony|trudniejszy do trafienia|30%<\/b> szansy, że go minie/);
   });
 
-  it('describes the v21 melta consistently: one direct hit, no pierce claims', () => {
-    expect(defaultContent.weapon('meltagun').projectile.pierce).toBe(0);
-    expect(html).not.toMatch(/przebiciu celów|przebija wszystko|najmniejsze/);
-    expect(html).toContain('po trafieniu pierwszego celu');
-    expect(html).toContain('tylko pierwszego wroga');
+  it('describes the restored melta: pierce 3, original burst, fire rate −40%', () => {
+    const m = defaultContent.weapon('meltagun');
+    expect(m.projectile.pierce).toBe(3);
+    expect(m.fireInterval).toBeCloseTo(0.87 / 0.6, 9);
+    expect(m.projectile.endBurst).toMatchObject({ damage: 25, edgeFactor: 0.35 });
+    expect(html).toContain('po przebiciu celów');
+    expect(html).toContain('do trzech kolejnych celów');
+    expect(html).not.toMatch(/bez przebicia|tylko pierwszego wroga/);
   });
   it('DPS matrix uses the shared expectedDps', () => {
     const w = defaultContent.weaponOrder[0]!;
