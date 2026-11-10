@@ -54,6 +54,7 @@ export const CORE_SPRITES = [
   'creep_1',
   'creep_2',
   'ui_emblem',
+  'ally_guardsman',
 ] as const;
 
 /** Animation names a sprite may define (manifest `anims`); see docs/ADDING_CONTENT.md. */

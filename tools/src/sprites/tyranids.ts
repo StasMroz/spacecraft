@@ -275,25 +275,28 @@ function tail(
 /* --------------------------------------------------------------- species */
 
 const hormagaunt: Drawer = (ctx, p, pal) => {
+  // Powerful hind legs + a shorter mid pair; four scything talons up front.
   legs(
     ctx,
     p,
     pal,
     [
-      [-4, 3, -10, 13, 0],
-      [3, 3, 10, 12, 0.25],
+      [-6, 3, -12, 16, 0],
+      [2, 3, 8, 11, 0.25],
     ],
-    2,
-    4,
+    2.3,
+    4.5,
   );
   tail(ctx, -7, 17, 10, p, pal, 3);
   flesh(ctx, -1, 0, 11, 8, pal);
   plate(ctx, -3.5, 0, 8.5, 7, pal);
   plate(ctx, 3, 0, 6.5, 6, pal);
   spines(ctx, -8, 2, 0, 3, 2.4, pal);
-  // Scything talons: raised and swept forward, slash inward on attack.
   const sweep = p.a > 0 ? Math.sin(p.a * Math.PI) * 1.1 : 0;
-  for (const s of [-1, 1]) talon(ctx, 4, s * 5, s * (1.15 - sweep), 15, 3.2, -s * 0.35, pal);
+  for (const s of [-1, 1]) {
+    talon(ctx, 4, s * 5, s * (1.2 - sweep), 15, 3.2, -s * 0.35, pal);
+    talon(ctx, 2, s * 6.5, s * (0.75 - sweep * 0.5), 11, 2.4, -s * 0.25, pal);
+  }
   head(ctx, 9, 0, 11, 9, pal);
 };
 
@@ -588,6 +591,127 @@ const carnifex: Drawer = (ctx, p, pal) => {
   );
 };
 
+const psychophage: Drawer = (ctx, p, pal) => {
+  // Six scuttling, talon-tipped limbs (three pairs) around a hunched, bulbous body.
+  const scuttle = 1 - p.c;
+  const pairs: Array<[number, number, number, number, number, number]> = [
+    [-16, 11, -28, 24, 0, 3.5],
+    [-1, 17, -5, 31, 0.33, 3.8],
+    [14, 15, 24, 27, 0.66, 3.3],
+  ];
+  for (const [hx, hy, fx, fy, ph, lw] of pairs) {
+    for (const s of [-1, 1]) {
+      const sw = Math.sin((p.w + ph + (s > 0 ? 0.5 : 0)) * TAU) * 5.5 * scuttle;
+      const cx = hx + (fx - hx) * (1 - p.c * 0.6) + sw;
+      const cy = s * (hy + (fy - hy) * (1 - p.c * 0.5));
+      limb(ctx, hx, s * hy, cx, cy, -s * lw * 1.4, lw, pal);
+    }
+  }
+  // Rear-heavy flesh with digestive sacs and orifices.
+  flesh(ctx, -4, 0, 26, 22, pal);
+  for (const [sx, sy, rx, ry] of [
+    [-16, -11, 8.5, 7.2],
+    [-16, 11, 8.5, 7.2],
+    [-8, 0, 11, 8.5],
+  ] as const) {
+    ellipse(ctx, sx, sy, rx, ry, pal.flesh, pal.fleshDark, 1.2);
+    circle(ctx, sx + 2, sy, 2.3, rgba(pal.fleshDark, 0.65));
+  }
+  plate(ctx, -2, 0, 18, 16, pal);
+  plate(ctx, 10, 0, 12, 12, pal);
+  // Spore-spewing dorsal chimneys: three short stacks on the back (visible as pipes from above).
+  const ash = p.a > 0 ? Math.sin(p.a * Math.PI) : 0.3 + 0.15 * Math.sin(p.w * TAU);
+  for (const [cx, cy, len] of [
+    [-16, -8, 11],
+    [-20, 0, 14],
+    [-16, 8, 11],
+  ] as const) {
+    // pipe body pointing slightly rearward (-X), rim facing up/back.
+    ellipse(ctx, cx, cy, len * 0.55, 4.6, pal.carapaceDark, pal.carapaceDark, 1);
+    ellipse(ctx, cx, cy, len * 0.48, 3.7, pal.carapace, pal.carapaceDark, 1.1);
+    ellipse(ctx, cx - len * 0.25, cy, 3.4, 3.6, pal.carapaceLight, pal.carapaceDark, 1);
+    circle(ctx, cx - len * 0.35, cy, 2.5, '#1a0610');
+    glow(ctx, cx - len * 0.35, cy, 8, '#c070ff', 0.4 + 0.5 * ash);
+    if (ash > 0.15)
+      ellipse(
+        ctx,
+        cx - len * 0.35 - 5 - ash * 5,
+        cy + Math.sin(p.w * 8 + cy) * 2,
+        3.4 * ash + 1.5,
+        2.6 * ash + 1,
+        rgba('#d8a0ff', 0.55),
+      );
+  }
+  // Gaping many-jawed maw at the front — the face is the funnel, not a gaunt skull.
+  const open = 0.78 + (p.a > 0 ? Math.sin(p.a * Math.PI) * 0.32 : 0.08 * Math.sin(p.w * TAU));
+  const mawX = 22;
+  for (let k = 0; k < 6; k++) {
+    const a = -0.9 + (k / 5) * 1.8;
+    const jx = mawX + Math.cos(a) * 6 * open;
+    const jy = Math.sin(a) * 10.5 * open;
+    poly(
+      ctx,
+      [
+        [mawX - 2, Math.sin(a) * 4],
+        [jx + 4, jy],
+        [jx, jy + Math.sign(a || 1) * 3.2],
+      ],
+      pal.bone,
+      shade(pal.bone, -0.5),
+      0.7,
+    );
+  }
+  ellipse(ctx, mawX + 2, 0, 8.2 * open, 9.2 * open, '#1a0610', pal.fleshDark, 1.2);
+  ellipse(ctx, mawX, 0, 6 * open, 6.6 * open, '#3a1028');
+  for (let k = 0; k < 10; k++) {
+    const a = (k / 10) * TAU;
+    const tx = mawX + 2 + Math.cos(a) * 6.6 * open;
+    const ty = Math.sin(a) * 7.6 * open;
+    poly(
+      ctx,
+      [
+        [tx, ty],
+        [tx + Math.cos(a) * 3.6, ty + Math.sin(a) * 3.6],
+        [tx + Math.cos(a + 0.3) * 1.6, ty + Math.sin(a + 0.3) * 1.6],
+      ],
+      pal.bone,
+    );
+  }
+  // Barbed whipping tentacles around the maw.
+  ctx.lineCap = 'round';
+  for (let k = 0; k < 8; k++) {
+    const baseA = -1.15 + (k / 7) * 2.3;
+    const wob =
+      Math.sin(p.w * TAU * 2 + k * 1.7) * 0.35 * (1 - p.c) +
+      (p.a > 0 ? Math.sin(p.a * Math.PI + k) * 0.4 : 0);
+    const len = 16 + (k % 3) * 3;
+    const x0 = mawX + Math.cos(baseA) * 8;
+    const y0 = Math.sin(baseA) * 9.2;
+    const x1 = x0 + Math.cos(baseA + wob) * len * 0.55;
+    const y1 = y0 + Math.sin(baseA + wob) * len * 0.55;
+    const x2 = x0 + Math.cos(baseA - wob * 0.7) * len;
+    const y2 = y0 + Math.sin(baseA - wob * 0.7) * len;
+    ctx.lineWidth = 3.3;
+    ctx.strokeStyle = pal.fleshDark;
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.quadraticCurveTo(x1, y1, x2, y2);
+    ctx.stroke();
+    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = pal.flesh;
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.quadraticCurveTo(x1, y1, x2, y2);
+    ctx.stroke();
+    circle(ctx, x2, y2, 1.35, pal.bone);
+  }
+  // Side eyes by the maw (violet psychic glint).
+  for (const s of [-1, 1]) {
+    circle(ctx, 14, s * 8.2, 1.7, pal.eye);
+    glow(ctx, 14, s * 8.2, 5.2, '#c070ff', 0.5);
+  }
+};
+
 /* --------------------------------------------------------------- sprites */
 
 interface Spec {
@@ -606,7 +730,7 @@ const SPECIES: Record<string, Spec> = {
     walk: 6,
     attack: 3,
     death: 4,
-    brief: 'fast leaping alien with two raised scything bone talons, long tail',
+    brief: 'fast leaping alien with four scything bone talons, powerful hind legs and a long tail',
   },
   termagant: {
     size: 64,
@@ -672,7 +796,19 @@ const SPECIES: Record<string, Spec> = {
     death: 5,
     brief: 'huge armoured alien siege beast with massive claws and a spiked carapace',
   },
+  psychophage: {
+    size: 124,
+    draw: psychophage,
+    walk: 6,
+    attack: 3,
+    death: 5,
+    brief:
+      'hunched many-limbed psychic furnace: six scuttling talon-tipped legs, a bulbous body with digestive sacs, dorsal ash-chimneys, and a gaping many-jawed maw ringed with barbed tentacles',
+  },
 };
+
+/** Every enemy id that has its own drawer (not the generic hormagaunt fallback). */
+export const TYRANID_SPECIES_IDS = Object.keys(SPECIES);
 
 const generic: Spec = SPECIES.hormagaunt!;
 

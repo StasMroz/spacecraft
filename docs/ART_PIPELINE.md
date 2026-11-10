@@ -34,6 +34,8 @@ Animation ranges are `[firstFrame, count]` within the sprite's horizontal strip.
 | `enemy_biovore`                                            | 160×160        |     11 | `walk` 0–3, `attack` 4–6 (spore launch), `death` 7–10                                                     |
 | `enemy_spore_mine`                                         | 96×96          |      7 | `walk` 0–3 (pulsing float), `death` 4–6 (burst)                                                           |
 | `enemy_carnifex`                                           | 272×272        |     14 | `walk` 0–5, `attack` 6–8, `death` 9–13                                                                    |
+| `enemy_psychophage`                                        | 248×248        |     14 | `walk` 0–5, `attack` 6–8, `death` 9–13                                                                    |
+| `ally_guardsman`                                           | 104×104        |      6 | `walk` 0–5 (human: helmet, vest, lasgun, striding legs)                                                   |
 | `badge_<chapter>`                                          | 64×64          |      1 | shoulder badge (HUD, lobby), simple geometric icon                                                        |
 | `icon_<weapon>`, `crate_<weapon>`                          | 128×56 / 96×96 |  1 / 2 | HUD icon / supply crate (2-frame glint)                                                                   |
 | `proj_*`, `fx_*`, `decal_*`, `tile_*`, `prop_*`, `creep_*` | varies         | varies | projectiles, effects, blood/ichor decals, Imperial tiles, ruins, Tyranid creep                            |

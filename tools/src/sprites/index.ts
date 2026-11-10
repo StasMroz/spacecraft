@@ -1,3 +1,4 @@
+import { guardsmanSprites } from './guardsmen.js';
 import { fxSprites } from './fx.js';
 import { marineSprites } from './marines.js';
 import { tyranidSprites } from './tyranids.js';
@@ -12,6 +13,7 @@ export { UI_IMAGES } from './ui.js';
 /** Every procedurally generated sprite. Add new generators here. */
 export const SPRITES: SpriteDef[] = [
   ...marineSprites,
+  ...guardsmanSprites,
   ...weaponSprites,
   ...tyranidSprites,
   ...fxSprites,

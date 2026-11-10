@@ -116,6 +116,7 @@ export class Renderer {
   private hitFlash = new Map<number, number>();
   private lastHp = new Map<number, number>();
   private walk = new Map<number, { x: number; y: number; dist: number }>();
+  private allyWalk = new Map<number, { x: number; y: number; dist: number }>();
   private trailAcc = new Map<number, number>();
   private vignette: CanvasGradient | null = null;
   private tracks = new Map<number, EnemyTrack>();
@@ -658,30 +659,64 @@ export class Renderer {
   }
 
   /** Guardsmen: khaki flak armour, dark helmet, lasgun; small HP bar; gold ring = follows you. */
+  /** Last-resort human Guardsman if the atlas is missing: helmet, vest, legs, lasgun. */
+  private drawGuardsmanFallback(x: number, y: number, a: number, dist: number): void {
+    const { ctx } = this;
+    const step = Math.sin(dist / 10);
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(a);
+    ctx.fillStyle = '#4a4428';
+    for (const [side, ph] of [
+      [-1, 1],
+      [1, -1],
+    ] as const) {
+      const fx = ph * step * 5;
+      ctx.fillRect(-4 + fx, side * 5 - 2.4, 10, 4.8);
+      ctx.fillStyle = '#2c2a22';
+      ctx.fillRect(4 + fx, side * 5 - 2, 4.5, 4);
+      ctx.fillStyle = '#4a4428';
+    }
+    ctx.fillStyle = '#8a7d52';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 7, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#3e4a32';
+    ctx.fillRect(-6, -7, 12, 14);
+    ctx.strokeStyle = '#2a2a24';
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(3, 2);
+    ctx.lineTo(20, 2);
+    ctx.stroke();
+    ctx.fillStyle = '#4a5238';
+    ctx.beginPath();
+    ctx.arc(6, 0, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#1a1e14';
+    ctx.fillRect(8.4, -2, 2, 4);
+    ctx.restore();
+  }
+
   private drawAllies(f: RenderFrame): void {
     const { ctx } = this;
     const r = GUARDSMAN.radius;
-    for (const [, x, y, a, hp, follow] of f.b.al ?? []) {
+    const key = 'ally_guardsman';
+    const seen = new Set<number>();
+    for (const [id, x, y, a, hp, follow] of f.b.al ?? []) {
+      seen.add(id);
       if (this.hiddenFromViewer(x, y)) continue;
+      const w = this.allyWalk.get(id) ?? { x, y, dist: 0 };
+      w.dist += Math.hypot(x - w.x, y - w.y);
+      w.x = x;
+      w.y = y;
+      this.allyWalk.set(id, w);
       this.drawShadow(x, y, r);
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(a);
-      ctx.strokeStyle = '#2a2a24';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(4, 3);
-      ctx.lineTo(r + 12, 3);
-      ctx.stroke();
-      ctx.fillStyle = '#7a7450';
-      ctx.beginPath();
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#3e4a32';
-      ctx.beginPath();
-      ctx.arc(-1, 0, r * 0.6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
+      const walkA = this.assets.anim(key, 'walk');
+      const frame = walkA
+        ? walkA[0] + (Math.floor(w.dist / 10) % walkA[1])
+        : Math.floor(w.dist / 10) % 6;
+      if (!this.assets.draw(ctx, key, frame, x, y, a)) this.drawGuardsmanFallback(x, y, a, w.dist);
       if (follow) {
         ctx.strokeStyle = 'rgba(230,190,80,0.7)';
         ctx.lineWidth = 1.5;
@@ -696,6 +731,7 @@ export class Renderer {
         ctx.fillRect(x - r, y - r - 8, (r * 2 * hp) / 100, 3);
       }
     }
+    for (const id of [...this.allyWalk.keys()]) if (!seen.has(id)) this.allyWalk.delete(id);
   }
 
   /** Acid pools: bright toxic green with a bubbling rim, fading as they dry up. */
@@ -1097,26 +1133,60 @@ export class Renderer {
         pose.sx === pose.sy && pose.rot === 0
           ? this.assets.draw(ctx, key, frame, cx, cy, da, pose.sx)
           : this.assets.drawXform(ctx, key, frame, cx, cy, da, pose.sx, pose.sy);
-      if (!drawn && def?.stim) {
-        // Psychophage (no sprite): bloated violet body with a ring of whipping maw tentacles
-        ctx.strokeStyle = '#d090ff';
-        ctx.lineWidth = 4;
-        ctx.lineCap = 'round';
-        for (let k = 0; k < 7; k++) {
-          const ta = da + (k - 3) * 0.32;
-          const wob = Math.sin(time * 9 + k * 1.7) * 0.25;
+      if (!drawn && typeId === 'psychophage') {
+        // Atlas missing: hunched body, six legs, dorsal chimneys and a front maw — not a disc.
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(da);
+        ctx.fillStyle = vis.color;
+        for (const [lx, ly] of [
+          [-0.55, 0.7],
+          [0.05, 0.95],
+          [0.55, 0.75],
+        ]) {
+          for (const s of [-1, 1]) {
+            ctx.beginPath();
+            ctx.moveTo(r * lx * 0.4, 0);
+            ctx.lineTo(r * lx, s * r * ly);
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#2a1840';
+            ctx.stroke();
+          }
+        }
+        ctx.beginPath();
+        ctx.ellipse(-r * 0.1, 0, r * 0.85, r * 0.7, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#5a2a80';
+        for (const [hx, hy] of [
+          [-0.55, -0.25],
+          [-0.7, 0],
+          [-0.55, 0.25],
+        ]) {
           ctx.beginPath();
-          ctx.moveTo(cx + Math.cos(ta) * r * 0.7, cy + Math.sin(ta) * r * 0.7);
+          ctx.arc(r * hx, r * hy, r * 0.16, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.fillStyle = '#1a0610';
+        ctx.beginPath();
+        ctx.ellipse(r * 0.7, 0, r * 0.38, r * 0.42, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#d090ff';
+        ctx.lineWidth = 2.5;
+        ctx.lineCap = 'round';
+        for (let k = 0; k < 6; k++) {
+          const ta = (k - 2.5) * 0.35;
+          ctx.beginPath();
+          ctx.moveTo(r * 0.7, 0);
           ctx.quadraticCurveTo(
-            cx + Math.cos(ta + wob) * r * 1.3,
-            cy + Math.sin(ta + wob) * r * 1.3,
-            cx + Math.cos(ta - wob) * r * 1.7,
-            cy + Math.sin(ta - wob) * r * 1.7,
+            r * 1.15,
+            Math.sin(ta + time * 6) * r * 0.4,
+            r * 1.4,
+            Math.sin(ta) * r * 0.7,
           );
           ctx.stroke();
         }
-      }
-      if (!drawn) {
+        ctx.restore();
+      } else if (!drawn) {
         ctx.fillStyle = vis.color;
         ctx.beginPath();
         ctx.arc(cx, cy, r * pulse, 0, Math.PI * 2);

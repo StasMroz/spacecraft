@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultContent, referencedAssetKeys, CORE_MUSIC } from '@sms/shared';
+import { defaultContent, referencedAssetKeys, CORE_MUSIC, Rng as SharedRng } from '@sms/shared';
 import { packShelves } from '../src/atlas/pack.js';
 import { renderSong, SONGS } from '../src/audio/music.js';
 import { RECIPES } from '../src/audio/recipes.js';
@@ -7,6 +7,7 @@ import { renderRecipe, variantCount } from '../src/audio/synth.js';
 import { SR, Biquad, Rng, makeLoop } from '../src/audio/dsp.js';
 import { decodeWav, encodeWav, normalize } from '../src/audio/wav.js';
 import { SPRITES } from '../src/sprites/index.js';
+import { TYRANID_SPECIES_IDS } from '../src/sprites/tyranids.js';
 import { animAt, animLayout } from '../src/sprites/types.js';
 import { CHAPTERS } from '@sms/shared';
 
@@ -194,5 +195,43 @@ describe('hive siege sprites', () => {
       'boss_horn',
     ])
       expect(keys.has(k)).toBe(true);
+  });
+});
+
+describe('unit drawers', () => {
+  it('every Tyranid species has its own drawer, including Psychophage (not the hormagaunt fallback)', () => {
+    const have = new Set(TYRANID_SPECIES_IDS);
+    const missing = [...defaultContent.enemies.values()]
+      .map((e) => e.id)
+      .filter((id) => !have.has(id));
+    expect(missing).toEqual([]);
+    expect(have.has('psychophage')).toBe(true);
+  });
+
+  it('Guardsman sprite is a human walk cycle, not a single frame', () => {
+    const g = SPRITES.find((s) => s.key === 'ally_guardsman');
+    expect(g).toBeDefined();
+    expect(g!.frames).toBe(6);
+    expect(g!.anims?.walk).toEqual([0, 6]);
+    expect(g!.prompt.toLowerCase()).toMatch(/helmet|lasgun|human|person/);
+  });
+
+  it('every unit sprite draws every frame without throwing and leaves pixels', async () => {
+    const { createCanvas } = await import('@napi-rs/canvas');
+    const units = SPRITES.filter((s) => s.group === 'player' || s.group === 'enemy');
+    expect(units.some((s) => s.key === 'enemy_psychophage')).toBe(true);
+    expect(units.some((s) => s.key === 'ally_guardsman')).toBe(true);
+    for (const s of units) {
+      const c = createCanvas(s.w, s.h);
+      const ctx = c.getContext('2d');
+      for (let f = 0; f < s.frames; f++) {
+        ctx.clearRect(0, 0, s.w, s.h);
+        expect(() => s.draw(ctx, f, new SharedRng(1 + f))).not.toThrow();
+        const data = ctx.getImageData(0, 0, s.w, s.h).data;
+        let painted = 0;
+        for (let i = 3; i < data.length; i += 4) if (data[i] > 8) painted++;
+        expect(painted, `${s.key} frame ${f}`).toBeGreaterThan(20);
+      }
+    }
   });
 });

@@ -58,7 +58,8 @@ async function main(): Promise<void> {
   const enemies = [...content.enemies.values()];
   const CELL = 150;
   const W = Math.max(content.chapters.length, weapons.length) * CELL + 40;
-  const enemyRowH = 210;
+  const enemyRowH = 240;
+  const guardRowH = 180;
   const H =
     120 +
     CELL +
@@ -67,6 +68,7 @@ async function main(): Promise<void> {
     60 +
     enemies.length * 0 +
     Math.ceil(enemies.length / 3) * enemyRowH +
+    guardRowH +
     40;
   const W2 = Math.max(W, 3 * 4 * 115 + 60);
   const c = createCanvas(W2, H);
@@ -137,8 +139,38 @@ async function main(): Promise<void> {
       drawSprite(ctx, atlas, e.sprite, f, x0 + step * (k + 0.5), y0 + 90, zoom),
     );
     label(ctx, `${e.name}${e.boss ? ' (boss)' : ''}`, x0 + colW / 2, y0 + 175, 15);
-    label(ctx, e.role ?? '', x0 + colW / 2, y0 + 193, 11, '#a89a7a');
+    const role = e.role ?? '';
+    label(
+      ctx,
+      role.length > 64 ? role.slice(0, 61) + '…' : role,
+      x0 + colW / 2,
+      y0 + 198,
+      11,
+      '#a89a7a',
+    );
   });
+  // Guardsmen: human walk cycle (not a disc).
+  const gy = y + Math.ceil(enemies.length / 3) * enemyRowH + 24;
+  label(ctx, 'Astra Militarum Guardsmen (allies): walk cycle', 220, gy, 16, '#e0b44a');
+  const gs = manifest.sprites['ally_guardsman'];
+  if (gs) {
+    const frames = [0, 1, 2, 3, 4, 5];
+    const step = 110;
+    frames.forEach((f, k) => {
+      const cx = 80 + k * step;
+      const cy = gy + 90;
+      drawSprite(ctx, atlas, 'shadow', 0, cx, cy + 4, 1.2);
+      drawSprite(ctx, atlas, 'ally_guardsman', f, cx, cy, 1.8);
+    });
+    label(
+      ctx,
+      'khaki uniform, olive flak vest, helmet, lasgun — a person, not a ball',
+      80 + 2.5 * step,
+      gy + 155,
+      13,
+      '#a89a7a',
+    );
+  }
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, await c.encode('png'));
   console.log(`contact sheet -> ${out} (${W2}x${H})`);

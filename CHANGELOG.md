@@ -1,5 +1,12 @@
 # Changelog
 
+## v27
+
+- Nowe, oryginalne sylwetki jednostek (proceduralne, bez grafik GW), rysowane z cech 40k widzianych z góry.
+- Psychophage nie jest już Hormagantem: przygarbione ciało na sześciu nogach, worki trawienne, kominy grzbietowe z psychicznym popiołem, rozwarta wieloszczękowa paszcza i macki wokół niej.
+- Gwardziści Astra Militarum wyglądają jak ludzie (hełm, kamizelka khaki/oliwkowa, ręce z lasgunem, kroczące nogi), nie jak pojedyncze kulki; sprite `ally_guardsman` w atlasie, z zapasowym rysunkiem w rendererze.
+- Hormagaunt: cztery kosy i wyraźniejsze tylne nogi. Pozostałe typy Tyranidów i marines zachowane/doprecyzowane w tym samym stylu. Hitboxy, promienie, aura Psychophage i mechanika bez zmian.
+
 ## v26
 
 - Meltagun przywrócony do stanu sprzed naszych nerfów (bazowy ref `3dc3dba` / v12, tuż przed v13 zasięg −15%): lifetime 0,2 (zasięg 240 px), pierce 3 (do 4 trafień), endBurst 25 dmg / edgeFactor 0,35 / r 66 / S4 AP0. Bez pierceBudget.
