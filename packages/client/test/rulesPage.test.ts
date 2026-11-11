@@ -76,10 +76,10 @@ describe('rules page', () => {
     const c = (v: number) => String(Number(v.toFixed(2))).replace('.', ',');
     expect(html).toContain('id="sprint"');
     expect(html).toContain('Shift');
-    expect(html).toContain('NO STAMINA');
-    expect(html).toContain('okrąg i gałka robią się złote');
-    expect(html).not.toContain('prawy dolny róg'); // no » SPRINT button on touch any more
-    expect(html).toContain('jedyny sposób na sprint na telefonie');
+    expect(html).toContain('nad prawym drążkiem AIM · FIRE');
+    expect(html).toContain('kółko nad przyciskiem sprintu');
+    expect(html).not.toContain('jedyny sposób na sprint na telefonie');
+    expect(html).toContain('nie sprintujesz');
     expect(html).toContain('id="glos"');
     expect(html).toContain('CZAT GŁOSOWY');
     expect(html).toContain('iPhone');
@@ -91,7 +91,8 @@ describe('rules page', () => {
   });
   it('v0.6.0 hotfix: wave unlocks, more supplies and sprint-vs-trigger come from code', () => {
     for (const w of defaultContent.weaponOrder)
-      if (w.unlockAtWave) expect(html).toContain(`na starcie fali ${w.unlockAtWave}`);
+      if (w.unlockAtWave && !w.chapter) expect(html).toContain(`na starcie fali ${w.unlockAtWave}`);
+    expect(html).toMatch(/na starcie fali 4/i);
     expect(html).not.toMatch(/odblokowuje się po \d+ s|po \d+:\d\d gry/);
     const r = dropRates(defaultContent.director, 1);
     const c = (v: number) => String(Number(v.toFixed(2))).replace('.', ',');

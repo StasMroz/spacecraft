@@ -188,7 +188,7 @@ describe('Guardsmen', () => {
     expect(reached).toBeGreaterThan(3);
   });
 
-  it('after surviving the wave they follow the nearest marine', () => {
+  it('stay where they landed after the wave: never follow, never walk', () => {
     for (const seed of [1, 2, 5, 7, 9]) {
       const w = withAllies(seed, 2);
       const [p1, p2] = w.players;
@@ -196,14 +196,13 @@ describe('Guardsmen', () => {
       p1!.y = 400;
       p2!.x = 2800;
       p2!.y = 1800;
+      const home = w.allies.map((a) => ({ x: a.x, y: a.y }));
       w.director.phase = 'breather';
       run(w, 25);
-      expect(w.allies.every((a) => a.follow)).toBe(true);
-      for (const a of w.allies) {
-        const d1 = Math.hypot(a.x - p1!.x, a.y - p1!.y);
-        const d2 = Math.hypot(a.x - p2!.x, a.y - p2!.y);
-        expect(Math.min(d1, d2), `seed ${seed}`).toBeLessThan(GUARDSMAN.followMax + 60);
-      }
+      expect(w.allies.every((a) => !a.follow)).toBe(true);
+      w.allies.forEach((a, i) => {
+        expect(Math.hypot(a.x - home[i]!.x, a.y - home[i]!.y), `seed ${seed}`).toBeLessThan(1);
+      });
     }
   });
 

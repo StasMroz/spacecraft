@@ -26,14 +26,14 @@ describe('weapon unlocks by wave (v0.6.0 hotfix)', () => {
     for (const w of defaultContent.weaponOrder) {
       if (w.unlockAtWave !== null) expect(Number.isInteger(w.unlockAtWave)).toBe(true);
     }
-    expect(defaultContent.weaponOrder.map((w) => [w.id, w.unlockAtWave])).toEqual([
-      ['bolt_rifle', 0],
-      ['heavy_bolter', 3],
-      ['flamer', 4],
-      ['plasma_gun', 5],
-      ['meltagun', 6],
-      ['frag_grenade', 7],
-    ]);
+    const rows = defaultContent.weaponOrder.map((w) => [w.id, w.unlockAtWave]);
+    expect(rows).toContainEqual(['bolt_rifle', 0]);
+    expect(rows).toContainEqual(['heavy_bolter', 3]);
+    expect(rows).toContainEqual(['flamer', 4]);
+    expect(rows).toContainEqual(['chainsword', 2]);
+    expect(rows).toContainEqual(['power_axe', 5]);
+    expect(rows).toContainEqual(['thunder_hammer', 7]);
+    expect(defaultContent.weapon('flamer').chapter).toBe('salamanders');
   });
 
   it('time alone unlocks nothing: 400 s without a new wave keeps the starting arsenal', () => {
@@ -67,11 +67,20 @@ describe('weapon unlocks by wave (v0.6.0 hotfix)', () => {
           }
       }
       expect(w.director.wave).toBeGreaterThanOrEqual(7);
-      for (const p of w.players) expect(p.weapons.length).toBe(defaultContent.weaponOrder.length);
+      for (const p of w.players) {
+        const ch = defaultContent.chapter(p.chapter).id;
+        expect(p.weapons.length).toBe(defaultContent.weaponsForChapter(ch).length);
+        expect(p.weapons).toContain(defaultContent.chapter(p.chapter).specialWeapon);
+        for (const wpn of p.weapons) {
+          const def = defaultContent.weapon(wpn);
+          if (def.chapter) expect(def.chapter).toBe(ch);
+        }
+      }
       return log;
     };
     const a = play();
-    expect(a).toHaveLength(2 * 5);
+    // 2 marines × (chainsword, HB, own special, plasma, axe, melta, frag, hammer)
+    expect(a).toHaveLength(2 * 8);
     expect(play()).toEqual(a);
   });
 });

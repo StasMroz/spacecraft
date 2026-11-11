@@ -39,7 +39,11 @@ export function grantWeapon(
 export function unlockWaveWeapons(world: World, wave: number): void {
   for (const def of world.content.weaponOrder) {
     if (def.unlockAtWave === null || def.unlockAtWave <= 0 || def.unlockAtWave !== wave) continue;
-    for (const p of world.players) if (p.state !== 'dead') grantWeapon(world, p, def.id);
+    for (const p of world.players) {
+      if (p.state === 'dead') continue;
+      if (def.chapter && world.content.chapter(p.chapter).id !== def.chapter) continue;
+      grantWeapon(world, p, def.id);
+    }
   }
 }
 
@@ -78,7 +82,11 @@ export function updatePlayerWeapon(world: World, p: Player, dt: number): void {
   p.fireCooldown = Math.max(held ? -dt : 0, p.fireCooldown - dt);
   coolWeapons(world, p, dt);
 
-  if (p.reloadTimer > 0) {
+  if (def.melee) {
+    p.ammo[def.id] = def.magazine;
+    p.reloadTimer = 0;
+    p.venting = false;
+  } else if (p.reloadTimer > 0) {
     p.reloadTimer -= dt;
     if (p.reloadTimer <= 0) {
       p.reloadTimer = 0;
@@ -99,18 +107,18 @@ export function updatePlayerWeapon(world: World, p: Player, dt: number): void {
   // Fire as many shots as the cooldown allows this tick (fast weapons > tick rate).
   let guard = 0;
   while (p.fireCooldown <= 0 && guard++ < 8) {
-    if (p.ammo[def.id] <= 0) {
+    if (!def.melee && p.ammo[def.id] <= 0) {
       startReload(world, p, def);
       return;
     }
     fireWeapon(world, p, def, braced);
-    p.ammo[def.id]--;
+    if (!def.melee) p.ammo[def.id]--;
     kickAim(world, p, def, braced, input.aim);
     p.fireCooldown += braced ? def.fireInterval / (def.braceFireRateMult ?? 1) : def.fireInterval;
     if (def.heat && addHeat(world, p, def)) return;
     if (!def.automatic) break;
   }
-  if (p.ammo[def.id] <= 0) startReload(world, p, def);
+  if (!def.melee && p.ammo[def.id] <= 0) startReload(world, p, def);
 }
 
 /**

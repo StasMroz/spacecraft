@@ -11,6 +11,16 @@ export const WEAPON_TINT: Record<string, string> = {
   plasma_gun: '#59c8ff',
   meltagun: '#ff5a2a',
   frag_grenade: '#a9c25a',
+  storm_bolter: '#3a6cff',
+  inferno_pistol: '#ff4a2a',
+  plasma_caster: '#3cff9a',
+  siege_bolter: '#e8d24a',
+  plasma_pistol: '#8ec8ff',
+  bolt_carbine: '#e84848',
+  stalker_bolter: '#5a5a68',
+  chainsword: '#c8c0b0',
+  power_axe: '#6a9cff',
+  thunder_hammer: '#c9a227',
 };
 
 const BRASS = '#b8913a';

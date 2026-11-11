@@ -13,5 +13,12 @@ export {
   TOUCH_TUNING,
   type StickView,
 } from './TouchInput.js';
+export {
+  touchPadLayout,
+  hitTouchPad,
+  wheelSliceAt,
+  type TouchHit,
+  type TouchPadLayout,
+} from './touchControls.js';
 export { InputManager, combineIntents } from './InputManager.js';
 export * from './device.js';

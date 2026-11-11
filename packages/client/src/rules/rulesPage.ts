@@ -25,6 +25,12 @@ export function rulesHtml(c: ContentRegistry): string {
     .filter((w) => w.unlockAtWave === 0)
     .map((w) => esc(w.name))
     .join(', ');
+  const chapterSpecials = c.chapters
+    .map((ch) => {
+      const w = c.weapon(ch.specialWeapon);
+      return `<li><b>${esc(ch.name)}</b> — ${esc(w.name)} (fala ${w.unlockAtWave})</li>`;
+    })
+    .join('');
   const bursts = ws
     .filter((w) => w.projectile.endBurst)
     .map((w) => {
@@ -33,8 +39,11 @@ export function rulesHtml(c: ContentRegistry): string {
     })
     .join('');
   const unlocks = ws
-    .filter((w) => w.unlockAtWave)
-    .map((w) => `<li><b>${esc(w.name)}</b> — na starcie fali ${w.unlockAtWave}</li>`)
+    .filter((w) => w.unlockAtWave && !w.chapter)
+    .map(
+      (w) =>
+        `<li><b>${esc(w.name)}</b> — na starcie fali ${w.unlockAtWave}${w.melee ? ' (wręcz)' : ''}</li>`,
+    )
     .join('');
   const boss = c.enemy(c.director.bosses.enemy).name;
   const d = c.director;
@@ -81,7 +90,7 @@ export function rulesHtml(c: ContentRegistry): string {
       <li><b>WASD / strzałki</b> — ruch</li>
       <li><b>Mysz</b> — celowanie</li>
       <li><b>Lewy przycisk / Spacja</b> — strzał (przytrzymaj przy broni automatycznej)</li>
-      <li><b>1–${ws.length}</b>, <b>Q / E</b>, <b>kółko myszy</b> — zmiana broni</li>
+      <li><b>1–9</b>, <b>Q / E</b>, <b>kółko myszy</b> — zmiana broni (7–9 to broń wręcz)</li>
       <li><b>Shift</b> (przytrzymaj) — sprint</li>
       <li><b>Prawy przycisk myszy</b> (przytrzymaj) — postawa obronna (tylko stojąc w miejscu)</li>
       <li><b>R</b> — przeładowanie</li>
@@ -91,8 +100,8 @@ export function rulesHtml(c: ContentRegistry): string {
     <div><h3>Telefon / tablet</h3><ul>
       <li><b>Lewy kciuk</b> (lewa połowa ekranu) — ruch</li>
       <li><b>Prawy kciuk</b> — celowanie i automatyczny ogień</li>
-      <li><b>Sprint lewym kciukiem</b> — to jedyny sposób na sprint na telefonie (bez osobnego przycisku). Gdy gałka dojdzie do okręgu drążka, marine idzie pełnym marszem (okrąg i gałka robią się złote). Za nim jest krótka przerwa, a dalej zewnętrzny, przerywany czerwono-pomarańczowy pierścień „»”: wypchnij kciuk do niego, a sprintujesz, dopóki go tam trzymasz (pierścień się zapala). Cofnięcie do środka kończy sprint. Szary pierścień z napisem NO STAMINA / FIRING znaczy, że sprint teraz nie ruszy (za mało kondycji albo trzymasz spust).</li>
-      <li><b>Dotknij ikony broni</b> — zmiana broni</li>
+      <li><b>SPRINT</b> (przytrzymaj, nad prawym drążkiem AIM · FIRE) — sprint. Przycisk jest nad atakiem, nie na lewym drążku.</li>
+      <li><b>ARMS</b> (kółko nad przyciskiem sprintu i ataku) — stuknij albo przytrzymaj, żeby otworzyć kółko broni; wybierz palcem. Zastępuje dawny słupek ikon po prawej.</li>
       <li><b>🛡 GUARD</b> (przytrzymaj, prawa strona) — postawa obronna (tylko stojąc w miejscu)</li>
       <li><b>⟳</b> — przeładowanie, <b>🔊</b> — dźwięk, <b>⏸</b> — menu</li>
       <li><b>⛶</b> — pełny ekran (Android). Na iPhonie: Udostępnij → „Do ekranu początkowego”, potem uruchamiaj grę z ikony.</li>
@@ -102,10 +111,10 @@ export function rulesHtml(c: ContentRegistry): string {
 </section>
 <section id="sprint"><h2>Sprint</h2>
   <p>Marine może na chwilę rzucić się biegiem: <b>${mul(SP.speedMul)}</b> zwykłej prędkości (${Math.round(PLAYER.speed * SP.speedMul)} px/s — ciężar broni nie spowalnia sprintu). Sprint zaczyna się od razu, ale <b>w biegu nie da się strzelać</b> — spust jest ignorowany i nie przerywa sprintu.</p>
-  <p><b>Sprint nie ruszy, póki trzymasz spust</b> (mysz/klawisz strzału albo strzelający drążek celowania): prośba o sprint (Shift albo drążek ruchu w pierścieniu sprintu) czeka, a gdy puścisz spust i nadal chcesz biec, sprint rusza od razu. Sprint, który już trwa, biegnie dalej — spust jest wtedy ignorowany, jak wyżej.</p>
+  <p><b>Sprint nie ruszy, póki trzymasz spust</b> (mysz/klawisz strzału albo strzelający drążek celowania): prośba o sprint (Shift albo przycisk SPRINT na telefonie) czeka, a gdy puścisz spust i nadal chcesz biec, sprint rusza od razu. Sprint, który już trwa, biegnie dalej — spust jest wtedy ignorowany, jak wyżej.</p>
   <ul>
     <li><b>Kondycja</b>: ${sec(SP.staminaMaxS)} sprintu (pasek pod marine). Kończy się sama przy zerze; ponownie ruszysz dopiero, gdy będzie co najmniej ${sec(SP.minToStartS)}.</li>
-    <li>Kondycja wraca <b>tylko, gdy stoisz w miejscu</b> — pełna po ${sec(SP.staminaMaxS / SP.regenStandingPerS)}. Zwykły marsz jej nie odnawia.</li>
+    <li>Kondycja wraca zawsze, gdy <b>nie sprintujesz</b>: pełna po ${sec(SP.staminaMaxS / SP.regenStandingPerS)} stania w miejscu, a podczas marszu o połowę wolniej (pełna po ${sec(SP.staminaMaxS / SP.regenWalkingPerS)}). W sprincie tylko spada.</li>
     <li>Po sprincie broń jest gotowa dopiero po <b>${sec(SP.weaponReadyDelayS)}</b> (złoty pasek „READY…” na ikonie broni). Broń półautomatyczną trzeba wtedy nacisnąć ponownie.</li>
     <li>W sprincie marine patrzy tam, dokąd biegnie — <b>uciekając, nadstawiasz plecy</b> (tylny pancerz ${mul(A.rear)}).</li>
     <li>Nie da się sprintować, podnosząc brata (w promieniu ${PLAYER.reviveRadius} px od powalonego).</li>
@@ -142,6 +151,8 @@ export function rulesHtml(c: ContentRegistry): string {
 </section>
 <section id="bron"><h2>Broń</h2>
   <p>Na start masz: <b>${start}</b>. Kolejne bronie odblokowują się wszystkim (żywym i powalonym) na początku kolejnych fal:</p><ul>${unlocks}</ul>
+  <p>Na starcie fali 4.  każdy zakon dostaje <b>własną broń specjalną</b> zamiast wspólnego flamera (klawisz 3). Skrzynia z cudzą specjalnością staje się twoją. Mapowanie:</p><ul>${chapterSpecials}</ul>
+  <p><b>Wręcz</b> wybierasz jak inną broń (klawisze 7–9 albo kółko ARMS): <b>Chainsword</b> (szybki, krótki łuk), <b>Power Axe</b> (wolniejszy, szerszy, twardszy cios), <b>Thunder Hammer</b> (najwolniejszy, najszerszy, miażdżący odrzut). Broń wręcz nie zużywa amunicji.</p>
   <p>Dodatkowo na mapie spadają <b>skrzynie z bronią</b> (co ${sec(d.crates.intervalMin)}–${sec(d.crates.intervalMax)}, średnio ${num(soloDrops.crates)} na falę w pojedynkę), a z zabitych Tyranidów — <b>apteczki</b> (do średnio ${num(soloDrops.medkits)} na falę w pojedynkę; więcej w większym oddziale, boss zawsze zostawia apteczkę). Każda broń ma rolę: ANTI-HORDE na roje drobnicy, ANTI-ELITE/ANTI-TANK na duże bestie.</p>
   <ul>
     <li><b>Strzelanie spowalnia</b>: ciężka broń spowalnia zawsze, a przy wciśniętym spuście jeszcze bardziej.</li>
@@ -155,10 +166,10 @@ export function rulesHtml(c: ContentRegistry): string {
   <ul>
     <li><b>Pełna ściana</b> (szary grodź): nie da się przez nią przejść ani zaatakować wręcz, zatrzymuje pociski i wybuchy, a to, co za nią, jest zasłonięte (cień).</li>
     <li><b>Niska osłona</b> (barykada w żółte pasy): blokuje ruch i walkę wręcz, ale widać i strzela się nad nią. Pociski (marine, Tyranidów i Gwardzistów) z osłony do ${COVER.ignoreNear} px od strzelca zawsze swobodnie nad nią przelatują. Gdy osłona jest dalej, pocisk ma <b>${Math.round(COVER.stopChance * 100)}%</b> szansy, że zatrzyma się NA niej (jak na ścianie; melta wtedy błyska na osłonie) — losowane raz na pocisk i osłonę, inaczej leci dalej. To decyzja balansu, nie zasada z 40k.</li>
-    <li><b>Kwas</b>: pudło Termaganta lub Warriora zostawia na podłodze małą kałużę kwasu (2,5–3 s), a Carnifex z dystansu (200–560 px, co ~6 s) rzuca kulę kwasu, która zostawia dużą plamę (promień 80 px, 6 s) — także gdy trafi. Kwas parzy co 0,5 s każdego marine w plamie (Termagant 3, Warrior 4, Carnifex 6 obrażeń; pancerz nie chroni), nigdy przez pełną ścianę. Wartości to balans gry, nie zasady 40k.</li>
+    <li><b>Kwas</b>: kałuże kwasu zostawiają tylko <b>Biovory</b> (ich spore i zasiane Spore Mines). Inne jednostki (Termaganty, Warriory, Carnifex) nie zostawiają plam — Carnifex nadal może z dystansu rzucić kulę, ale bez kałuży. Kwas parzy co 0,5 s każdego marine w plamie (5 obrażeń, pancerz nie chroni), nigdy przez pełną ścianę. Wartości to balans gry, nie zasady 40k.</li>
     <li>Tyranidzi obchodzą ściany, a ci strzelający plują tylko, gdy widzą cel.</li>
     <li><b>Katastrofa okrętu Imperium</b> (fala ${CRASH.firstWave} i co ${CRASH.everyWave} fale, ${CRASH.delay} s po starcie fali): czerwony krąg i cień pokazują, gdzie za ${CRASH.fallTime} s spadnie płonący okręt (zawsze ≥ ${CRASH.minPlayerDist} px od marines). Uderzenie rani tylko Tyranidów (${CRASH.impact.damage} obr., ${CRASH.impact.radius} px). Gdy po ${CRASH.smokeTime} s opadnie dym, zostają losowe ściany wraku (pełne i niskie, nigdy nie zamykają przejść) i ${CRASH.soldiers[0]}–${CRASH.soldiers[CRASH.soldiers.length - 1]} ocalałych Gwardzistów (maks. ${CRASH.maxAllies} naraz).</li>
-    <li><b>Gwardziści</b> (lasgun ${GUARDSMAN.lasgun.damage} obr. S${GUARDSMAN.lasgun.strength} AP${GUARDSMAN.lasgun.ap}, ${GUARDSMAN.range} px, ${GUARDSMAN.hp} HP): w fali katastrofy bronią wraku, a jeśli ją przeżyją, chodzą za najbliższym marine (złoty pierścień) i strzelają do widocznych Tyranidów. Nie ranią marines; Tyranidzi mogą ich zagryźć. To adaptacja balansu, nie zasady 40k.</li>
+    <li><b>Gwardziści</b> (lasgun ${GUARDSMAN.lasgun.damage} obr. S${GUARDSMAN.lasgun.strength} AP${GUARDSMAN.lasgun.ap}, ${GUARDSMAN.range} px, ${GUARDSMAN.hp} HP): zostają w miejscu, w którym wylądowali (przy wraku) — nie chodzą i nie podążają za marine, tylko celują i strzelają do widocznych Tyranidów. Nie ranią marines; Tyranidzi mogą ich zagryźć. To adaptacja balansu, nie zasady 40k.</li>
   </ul>
 </section>
 <section id="odrzut"><h2>Odrzut</h2>

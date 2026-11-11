@@ -7,6 +7,12 @@ import {
 } from './InputSource.js';
 import { canFullscreen, isFullscreen, requestLandscape } from './orientation.js';
 import { VirtualStick, type StickVector } from './joystick.js';
+import {
+  hitTouchPad,
+  touchPadLayout,
+  type TouchHit,
+  type TouchPadLayout,
+} from './touchControls.js';
 
 /** Tuning for the twin-stick layout (CSS px). */
 export const TOUCH_TUNING = {
@@ -63,22 +69,19 @@ export function stickSprint(
 }
 
 /**
- * Touch sprint state (pure, unit tested): sprint while the move thumb is in the stick's sprint
- * band (the only touch sprint control since the v0.6.0 hotfix removed the » SPRINT button).
+ * Touch sprint: hold the SPRINT button above the right AIM·FIRE stick.
+ * (The leftover stick-edge helper `stickSprint` is unused on the live path.)
  */
 export class TouchSprint {
-  edge = false;
+  held = false;
   get on(): boolean {
-    return this.edge;
+    return this.held;
   }
-  stickMoved(reach: number): void {
-    this.edge = stickSprint(reach, this.edge);
-  }
-  stickReleased(): void {
-    this.edge = false;
+  setHeld(v: boolean): void {
+    this.held = v;
   }
   reset(): void {
-    this.stickReleased();
+    this.held = false;
   }
 }
 
@@ -134,8 +137,16 @@ export interface StickView {
   sprintMode?: StickSprintMode;
 }
 
+export interface TouchPadView {
+  sprintHeld: boolean;
+  wheelOpen: boolean;
+  hoverSlot: number;
+}
+
 export interface TouchInputOptions {
-  /** Hit-test a tap against HUD widgets (weapon slots); returns a slot number or 0. */
+  /** Hit-test against the SPRINT button, the weapon wheel, or (legacy) HUD widgets. */
+  hitControl?: (x: number, y: number, wheelOpen: boolean) => TouchHit | null;
+  /** @deprecated column of weapon slots; the wheel replaces it on touch. */
   hitSlot?: (x: number, y: number) => number;
   /** System buttons. */
   onButton?: (action: 'mute' | 'menu') => void;
@@ -143,7 +154,8 @@ export interface TouchInputOptions {
 
 /**
  * Twin-stick touch controls on a full-screen overlay: floating sticks on each half,
- * weapon slots via HUD taps, buttons for reload / mute / fullscreen, and a holdable GUARD on the right.
+ * a holdable SPRINT button and a weapon wheel above the right AIM·FIRE stick,
+ * buttons for reload / mute / fullscreen, and a holdable GUARD on the right.
  * Only visible in `body.touch-mode` (see device.ts).
  */
 export class TouchInput implements InputSource {
@@ -156,8 +168,13 @@ export class TouchInput implements InputSource {
   });
   readonly aimStick = new VirtualStick({ ...TOUCH_TUNING.aim, follow: true });
   private latched: ActionIntent = { ...NO_ACTIONS };
-  /** Sprint: the move thumb pushed past the ring (and the dead gap) into the sprint band. */
+  /** Sprint: hold the SPRINT button above AIM·FIRE. */
   readonly sprint = new TouchSprint();
+  private sprintTouchId: number | null = null;
+  /** Weapon wheel above the sprint button (tap/hold the handle, pick a slice). */
+  wheelOpen = false;
+  hoverSlot = 0;
+  private wheelTouchId: number | null = null;
   /** Defensive stance held via the right-side GUARD button. */
   private guardHeld = false;
   private listeners: Array<() => void> = [];
@@ -248,15 +265,50 @@ export class TouchInput implements InputSource {
     if (b) b.textContent = muted ? '🔇' : '🔊';
   }
 
+  padLayout(): TouchPadLayout {
+    const w = this.layer.clientWidth || window.innerWidth;
+    const h = this.layer.clientHeight || window.innerHeight;
+    return touchPadLayout(w, h);
+  }
+
+  pad(): TouchPadView {
+    return { sprintHeld: this.sprint.on, wheelOpen: this.wheelOpen, hoverSlot: this.hoverSlot };
+  }
+
+  private hit(x: number, y: number): TouchHit | null {
+    if (this.opts.hitControl) return this.opts.hitControl(x, y, this.wheelOpen);
+    const slot = this.opts.hitSlot?.(x, y) ?? 0;
+    if (slot) return { kind: 'slot', slot };
+    return hitTouchPad(this.padLayout(), x, y, { wheelOpen: this.wheelOpen, slots: [] });
+  }
+
   private onStart(e: TouchEvent): void {
     e.preventDefault();
     this.onActivity?.();
     const w = this.layer.clientWidth || window.innerWidth;
     for (const t of Array.from(e.changedTouches)) {
-      const slot = this.opts.hitSlot?.(t.clientX, t.clientY) ?? 0;
-      if (slot) {
-        this.latched.slot = slot;
+      const hit = this.hit(t.clientX, t.clientY);
+      if (hit?.kind === 'sprint') {
+        this.sprint.setHeld(true);
+        this.sprintTouchId = t.identifier;
         continue;
+      }
+      if (hit?.kind === 'slot') {
+        this.latched.slot = hit.slot;
+        this.wheelOpen = false;
+        this.hoverSlot = 0;
+        this.wheelTouchId = null;
+        continue;
+      }
+      if (hit?.kind === 'wheel') {
+        this.wheelOpen = !this.wheelOpen;
+        this.wheelTouchId = this.wheelOpen ? t.identifier : null;
+        this.hoverSlot = 0;
+        continue;
+      }
+      if (this.wheelOpen) {
+        this.wheelOpen = false;
+        this.hoverSlot = 0;
       }
       const stick = zoneFor(t.clientX, w) === 'move' ? this.moveStick : this.aimStick;
       if (!stick.engaged) stick.begin(t.identifier, t.clientX, t.clientY);
@@ -266,20 +318,36 @@ export class TouchInput implements InputSource {
   private onMove(e: TouchEvent): void {
     e.preventDefault();
     for (const t of Array.from(e.changedTouches)) {
+      if (t.identifier === this.wheelTouchId && this.wheelOpen) {
+        const hit = this.hit(t.clientX, t.clientY);
+        this.hoverSlot = hit?.kind === 'slot' ? hit.slot : 0;
+        continue;
+      }
+      if (t.identifier === this.sprintTouchId) continue;
       for (const s of [this.moveStick, this.aimStick])
         if (s.touchId === t.identifier) s.move(t.clientX, t.clientY);
     }
-    if (this.moveStick.engaged) this.sprint.stickMoved(this.moveStick.reach);
   }
 
   private onEnd(e: TouchEvent): void {
     e.preventDefault();
     for (const t of Array.from(e.changedTouches)) {
-      for (const s of [this.moveStick, this.aimStick])
-        if (s.touchId === t.identifier) {
-          s.end();
-          if (s === this.moveStick) this.sprint.stickReleased(); // stopped running
+      if (t.identifier === this.sprintTouchId) {
+        this.sprint.setHeld(false);
+        this.sprintTouchId = null;
+        continue;
+      }
+      if (t.identifier === this.wheelTouchId) {
+        const hit = this.hit(t.clientX, t.clientY);
+        if (hit?.kind === 'slot') {
+          this.latched.slot = hit.slot;
+          this.wheelOpen = false;
         }
+        this.hoverSlot = 0;
+        this.wheelTouchId = null;
+        continue;
+      }
+      for (const s of [this.moveStick, this.aimStick]) if (s.touchId === t.identifier) s.end();
     }
   }
 
@@ -309,13 +377,7 @@ export class TouchInput implements InputSource {
       knob: s.knob,
       radius: s.opts.radius,
       active: s.vector.active,
-      ...(kind === 'move'
-        ? {
-            sprintRing: s.opts.radius * TOUCH_TUNING.sprintZone.enter,
-            sprintOuter: s.opts.radius * TOUCH_TUNING.sprintZone.outer,
-            ...moveStickFeedback(s.reach, sim),
-          }
-        : {}),
+      ...(kind === 'move' ? { ...moveStickFeedback(s.reach, sim) } : {}),
     }));
   }
 
@@ -324,6 +386,10 @@ export class TouchInput implements InputSource {
     this.moveStick.end();
     this.aimStick.end();
     this.sprint.reset();
+    this.sprintTouchId = null;
+    this.wheelOpen = false;
+    this.hoverSlot = 0;
+    this.wheelTouchId = null;
     this.guardHeld = false;
     this.layer.querySelector('[data-act="guard"]')?.classList.remove('pressed');
   }

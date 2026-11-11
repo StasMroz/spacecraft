@@ -15,6 +15,7 @@ export const CHAPTERS: ChapterDef[] = [
     lens: '#ff3b2f',
     icon: 'chevron',
     motto: 'Discipline is the sharpest blade.',
+    specialWeapon: 'storm_bolter',
   },
   {
     id: 'blood_angels',
@@ -25,6 +26,7 @@ export const CHAPTERS: ChapterDef[] = [
     lens: '#8fe3ff',
     icon: 'drop',
     motto: 'Hold the thirst, hold the line.',
+    specialWeapon: 'inferno_pistol',
   },
   {
     id: 'dark_angels',
@@ -35,6 +37,7 @@ export const CHAPTERS: ChapterDef[] = [
     lens: '#ff4a2a',
     icon: 'blade',
     motto: 'Secrets are armour too.',
+    specialWeapon: 'plasma_caster',
   },
   {
     id: 'imperial_fists',
@@ -45,6 +48,7 @@ export const CHAPTERS: ChapterDef[] = [
     lens: '#69ff7a',
     icon: 'tower',
     motto: 'Every wall is a promise.',
+    specialWeapon: 'siege_bolter',
   },
   {
     id: 'space_wolves',
@@ -55,6 +59,7 @@ export const CHAPTERS: ChapterDef[] = [
     lens: '#ffd23a',
     icon: 'fang',
     motto: 'The hunt never ends.',
+    specialWeapon: 'plasma_pistol',
   },
   {
     id: 'salamanders',
@@ -65,6 +70,7 @@ export const CHAPTERS: ChapterDef[] = [
     lens: '#ff3020',
     icon: 'flame',
     motto: 'Into the fires of battle.',
+    specialWeapon: 'flamer',
   },
   {
     id: 'white_scars',
@@ -75,6 +81,7 @@ export const CHAPTERS: ChapterDef[] = [
     lens: '#2fd0ff',
     icon: 'bolt',
     motto: 'Strike like lightning, gone like the wind.',
+    specialWeapon: 'bolt_carbine',
   },
   {
     id: 'raven_guard',
@@ -85,5 +92,6 @@ export const CHAPTERS: ChapterDef[] = [
     lens: '#ff2a2a',
     icon: 'feather',
     motto: 'Unseen, the blow falls.',
+    specialWeapon: 'stalker_bolter',
   },
 ];

@@ -1,5 +1,15 @@
 # Changelog
 
+## v28
+
+- Telefon: przycisk SPRINT nad prawym drążkiem AIM · FIRE (zamiast sprintu na krawędzi lewego drążka). Nad nim uchwyt ARMS — stuknięcie lub przytrzymanie otwiera kółko wyboru broni; wybór palcem. Dawny słupek ikon po prawej na telefonie zastąpiony.
+- Kondycja sprintu odnawia się zawsze, gdy marine nie sprintuje: pełna po 7 s stania, podczas marszu o połowę wolniej. W sprincie tylko spada.
+- Każdy zakon ma własną broń specjalną (klawisz 3, fala 4) zamiast wspólnego flamera: Ultramarines — Storm Bolter; Blood Angels — Inferno Pistol; Dark Angels — Plasma Caster; Imperial Fists — Siege Bolter; Space Wolves — Plasma Pistol; Salamanders — Flamer; White Scars — Bolt Carbine; Raven Guard — Stalker Bolter. Skrzynia z cudzą specjalnością zamienia się w twoją.
+- Broń wręcz w grze (klawisze 7–9 / kółko ARMS, bez menu loadoutu): Chainsword (fala 2, szybki, krótki łuk), Power Axe (fala 5, wolniejszy, szerszy, twardszy), Thunder Hammer (fala 7, najwolniejszy, najszerszy, duży odrzut). Bez amunicji.
+- Kałuże kwasu zostawiają tylko Biovory (spore i Spore Mines). Termaganty, Warriory i Carnifex bez plam (Carnifex nadal może rzucić kulę).
+- Gwardziści zostają w miejscu lądowania (przy wraku): nie chodzą i nie podążają za marine, tylko celują i strzelają.
+- Zasady, kompendium, testy i baseline determinizmu zaktualizowane.
+
 ## v27
 
 - Nowe, oryginalne sylwetki jednostek (proceduralne, bez grafik GW), rysowane z cech 40k widzianych z góry.

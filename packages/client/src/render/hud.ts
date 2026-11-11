@@ -15,7 +15,13 @@ import {
 } from '@sms/shared';
 import type { NoticeKind } from '../game/fx.js';
 import { formatTime } from '../ui/format.js';
-import type { StickView } from '../input/TouchInput.js';
+import type { StickView, TouchPadView } from '../input/TouchInput.js';
+import {
+  hitTouchPad,
+  touchPadLayout,
+  type TouchHit,
+  type TouchPadLayout,
+} from '../input/touchControls.js';
 import type { Assets } from './assets.js';
 import { chapterUiColor } from './colors.js';
 
@@ -55,6 +61,8 @@ export interface HudState {
   crosshairRaw?: { x: number; y: number } | null;
   /** Touch sticks when the touch layout is active; null = PC layout. */
   touch: StickView[] | null;
+  /** Sprint button + weapon wheel state (touch only). */
+  touchPad?: TouchPadView | null;
   /** Safe-area insets in CSS px (notches). */
   inset?: Insets;
   roomCode: string;
@@ -219,6 +227,9 @@ export class Hud {
    * converted at the end of draw()) - touch hit-testing compares clientX/Y against them.
    */
   private slotRects: SlotRect[] = [];
+  private pad: TouchPadLayout | null = null;
+  private padSlots: number[] = [];
+  private padOwned = new Set<number>();
   /** Last frame's HUD scale + safe-area inset (HUD units -> CSS px; layout checks). */
   lastUi = 1;
   lastIns: Insets = NO_INSETS;
@@ -271,6 +282,17 @@ export class Hud {
     return hit?.owned ? hit.slot : 0;
   }
 
+  /**
+   * SPRINT button, weapon-wheel handle, or a slice of the open wheel (CSS px).
+   * Locked slices are ignored (finger can drag on).
+   */
+  hitControl(x: number, y: number, wheelOpen: boolean): TouchHit | null {
+    if (!this.pad) return null;
+    const hit = hitTouchPad(this.pad, x, y, { wheelOpen, slots: this.padSlots });
+    if (hit?.kind === 'slot' && !this.padOwned.has(hit.slot)) return null;
+    return hit;
+  }
+
   draw(ctx: CanvasRenderingContext2D, dpr: number, cw: number, ch: number, s: HudState): void {
     const touch = !!s.touch;
     const ui = hudScale(cw, ch, touch);
@@ -285,6 +307,9 @@ export class Hud {
     ctx.setTransform(dpr * ui, 0, 0, dpr * ui, dpr * ins.left, dpr * ins.top);
     ctx.textBaseline = 'alphabetic';
     this.slotRects = [];
+    this.pad = null;
+    this.padSlots = [];
+    this.padOwned.clear();
     const heat = !!s.me && s.me.st === 'alive' && !!this.content.weapons.get(s.me.w)?.heat;
     const L = hudLayout(cw, ch, touch, ins, {
       players: s.snap.players.length,
@@ -306,8 +331,7 @@ export class Hud {
     } else if (s.me) this.health(ctx, h, s.me);
     if (L.team) this.team(ctx, s, L.team.top, L.team.cols, L.team.rowH);
     if (s.me) {
-      if (touch) this.weaponColumn(ctx, w, h, s.me);
-      else this.weapons(ctx, w, h, s.me);
+      if (!touch) this.weapons(ctx, w, h, s.me);
       if (s.me.br && s.me.st === 'alive') this.braced(ctx, w, touch ? h - 24 : h - 122, s.now ?? 0);
     }
     if (L.topBand) {
@@ -345,7 +369,10 @@ export class Hud {
     }
     // sticks + crosshair are positioned in raw CSS px
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    if (s.touch) this.sticks(ctx, cw, ch, s.touch, s.me?.st === 'alive');
+    if (s.touch) {
+      this.sticks(ctx, cw, ch, s.touch, s.me?.st === 'alive');
+      if (s.me) this.touchPad(ctx, cw, ch, s.me, s.touchPad ?? null);
+    }
     if (s.me?.st === 'alive' && s.crosshair) {
       if (s.crosshairRaw) this.crosshairDot(ctx, s.crosshairRaw);
       this.crosshair(ctx, s.crosshair);
@@ -755,7 +782,7 @@ export class Hud {
   }
 
   private weapons(ctx: CanvasRenderingContext2D, w: number, h: number, me: PlayerSnap): void {
-    const order = this.content.weaponOrder;
+    const order = this.content.weaponsForChapter(this.content.chapter(me.c).id);
     const cell = order.length > 6 ? 80 : 86;
     const total = order.length * (cell + 6) - 6;
     let x = w / 2 - total / 2;
@@ -822,7 +849,7 @@ export class Hud {
           ctx.fillStyle = me.ammo / def.magazine < 0.25 ? '#ff6a50' : HUD.parchment;
           ctx.fillRect(x, by, (cell * me.ammo) / def.magazine, 8);
           ctx.font = F(700, 12, true);
-          ctx.fillText(`${me.ammo}/${def.magazine}`, x + cell / 2, by - 4);
+          ctx.fillText(def.melee ? '∞' : `${me.ammo}/${def.magazine}`, x + cell / 2, by - 4);
         }
       }
       if (active) this.weaponLock(ctx, me, x, y, cell, 64);
@@ -858,93 +885,124 @@ export class Hud {
   }
 
   /**
-   * Touch layout: big tappable weapon slots stacked under the minimap on the right.
-   * Leaves a bottom-right pocket (~66 CSS px) clear for the holdable GUARD button so the two
-   * never overlap on short landscape phones.
+   * SPRINT button above AIM·FIRE, and the weapon-wheel handle above that (CSS px, same space as the sticks).
    */
-  private weaponColumn(ctx: CanvasRenderingContext2D, w: number, h: number, me: PlayerSnap): void {
-    const order = this.content.weaponOrder;
-    const cols = order.length > 5 ? 2 : 1;
-    const rows = Math.ceil(order.length / cols);
-    const cw = cols > 1 ? 84 : 92;
-    const y0 = 164;
-    const guardPocket = 66; // .guard-btn height + gap above the home indicator
-    const avail = Math.max(40, h - y0 - guardPocket);
-    const gap = 6;
-    const chh = Math.min(56, Math.max(40, Math.floor((avail - (rows - 1) * gap) / rows)));
-    order.forEach((def, i) => {
-      const col = cols > 1 ? i % cols : 0;
-      const row = cols > 1 ? Math.floor(i / cols) : i;
-      const x = w - 12 - (cols - col) * (cw + 6) + 6;
-      const y = y0 + row * (chh + 6);
-      void rows;
-      const owned = me.ws.includes(def.id);
-      const active = me.w === def.id;
-      ctx.globalAlpha = owned ? 1 : 0.3;
-      this.panel(ctx, x, y, cw, chh);
-      if (active) {
+  private touchPad(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    me: PlayerSnap,
+    pad: { sprintHeld: boolean; wheelOpen: boolean; hoverSlot: number } | null,
+  ): void {
+    const L = touchPadLayout(w, h);
+    this.pad = L;
+    const chapterId = this.content.chapter(me.c).id;
+    const order = this.content.weaponsForChapter(chapterId);
+    this.padSlots = order.map((d) => d.slot);
+    this.padOwned = new Set(order.filter((d) => me.ws.includes(d.id)).map((d) => d.slot));
+    const held = !!pad?.sprintHeld || !!me.sp;
+    const open = !!pad?.wheelOpen;
+    const hover = pad?.hoverSlot ?? 0;
+
+    const btn = (
+      r: { x: number; y: number; w: number; h: number },
+      label: string,
+      lit: boolean,
+      sub?: string,
+    ) => {
+      this.panel(ctx, r.x, r.y, r.w, r.h);
+      if (lit) {
         ctx.strokeStyle = HUD.gold;
         ctx.lineWidth = 2;
-        ctx.strokeRect(x + 1, y + 1, cw - 2, chh - 2);
-      }
-      ctx.textAlign = 'left';
-      ctx.font = F(700, 11);
-      ctx.fillStyle = active ? HUD.gold : HUD.dim;
-      ctx.fillText(String(def.slot), x + 5, y + 13);
-      this.roleTag(ctx, def, x + cw - 4, y + 12, 7.5);
-      if (!this.assets.draw(ctx, def.sprites.icon, 0, x + cw / 2, y + 24)) {
-        ctx.fillStyle = '#ccc';
-        ctx.fillRect(x + cw / 2 - 22, y + 20, 44, 8);
+        ctx.strokeRect(r.x + 1, r.y + 1, r.w - 2, r.h - 2);
       }
       ctx.textAlign = 'center';
-      if (active) {
-        const by = y + chh - 10;
-        ctx.fillStyle = 'rgba(0,0,0,0.6)';
-        ctx.fillRect(x + 4, by, cw - 8, 5);
-        const reloading = me.rl > 0;
-        const venting = !!me.vt;
-        const heat = def.heat ? (me.ht ?? 0) : -1;
-        const frac = venting
-          ? (me.ht ?? 1)
-          : reloading
-            ? 1 - me.rl / def.reloadTime
-            : me.ammo / def.magazine;
-        ctx.fillStyle = venting
-          ? HUD.red
-          : reloading
-            ? HUD.gold
-            : frac < 0.25
-              ? '#ff6a50'
-              : HUD.parchment;
-        ctx.fillRect(x + 4, by, (cw - 8) * frac, 5);
-        if (heat >= 0 && !venting) {
-          ctx.fillStyle = HUD.heat;
-          ctx.fillRect(x + 4, by + 6, (cw - 8) * heat, 3);
-        }
-        ctx.font = F(700, 11, true);
-        ctx.fillStyle = HUD.parchment;
-        ctx.fillText(
-          venting ? 'VENT' : reloading ? 'RELOAD' : `${me.ammo}/${def.magazine}`,
-          x + cw / 2,
-          by - 3,
-        );
-      } else {
-        ctx.font = F(600, 9);
-        ctx.fillStyle = HUD.parchment;
-        ctx.fillText(
-          owned
-            ? def.name.toUpperCase()
-            : def.unlockAtWave
-              ? `🔒 WAVE ${def.unlockAtWave}`
-              : 'CRATE',
-          x + cw / 2,
-          y + chh - 6,
-        );
+      ctx.font = F(800, 10);
+      ctx.fillStyle = lit ? HUD.gold : HUD.parchment;
+      ctx.fillText(label, r.x + r.w / 2, r.y + r.h / 2 + (sub ? -4 : 3));
+      if (sub) {
+        ctx.font = F(600, 8);
+        ctx.fillStyle = HUD.dim;
+        ctx.fillText(sub, r.x + r.w / 2, r.y + r.h / 2 + 10);
       }
-      if (active) this.weaponLock(ctx, me, x, y, cw, chh);
-      ctx.globalAlpha = 1;
-      this.slotRects.push({ slot: def.slot, owned, x, y, w: cw, h: chh });
-    });
+    };
+
+    btn(L.sprint, 'SPRINT', held, me.sp ? 'ON' : undefined);
+    // stamina pip under the button
+    const stm = me.stm ?? 0;
+    const max = MARINE_SPRINT.staminaMaxS;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(L.sprint.x, L.sprint.y + L.sprint.h + 3, L.sprint.w, 4);
+    ctx.fillStyle = held ? 'rgba(255,140,50,0.95)' : HUD.gold;
+    ctx.fillRect(L.sprint.x, L.sprint.y + L.sprint.h + 3, L.sprint.w * Math.min(1, stm / max), 4);
+
+    const cur = this.content.weapons.get(me.w);
+    btn(L.wheel, 'ARMS', open, cur ? String(cur.slot) : undefined);
+
+    if (open) {
+      const n = order.length;
+      const cx = L.wheelCenter.x;
+      const cy = L.wheelCenter.y;
+      const R = L.wheelRadius;
+      for (let i = 0; i < n; i++) {
+        const def = order[i]!;
+        const a0 = -Math.PI / 2 + (i * Math.PI * 2) / n;
+        const a1 = -Math.PI / 2 + ((i + 1) * Math.PI * 2) / n;
+        const mid = (a0 + a1) / 2;
+        const owned = me.ws.includes(def.id);
+        const active = me.w === def.id;
+        const hot = hover === def.slot;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, R, a0, a1);
+        ctx.closePath();
+        ctx.fillStyle = active
+          ? 'rgba(40,28,10,0.88)'
+          : owned
+            ? 'rgba(18,12,7,0.82)'
+            : 'rgba(10,8,6,0.55)';
+        ctx.fill();
+        ctx.strokeStyle = hot || active ? HUD.gold : 'rgba(176,138,62,0.55)';
+        ctx.lineWidth = hot || active ? 2 : 1;
+        ctx.stroke();
+        const ix = cx + Math.cos(mid) * (R * 0.62);
+        const iy = cy + Math.sin(mid) * (R * 0.62);
+        ctx.globalAlpha = owned ? 1 : 0.4;
+        if (!this.assets.draw(ctx, def.sprites.icon, 0, ix, iy - 4)) {
+          ctx.fillStyle = '#ccc';
+          ctx.fillRect(ix - 16, iy - 8, 32, 6);
+        }
+        ctx.textAlign = 'center';
+        ctx.font = F(700, 8);
+        ctx.fillStyle = active ? HUD.gold : HUD.parchment;
+        const tag = owned
+          ? def.name.toUpperCase()
+          : def.unlockAtWave
+            ? `W${def.unlockAtWave}`
+            : 'CRATE';
+        ctx.fillText(tag, ix, iy + 16);
+        ctx.globalAlpha = 1;
+      }
+      // hole over the handle
+      ctx.beginPath();
+      ctx.arc(cx, cy, 26, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(18,12,7,0.92)';
+      ctx.fill();
+      ctx.strokeStyle = HUD.gold;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.textAlign = 'center';
+      ctx.font = F(800, 9);
+      ctx.fillStyle = HUD.gold;
+      ctx.fillText('ARMS', cx, cy + 3);
+    } else if (cur && me.st === 'alive') {
+      // compact ammo over the handle
+      ctx.textAlign = 'center';
+      ctx.font = F(700, 9);
+      ctx.fillStyle = HUD.parchment;
+      const ammo = cur.melee ? '∞' : `${me.ammo}/${cur.magazine}`;
+      ctx.fillText(ammo, L.wheel.x + L.wheel.w / 2, L.wheel.y - 6);
+    }
   }
 
   /** Floating stick bases/knobs (engaged) or faint hints where to put thumbs (idle). */

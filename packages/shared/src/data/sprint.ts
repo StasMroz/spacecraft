@@ -4,8 +4,9 @@
  *
  * - Speed while sprinting = `speedMul` × the base marine speed (PLAYER.speed), regardless of the
  *   weapon's carry penalty or the firing slow-down.
- * - Stamina (seconds of sprint) drains at `drainPerS` while sprinting and regenerates ONLY while
- *   standing still (no movement input) at `regenStandingPerS`: walking or sprinting never regen.
+ * - Stamina (seconds of sprint) drains at `drainPerS` while sprinting and regenerates whenever the
+ *   marine is not sprinting: `regenStandingPerS` while standing still, `regenWalkingPerS` (half
+ *   that) while walking. Sprint itself never regenerates stamina.
  * - Sprint starts instantly when the sprint input is held while moving and stamina ≥
  *   `minToStartS`; it stops when the input is released, the marine stops moving, he enters revive
  *   range of a downed squadmate (can't sprint while reviving), or stamina runs out (auto-stop;
@@ -24,6 +25,8 @@ export const MARINE_SPRINT = {
   staminaMaxS: 2.4,
   /** Stamina regained per second while standing still (full in 7 s). */
   regenStandingPerS: 2.4 / 7,
+  /** Stamina regained per second while walking (not sprinting); half the standing rate. */
+  regenWalkingPerS: 2.4 / 7 / 2,
   /** Stamina spent per second of sprint. */
   drainPerS: 1,
   /** Minimum stamina to (re)start a sprint. */
@@ -65,7 +68,10 @@ export function stepSprint(
   const canRun = was ? s.stamina > 0 : !firing && s.stamina >= S.minToStartS;
   const sprint = want && moving && allowed && canRun;
   if (sprint) s.stamina = Math.max(0, s.stamina - S.drainPerS * dt);
-  else if (!moving) s.stamina = Math.min(S.staminaMaxS, s.stamina + S.regenStandingPerS * dt);
+  else {
+    const regen = moving ? S.regenWalkingPerS : S.regenStandingPerS;
+    s.stamina = Math.min(S.staminaMaxS, s.stamina + regen * dt);
+  }
   if (sprint) s.weaponDelay = 0;
   else if (was) s.weaponDelay = S.weaponReadyDelayS;
   else s.weaponDelay = Math.max(0, s.weaponDelay - dt);

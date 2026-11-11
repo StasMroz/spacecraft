@@ -230,27 +230,14 @@ describe('touch sprint (stick edge + button toggle)', () => {
     expect(Math.hypot(s.knob.x - s.originX, s.knob.y - s.originY)).toBeCloseTo(R * Z.outer, 6);
   });
 
-  it('TouchSprint: edge sprint while held in the zone, back inside stops it', () => {
+  it('TouchSprint: holds while the SPRINT button is down, resets cleanly', () => {
     const t = new TouchSprint();
-    t.stickMoved(0.8);
     expect(t.on).toBe(false);
-    t.stickMoved(Z.enter + 0.1);
+    t.setHeld(true);
     expect(t.on).toBe(true);
-    t.stickMoved(Z.exit + 0.05);
-    expect(t.on).toBe(true);
-    t.stickMoved(0.9);
+    t.setHeld(false);
     expect(t.on).toBe(false);
-    t.stickMoved(Z.outer);
-    t.stickReleased();
-    expect(t.on).toBe(false);
-  });
-
-  it('TouchSprint: no button toggle any more (v0.6.0 hotfix) — only the stick band sprints', () => {
-    const t = new TouchSprint();
-    expect('tap' in t).toBe(false);
-    t.stickMoved(0.5);
-    expect(t.on).toBe(false);
-    t.stickMoved(Z.enter + 0.1);
+    t.setHeld(true);
     t.reset();
     expect(t.on).toBe(false);
   });

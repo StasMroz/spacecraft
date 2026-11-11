@@ -86,7 +86,7 @@ export class GameClient extends Emitter<GameClientEvents> {
     this.hud = new Hud(assets, content);
     this.enemyAudio = new EnemyAudio(audio, content);
     this.input = new InputManager(canvas, {
-      hitSlot: (x, y) => this.hud.slotAt(x, y),
+      hitControl: (x, y, open) => this.hud.hitControl(x, y, open),
       onButton: (act) => (act === 'mute' ? this.toggleMute() : this.toggleLeaveDialog()),
     });
     this.input.touch.setMuted(this.audio.muted);
@@ -426,6 +426,7 @@ export class GameClient extends Emitter<GameClientEvents> {
       fps: this.fps,
       ...this.crosshairs(myPos, now),
       touch: this.input.active === 'touch' ? this.input.touch.sticks(stickSim) : null,
+      touchPad: this.input.active === 'touch' ? this.input.touch.pad() : null,
       inset: safeAreaInsets(),
       roomCode: this.conn.roomCode,
       mode: this.conn.mode,

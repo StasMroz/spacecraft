@@ -14,6 +14,8 @@ export interface ExplosionSpec {
   /** Blast Strength / AP vs Tyranid Toughness / Save (see data/profile.ts). Omit = ignores both. */
   strength?: number;
   ap?: number;
+  /** Acid left on the floor at the blast centre (Biovore / spore mine). */
+  pool?: AcidPoolSpec;
 }
 
 /**
@@ -102,7 +104,8 @@ export type WeaponRole =
   | 'SUSTAINED'
   | 'BLAST'
   | 'SHORT RANGE'
-  | 'OVERCHARGE';
+  | 'OVERCHARGE'
+  | 'MELEE';
 
 export interface WeaponDef {
   id: string;
@@ -165,6 +168,13 @@ export interface WeaponDef {
   /** Sprite keys (see tools/src/sprites). */
   /** icon = HUD, pickup = crate, held = weapon + gauntlets overlay drawn on the marine. */
   sprites: { icon: string; pickup: string; held: string };
+  /**
+   * If set, only this chapter unlocks / finds the weapon (slot may be shared with the other
+   * chapters' specials). Used for the wave-4 "instead of the flamer" signature weapons.
+   */
+  chapter?: string;
+  /** Melee swing: no ammo, fireInterval is the swing recovery. */
+  melee?: boolean;
 }
 
 export type EnemySize = 'tiny' | 'small' | 'medium' | 'large';
@@ -184,6 +194,8 @@ export interface EnemyExplodeSpec extends ExplosionSpec {
   fuse: number;
   /** Also explode when killed. */
   onDeath: boolean;
+  /** Acid left on the floor at the blast (Biovore / spore mine). */
+  pool?: AcidPoolSpec;
 }
 
 /** Wind up, then dash in a straight line (Hormagaunt leap, Carnifex charge). */
@@ -440,4 +452,6 @@ export interface ChapterDef {
   icon: 'chevron' | 'drop' | 'blade' | 'tower' | 'fang' | 'flame' | 'bolt' | 'feather';
   /** Our own flavour line shown in the lobby picker. */
   motto: string;
+  /** Signature special (replaces the shared flamer at wave 4). */
+  specialWeapon: string;
 }

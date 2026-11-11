@@ -27,6 +27,16 @@ export const WEAPON_MUZZLE: Readonly<Record<string, MuzzleDef>> = {
   meltagun: { forward: 43, lateral: 4, breech: 18 },
   /** Grenade thrown from the left hand (bolt pistol in the right). */
   frag_grenade: { forward: 26, lateral: 2, breech: 6 },
+  storm_bolter: { forward: 35, lateral: 4, breech: 16 },
+  inferno_pistol: { forward: 35, lateral: 4, breech: 16 },
+  plasma_caster: { forward: 35, lateral: 4, breech: 16 },
+  siege_bolter: { forward: 35, lateral: 4, breech: 16 },
+  plasma_pistol: { forward: 35, lateral: 4, breech: 16 },
+  bolt_carbine: { forward: 35, lateral: 4, breech: 16 },
+  stalker_bolter: { forward: 35, lateral: 4, breech: 16 },
+  chainsword: { forward: 35, lateral: 4, breech: 16 },
+  power_axe: { forward: 35, lateral: 4, breech: 16 },
+  thunder_hammer: { forward: 35, lateral: 4, breech: 16 },
 };
 
 /** Any future weapon without an entry (matches the generic held sprite: tip at x = 35). */

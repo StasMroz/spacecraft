@@ -44,9 +44,11 @@ function quietWorld(seed = 7): World {
 }
 
 describe('v0.4 arsenal', () => {
-  it('has no power sword and slots 1..6 in unlock order', () => {
+  it('has no power sword; shared slots stay unique and chapter specials share slot 3', () => {
     expect(content.weaponOrder.map((w) => w.id)).not.toContain('power_sword');
-    expect(content.weaponOrder.map((w) => w.slot)).toEqual([1, 2, 3, 4, 5, 6]);
+    const shared = content.weaponOrder.filter((w) => !w.chapter).map((w) => w.slot);
+    expect(shared).toEqual([1, 2, 4, 5, 6, 7, 8, 9]);
+    expect(content.weaponOrder.filter((w) => w.chapter).every((w) => w.slot === 3)).toBe(true);
     expect(() => content.weapon('power_sword')).toThrow();
   });
 

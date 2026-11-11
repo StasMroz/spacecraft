@@ -11,6 +11,7 @@ import { allocId } from '../world.js';
 import { dropCaps } from './director.js';
 import { segmentBlocked } from '../walls.js';
 import type { Enemy, Player, World } from '../types.js';
+import { spawnAcid } from './acid.js';
 
 export interface DamageOpts {
   /** 40k profile (data/profile.ts); strength omitted = ignores Toughness and Save. */
@@ -198,4 +199,5 @@ export function explode(
       damagePlayer(world, p, falloff(Math.max(0, d)) * mul, { fromX: x, fromY: y });
     }
   }
+  if (spec.pool) spawnAcid(world, x, y, spec.pool);
 }

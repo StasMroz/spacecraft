@@ -132,22 +132,35 @@ export class ContentRegistry {
     return this.weaponOrder.filter((w) => w.unlockAtWave === 0).map((w) => w.id);
   }
 
+  /** Weapons this chapter can use: shared arsenal plus its signature special. */
+  weaponsForChapter(chapterId: string): WeaponDef[] {
+    return this.weaponOrder.filter((w) => !w.chapter || w.chapter === chapterId);
+  }
+
   /** Returns a list of human-readable problems; empty = valid. */
   validate(): string[] {
     const errors: string[] = [];
     const ids = new Set<string>();
-    const slots = new Set<number>();
+    const slots = new Map<number, WeaponDef[]>();
     for (const w of this.weaponOrder) {
       if (ids.has(w.id)) errors.push(`duplicate weapon id ${w.id}`);
       ids.add(w.id);
-      if (slots.has(w.slot)) errors.push(`duplicate weapon slot ${w.slot} (${w.id})`);
-      slots.add(w.slot);
+      const list = slots.get(w.slot) ?? [];
+      list.push(w);
+      slots.set(w.slot, list);
       if (w.slot < 1 || w.slot > 9) errors.push(`weapon ${w.id} slot must be 1..9`);
       if (w.fireInterval <= 0) errors.push(`weapon ${w.id} fireInterval must be > 0`);
       if (w.magazine <= 0) errors.push(`weapon ${w.id} magazine must be > 0`);
       if (w.pellets < 1) errors.push(`weapon ${w.id} pellets must be >= 1`);
       if (w.unlockAtWave !== null && !(Number.isInteger(w.unlockAtWave) && w.unlockAtWave >= 0))
         errors.push(`weapon ${w.id} unlockAtWave must be an integer >= 0 or null`);
+    }
+    for (const [slot, list] of slots) {
+      if (list.length === 1) continue;
+      if (!list.every((w) => w.chapter))
+        errors.push(`duplicate weapon slot ${slot} (${list.map((w) => w.id).join(', ')})`);
+      const ch = new Set(list.map((w) => w.chapter));
+      if (ch.size !== list.length) errors.push(`duplicate chapter special on slot ${slot}`);
     }
     if (this.startingWeapons().length === 0) errors.push('no starting weapon (unlockAtWave: 0)');
     const eids = new Set<string>();
@@ -189,6 +202,11 @@ export class ContentRegistry {
     for (const c of this.chapters) {
       if (cids.has(c.id)) errors.push(`duplicate chapter id ${c.id}`);
       cids.add(c.id);
+      if (!c.specialWeapon) errors.push(`chapter ${c.id} needs a specialWeapon`);
+      else if (!this.weapons.has(c.specialWeapon))
+        errors.push(`chapter ${c.id} specialWeapon '${c.specialWeapon}' is unknown`);
+      else if (this.weapons.get(c.specialWeapon)!.chapter !== c.id)
+        errors.push(`chapter ${c.id} specialWeapon must set chapter: '${c.id}'`);
     }
     for (const e of this.enemies.values()) {
       if (e.spawner && !this.enemies.has(e.spawner.enemy))

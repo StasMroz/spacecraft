@@ -14,7 +14,8 @@ import { spawnAcid } from '../src/sim/systems/acid.js';
 import { spawnEnemy } from '../src/sim/systems/director.js';
 
 const def = (id: string) => ENEMIES.find((e) => e.id === id)!;
-const termPool = def('termagant').ranged!.projectile.pool!;
+const bioPool = def('biovore').ranged!.projectile.pool!;
+const splashPool = { radius: 20, duration: 2.5, damage: 5, interval: 0.5 };
 const fexLob = def('carnifex').lobAttack!;
 
 function world(walls: WallDef[] = [], seed = 5): World {
@@ -33,7 +34,7 @@ const steps = (w: World, n: number) => {
   for (let i = 0; i < n; i++) stepWorld(w, TICK_DT);
 };
 
-function shot(w: World, x: number, y: number, vx: number, life: number, pool = termPool): void {
+function shot(w: World, x: number, y: number, vx: number, life: number, pool = splashPool): void {
   w.projectiles.push({
     id: 9000 + w.projectiles.length,
     owner: 'enemy',
@@ -73,9 +74,9 @@ describe('acid spit', () => {
     p.y = pool.y;
     const hp = p.hp;
     steps(w, Math.round(1.05 / TICK_DT)); // ~2 burn ticks
-    expect(hp - p.hp).toBe(2 * termPool.damage);
+    expect(hp - p.hp).toBe(2 * splashPool.damage);
     expect(p.invuln).toBe(0); // burns grant no i-frames
-    steps(w, Math.round(termPool.duration / TICK_DT));
+    steps(w, Math.round(bioPool.duration / TICK_DT));
     expect(w.acid).toHaveLength(0);
     const dry = p.hp;
     steps(w, 30);
@@ -119,18 +120,16 @@ describe('Carnifex acid glob', () => {
   };
   const globs = (w: World) => w.projectiles.filter((p) => p.kind === 'bioacid');
 
-  it('lobs at a visible marine in range and leaves a big lasting pool', () => {
+  it('lobs at a visible marine in range but leaves no acid pool', () => {
     const w = lobWorld(400);
     stepWorld(w, TICK_DT);
     expect(globs(w)).toHaveLength(1);
+    expect(fexLob.projectile.pool).toBeUndefined();
     const p = w.players[0]!;
     p.x = 600;
     p.y = 600;
     steps(w, Math.round(1.2 / TICK_DT));
-    expect(w.acid.some((a) => a.r === fexLob.projectile.pool!.radius)).toBe(true);
-    const a = w.acid.find((x) => x.r === fexLob.projectile.pool!.radius)!;
-    expect(Math.hypot(a.x - 600, a.y - 600)).toBeLessThan(60); // lands where the marine stood
-    expect(a.duration).toBeGreaterThanOrEqual(5);
+    expect(w.acid).toHaveLength(0);
   });
 
   it('holds fire when too close or behind a full wall', () => {
@@ -152,8 +151,8 @@ describe('Carnifex acid glob', () => {
 describe('acid over the network', () => {
   it('pools survive the binary snapshot round trip', () => {
     const w = world();
-    spawnAcid(w, 123.4, 456.7, termPool);
-    spawnAcid(w, 300, 300, fexLob.projectile.pool!);
+    spawnAcid(w, 123.4, 456.7, bioPool);
+    spawnAcid(w, 300, 300, bioPool);
     steps(w, 3);
     const s = buildSnapshot(w, 60);
     const host = createWireCodec();
@@ -174,5 +173,69 @@ describe('acid over the network', () => {
       return JSON.stringify(w.acid) + w.players[0]!.hp;
     };
     expect(run()).toBe(run());
+  });
+});
+
+describe('only Biovores leave acid', () => {
+  it('termagant, warrior and carnifex have no pool; biovore spore and spore mines do', () => {
+    expect(def('termagant').ranged!.projectile.pool).toBeUndefined();
+    expect(def('warrior').ranged!.projectile.pool).toBeUndefined();
+    expect(def('carnifex').lobAttack!.projectile.pool).toBeUndefined();
+    expect(def('biovore').ranged!.projectile.pool).toMatchObject({
+      radius: 70,
+      duration: 5,
+      damage: 5,
+    });
+    expect(def('spore_mine').explode!.pool).toMatchObject({ radius: 70, duration: 5, damage: 5 });
+  });
+
+  it('a Biovore spore that expires leaves a pool; a termagant shot does not', () => {
+    const w = world();
+    const spore = def('biovore').ranged!.projectile;
+    w.projectiles.push({
+      id: 42,
+      owner: 'enemy',
+      ownerId: 0,
+      kind: spore.kind,
+      x: 900,
+      y: 600,
+      vx: -200,
+      vy: 0,
+      life: 0.2,
+      radius: spore.radius,
+      damage: 0,
+      pierceLeft: 0,
+      ap: 0,
+      drag: 0,
+      knockback: 0,
+      explosion: spore.explosion,
+      pool: spore.pool,
+      hit: [],
+      dead: false,
+    } as Projectile);
+    steps(w, 20);
+    expect(w.acid.length).toBeGreaterThan(0);
+    const acidN = w.acid.length;
+    w.projectiles.push({
+      id: 43,
+      owner: 'enemy',
+      ownerId: 0,
+      kind: 'fleshborer',
+      x: 900,
+      y: 400,
+      vx: -400,
+      vy: 0,
+      life: 0.3,
+      radius: 6,
+      damage: 7,
+      pierceLeft: 0,
+      ap: 0,
+      drag: 0,
+      knockback: 0,
+      hit: [],
+      dead: false,
+    } as Projectile);
+    steps(w, 30);
+    expect(w.acid).toHaveLength(acidN);
   });
 });

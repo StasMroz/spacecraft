@@ -493,8 +493,13 @@ export function spawnCrate(world: World): void {
   const cfg = world.content.director.crates;
   const weights: Record<string, number> = {};
   for (const w of world.content.weaponOrder) {
-    if (w.crateWeight > 0 && alive.some((p) => !p.weapons.includes(w.id)))
-      weights[w.id] = w.crateWeight;
+    if (w.crateWeight <= 0) continue;
+    const need = w.chapter
+      ? alive.some(
+          (p) => world.content.chapter(p.chapter).id === w.chapter && !p.weapons.includes(w.id),
+        )
+      : alive.some((p) => !p.weapons.includes(w.id));
+    if (need) weights[w.id] = w.crateWeight;
   }
   const weapon = world.rng.weighted(weights);
   const at = pickSpawnPoint(world, cfg.minDistance, cfg.maxDistance, 60);

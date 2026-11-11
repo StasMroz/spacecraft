@@ -79,6 +79,7 @@ export const ROLE_SHORT: Record<WeaponRole, string> = {
   BLAST: 'BLAST',
   'SHORT RANGE': 'SHORT RANGE',
   OVERCHARGE: 'OVERCHARGE',
+  MELEE: 'MELEE',
 };
 
 /** HUD colour per defining role (horde = amber, elite = cyan, tank = red, generalist = parchment). */
@@ -91,6 +92,7 @@ export const ROLE_COLOR: Record<WeaponRole, string> = {
   BLAST: '#ffb347',
   'SHORT RANGE': '#bba98a',
   OVERCHARGE: '#7fe0ff',
+  MELEE: '#d4c4a0',
 };
 
 /** "S5 AP-1" (the direct hit's profile; blast-only weapons show the blast's). */

@@ -395,8 +395,12 @@ export function sprintTable(): string {
       ['Kondycja (maks.)', `${n(S.staminaMaxS, 2)} s sprintu`],
       ['Zużycie', `${n(S.drainPerS, 2)} / s`],
       [
-        'Odnowa (tylko stojąc)',
+        'Odnowa (stojąc)',
         `${n(S.regenStandingPerS, 3)} / s — pełna po ${n(S.staminaMaxS / S.regenStandingPerS, 2)} s`,
+      ],
+      [
+        'Odnowa (marsz)',
+        `${n(S.regenWalkingPerS, 3)} / s — pełna po ${n(S.staminaMaxS / S.regenWalkingPerS, 2)} s`,
       ],
       ['Minimum do startu', `${n(S.minToStartS, 2)} s`],
       ['Broń gotowa po sprincie', `${n(S.weaponReadyDelayS, 2)} s`],

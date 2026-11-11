@@ -44,14 +44,24 @@ describe('40k content data', () => {
       'bolt_rifle',
       'heavy_bolter',
       'flamer',
+      'storm_bolter',
+      'inferno_pistol',
+      'plasma_caster',
+      'siege_bolter',
+      'plasma_pistol',
+      'bolt_carbine',
+      'stalker_bolter',
       'plasma_gun',
       'meltagun',
       'frag_grenade',
+      'chainsword',
+      'power_axe',
+      'thunder_hammer',
     ]);
-    const unlocks = content.weaponOrder.map((w) => w.unlockAtWave ?? Infinity);
-    expect(unlocks[0]).toBe(0);
-    expect([...unlocks].sort((a, b) => a - b)).toEqual(unlocks);
+    expect(content.weaponOrder[0]!.unlockAtWave).toBe(0);
     expect(content.weapon('plasma_gun').heat).toBeDefined();
+    expect(content.weapon('flamer').chapter).toBe('salamanders');
+    expect(content.chapter(0).specialWeapon).toBe('storm_bolter');
   });
 
   it('has the Tyranid roster with the Carnifex and Psychophage bosses and the synapse/burrow/charge traits', () => {

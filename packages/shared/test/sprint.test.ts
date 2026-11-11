@@ -55,6 +55,7 @@ describe('sprint constants', () => {
       weaponReadyDelayS: 0.8,
     });
     expect(S.staminaMaxS / S.regenStandingPerS).toBeCloseTo(7, 9);
+    expect(S.regenWalkingPerS).toBeCloseTo(S.regenStandingPerS / 2, 9);
   });
 });
 
@@ -81,14 +82,16 @@ describe('sprint (shared sim)', () => {
     const p = w.players[0];
     run(w, ticks(1), sprintRight);
     expect(p.sprint.stamina).toBeCloseTo(S.staminaMaxS - 1, 6);
-    run(w, ticks(2) + 2, sprintRight);
-    expect(p.sprint.stamina).toBe(0);
+    run(w, ticks(S.staminaMaxS - 1) + 1, sprintRight);
     expect(p.sprint.sprinting).toBe(false); // auto-stop, still holding sprint
+    expect(p.sprint.stamina).toBeLessThan(S.minToStartS);
+    p.sprint.stamina = 0;
     const x0 = p.x;
-    run(w, ticks(1), sprintRight); // still holding sprint while walking: no regen, no restart
+    run(w, ticks(1), sprintRight); // holding sprint but not sprinting (empty): walking regen, no restart
     expect(p.sprint.sprinting).toBe(false);
-    expect(p.sprint.stamina).toBe(0);
+    expect(p.sprint.stamina).toBeCloseTo(S.regenWalkingPerS * 1, 6);
     expect(p.x - x0).toBeLessThan(PLAYER.speed * ticks(1) * TICK_DT + 1e-6);
+    p.sprint.stamina = 0;
     // stand still (holding sprint) just under the restart threshold, then move: no sprint
     run(w, ticks(S.minToStartS / S.regenStandingPerS) - 3, { sprint: true });
     expect(p.sprint.stamina).toBeLessThan(S.minToStartS);
@@ -100,15 +103,18 @@ describe('sprint (shared sim)', () => {
     expect(p.sprint.sprinting).toBe(true);
   });
 
-  it('regenerates only while standing still: full in 7 s, never while walking', () => {
+  it('regenerates whenever not sprinting: walking at half the standing rate, full in 7 s standing', () => {
     const w = quietWorld();
     const p = w.players[0];
     run(w, ticks(2), sprintRight);
     const left = p.sprint.stamina;
     run(w, ticks(3), { mx: 1 }); // walking
-    expect(p.sprint.stamina).toBeCloseTo(left, 9);
+    expect(p.sprint.stamina).toBeCloseTo(left + 3 * S.regenWalkingPerS, 6);
     run(w, ticks(3), { mx: 0.1 }); // stick drift below STILL_INPUT counts as standing
-    expect(p.sprint.stamina).toBeCloseTo(left + 3 * S.regenStandingPerS, 6);
+    expect(p.sprint.stamina).toBeCloseTo(
+      left + 3 * S.regenWalkingPerS + 3 * S.regenStandingPerS,
+      6,
+    );
 
     const w2 = quietWorld();
     const p2 = w2.players[0];
