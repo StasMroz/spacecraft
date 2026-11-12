@@ -1,5 +1,10 @@
 # Changelog
 
+## v37
+
+- Menu: pod motto zakonu kompaktowy podgląd loadoutu (broń specjalna i wręcz, z falą odblokowania z danych broni). Aktualizuje się przy zmianie zakonu.
+- Odprawa: przy misjach ofensywnych (`assault`) w linii meta pojawia się „desant ofensywny”. Nazwy niezaznaczonych misji mają kontrast jak chipy CHAPTER. Placeholder ROOM CODE nie ucina się na wąskim ekranie.
+
 ## v36
 
 - Pages: `build:pages` zapisuje `versions.json` z wpisów CHANGELOG (`version`, `date`, `title`, `path`). Na Actions nie ma zamrożonych katalogów `/vN/`, więc `path` prowadzi do GitHub Release danej wersji — menu „Previous versions” nie dostaje 404.

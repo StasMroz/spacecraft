@@ -76,7 +76,26 @@ export function missionClockLabel(m: MissionDef): string {
 
 /** Map, resupply and clock, one compact line for the briefing. */
 export function missionMetaLine(m: MissionDef): string {
-  return `${mapLabel(m.map)} · ${missionSupplyLabel(m)} · ${missionClockLabel(m)}`;
+  const parts = [mapLabel(m.map), missionSupplyLabel(m), missionClockLabel(m)];
+  if (m.assault) parts.push('desant ofensywny');
+  return parts.join(' · ');
+}
+
+/** Signature special and melee for a chapter, with unlock wave when the weapon has one. */
+export function chapterLoadoutHtml(content: ContentRegistry, chapterId: string): string {
+  const i = content.chapterIndex(chapterId);
+  const ch = (i >= 0 ? content.chapters[i] : content.chapters[0]) ?? null;
+  if (!ch) return '';
+  return [ch.specialWeapon, ch.meleeWeapon]
+    .map((id) => {
+      const w = content.weapon(id);
+      const when =
+        w.unlockAtWave !== null && w.unlockAtWave > 0
+          ? ` <span class="loadout-when">fala ${w.unlockAtWave}</span>`
+          : '';
+      return `<span class="loadout-item">${escapeHtml(w.name)}${when}</span>`;
+    })
+    .join('');
 }
 
 /** 40k-style briefing for the selected mission, built only from catalogue fields. */
@@ -156,8 +175,20 @@ export function bindMissionPicker(root: ParentNode, onPick: (id: string) => void
 export function createMenuScreen(actions: MenuActions, opts: MenuOptions): HTMLElement {
   const missionId = initialMissionId(opts.missionId, prefs.mission());
   const el = html(menuMarkup({ ...opts, missionId }));
-  $(el, '#chapters').append(
-    createChapterPicker(opts.content, prefs.chapter(), (id) => prefs.setChapter(id)).el,
+  const chaptersBox = $(el, '#chapters');
+  const initialChapter = prefs.chapter() ?? opts.content.chapters[0]?.id ?? '';
+  const loadout = html(
+    `<p class="chapter-loadout" id="chapter-loadout">${chapterLoadoutHtml(opts.content, initialChapter)}</p>`,
+  );
+  const paintLoadout = (id: string) => {
+    loadout.innerHTML = chapterLoadoutHtml(opts.content, id);
+  };
+  chaptersBox.append(
+    createChapterPicker(opts.content, initialChapter || undefined, (id) => {
+      prefs.setChapter(id);
+      paintLoadout(id);
+    }).el,
+    loadout,
   );
   $(el, '#meta').append(createVersionsLink());
   if (opts.mixer) $(el, '#mixer').append(createMixerPanel(opts.mixer));

@@ -206,7 +206,12 @@ button.primary:hover:not(:disabled) {
 }
 .join input {
   text-transform: uppercase;
-  letter-spacing: 0.25em;
+  letter-spacing: 0.1em;
+  min-width: 0;
+}
+.join input::placeholder {
+  letter-spacing: 0.06em;
+  font-size: 13px;
 }
 .error {
   color: var(--bad);
@@ -277,6 +282,7 @@ button.primary:hover:not(:disabled) {
   cursor: pointer;
   font-size: 12px;
   letter-spacing: 0.02em;
+  color: var(--text);
 }
 /* Visually hide the radio: the global `input` rule (width 100%, padding, border)
    would otherwise paint it as a text field. The label is the chip, like CHAPTER. */
@@ -967,7 +973,19 @@ input:focus {
   font-size: 12px;
   color: var(--muted);
   min-height: 1.3em;
-  margin: -4px 0 8px;
+  margin: -4px 0 2px;
+}
+.chapter-loadout {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0 0 8px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--text);
+}
+.chapter-loadout .loadout-when {
+  color: var(--muted);
 }
 .versions-link,
 .rules-link {

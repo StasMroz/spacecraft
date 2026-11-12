@@ -1,4 +1,4 @@
-import { DEFAULT_MISSION_ID, MISSIONS, getMission } from '@sms/shared';
+import { CHAPTERS, DEFAULT_MISSION_ID, MISSIONS, getMission } from '@sms/shared';
 import { describe, expect, it } from 'vitest';
 import {
   formatTimeLimit,
@@ -6,6 +6,7 @@ import {
   lobbyMissionMarkup,
   mapLabel,
   menuMarkup,
+  chapterLoadoutHtml,
   missionBriefingHtml,
   missionClockLabel,
   missionMetaLine,
@@ -108,9 +109,9 @@ describe('mission briefing', () => {
       expect(html).toContain(mapLabel(m.map));
       expect(html).toContain(missionSupplyLabel(m));
       expect(html).toContain(missionClockLabel(m));
-      expect(missionMetaLine(m)).toBe(
-        `${mapLabel(m.map)} · ${missionSupplyLabel(m)} · ${missionClockLabel(m)}`,
-      );
+      const parts = [mapLabel(m.map), missionSupplyLabel(m), missionClockLabel(m)];
+      if (m.assault) parts.push('desant ofensywny');
+      expect(missionMetaLine(m)).toBe(parts.join(' · '));
       if (m.crates) expect(missionSupplyLabel(m)).toBe('zrzuty');
       else expect(missionSupplyLabel(m)).toBe('brak zrzutów');
       if (m.timeLimit === null) expect(missionClockLabel(m)).toBe('bez limitu');
@@ -148,5 +149,36 @@ describe('mission picker CSS', () => {
     expect(body).toContain('min-height: 0');
     expect(body).toContain('padding: 0');
     expect(body).toContain('border: 0');
+  });
+});
+
+describe('chapter loadout preview', () => {
+  it("shows each chapter's special and melee weapon names from the registry", () => {
+    expect(CHAPTERS.length).toBeGreaterThan(0);
+    for (const ch of CHAPTERS) {
+      const html = chapterLoadoutHtml(defaultContent, ch.id);
+      const special = defaultContent.weapon(ch.specialWeapon);
+      const melee = defaultContent.weapon(ch.meleeWeapon);
+      expect(html).toContain(special.name);
+      expect(html).toContain(melee.name);
+      if (special.unlockAtWave !== null && special.unlockAtWave > 0) {
+        expect(html).toContain(`fala ${special.unlockAtWave}`);
+      }
+      if (melee.unlockAtWave !== null && melee.unlockAtWave > 0) {
+        expect(html).toContain(`fala ${melee.unlockAtWave}`);
+      }
+    }
+  });
+});
+
+describe('assault briefing marker', () => {
+  it('adds “desant ofensywny” only when the catalogue flags assault', () => {
+    expect(MISSIONS.some((m) => m.assault)).toBe(true);
+    expect(MISSIONS.some((m) => !m.assault)).toBe(true);
+    for (const m of MISSIONS) {
+      const meta = missionMetaLine(m);
+      if (m.assault) expect(meta).toContain('desant ofensywny');
+      else expect(meta).not.toContain('desant ofensywny');
+    }
   });
 });

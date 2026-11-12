@@ -4,6 +4,7 @@ import { prefs } from '../prefs.js';
 import { escapeHtml } from '../format.js';
 import {
   bindMissionPicker,
+  chapterLoadoutHtml,
   lobbyMissionMarkup,
   missionPickerMarkup,
   paintMissionDetails,
@@ -78,11 +79,19 @@ export function createRoomScreen(
   const players = $(el, '#players');
   const start = $<HTMLButtonElement>(el, '#start');
   const hint = $(el, '#hint');
-  const picker = createChapterPicker(content, prefs.chapter(), (id) => {
+  const initialChapter = prefs.chapter() ?? content.chapters[0]?.id ?? '';
+  const loadout = html(
+    `<p class="chapter-loadout" id="chapter-loadout">${chapterLoadoutHtml(content, initialChapter)}</p>`,
+  );
+  const paintLoadout = (id: string) => {
+    loadout.innerHTML = chapterLoadoutHtml(content, id);
+  };
+  const picker = createChapterPicker(content, initialChapter || undefined, (id) => {
     prefs.setChapter(id);
     session.selectChapter(id);
+    paintLoadout(id);
   });
-  $(el, '#chapters').append(picker.el);
+  $(el, '#chapters').append(picker.el, loadout);
   const missionSlot = $(el, '#mission-slot');
   const canPickMission = !!actions.setMission;
   missionSlot.innerHTML = canPickMission
@@ -107,6 +116,7 @@ export function createRoomScreen(
       new Set(l.players.filter((p) => p.id !== session.playerId).map((p) => p.chapter)),
       mine,
     );
+    if (mine !== null) paintLoadout(content.chapter(mine).id);
     picker.el.style.pointerEvents = l.phase === 'lobby' ? '' : 'none';
     const owner = session.isOwner;
     start.style.display = owner ? '' : 'none';
