@@ -58,6 +58,16 @@ export interface MissionDef {
    * per-run random (a fixed seed would turn the board into a single RNG route).
    */
   ranked?: boolean;
+  /** Override landmark target positions (destroy). */
+  targetAt?: [number, number][];
+  /** HUD label for destroy-targets (default: synapse capillaries). */
+  targetLabel?: string;
+  /** Destroying a target frees a squad of Guardsmen who hold and fire. */
+  rescue?: boolean;
+  /** Pre-placed patrols start asleep; proximity or nearby fire wakes the group. */
+  sleeping?: boolean;
+  /** Reduced visibility (spore haze). */
+  fog?: boolean;
 }
 
 /** True for runs that belong on the global board. Missing `mission` = legacy hive_siege. */
@@ -114,16 +124,24 @@ export const MISSIONS: readonly MissionDef[] = [
     id: 'evacuation',
     name: 'Ewakuacja',
     description:
-      'Wrak hulka dryfuje w pustce. Thunderhawk ma ciasne okno: dotrzyj do strefy ewakuacji zanim odleci.',
-    objective: 'Dotrzyj do strefy ewakuacji zanim Thunderhawk odleci.',
+      'Lądujecie na wraku hulka, który już roi się od Tyranidów. Przebijcie się do strefy evakuacji na drugim końcu — Thunderhawk czeka, ale czas jest krótki. Bez fal z krawędzi.',
+    objective: 'Przebij się do strefy evakuacji.',
     kind: 'extract',
     map: 'hulk',
     timeLimit: 165,
-    extractOpensAt: 120,
-    extractWindow: 45,
+    extractOpensAt: 0,
+    extractWindow: null,
     extractHold: 5,
     crates: true,
     crash: false,
+    assault: true,
+    start: [400, 1100],
+    patrols: [
+      [900, 800, 1],
+      [1400, 1200, 0],
+      [2000, 900, 1],
+      [2400, 1300, 0],
+    ],
   },
   {
     id: 'synapse_purge',
@@ -153,7 +171,7 @@ export const MISSIONS: readonly MissionDef[] = [
     id: 'relic_recovery',
     name: 'Odzyskaj relikwię',
     description:
-      'Cień w warpie tłumi zrzuty zaopatrzenia. Odzyskaj relikwię z lodowego świata i donieś ją do strefy ekstrakcji.',
+      'Lądujecie przy relikwii na lodowym świecie, wśród już rozstawionych Tyranidów. Cień w warpie nadal tłumi zrzuty. Weźcie relikwię i przebijcie się do ekstrakcji. Bez fal z krawędzi.',
     objective: 'Odzyskaj relikwię i donieś ją do ekstrakcji.',
     kind: 'retrieve',
     map: 'ice',
@@ -164,6 +182,76 @@ export const MISSIONS: readonly MissionDef[] = [
     crates: false,
     crash: false,
     relic: { radius: 22, carryMul: 0.75 },
+    assault: true,
+    start: [500, 500],
+    sleeping: true,
+    patrols: [
+      [600, 450, 2],
+      [1200, 900, 2],
+      [1800, 1400, 0],
+      [2300, 1600, 1],
+    ],
+  },
+  {
+    id: 'infiltration',
+    name: 'Infiltracja',
+    description:
+      'Lądujecie na skraju dżungli. Większość roju śpi. Cichy marsz do konsoli augur; strzał albo zbytnie zbliżenie budzi okolicę. Spalenie augur otwiera ekstrakcję. Burza zarodników ogranicza widoczność.',
+    objective: 'Dotrzyj do augur i ewakuuj się, nie budząc całego roju.',
+    kind: 'destroy',
+    map: 'jungle',
+    timeLimit: 240,
+    extractOpensAt: null,
+    extractWindow: null,
+    extractHold: 5,
+    crates: true,
+    crash: false,
+    assault: true,
+    sleeping: true,
+    fog: true,
+    start: [500, 400],
+    targets: 1,
+    targetHp: 280,
+    targetLabel: 'Augur',
+    targetAt: [[2400, 500]],
+    patrols: [
+      [900, 700, 2],
+      [1400, 500, 2],
+      [1900, 800, 2],
+      [2300, 600, 2],
+    ],
+  },
+  {
+    id: 'fortress_raid',
+    name: 'Rajd na fortecę Gwardii',
+    description:
+      'Lądujecie w oblężonej redutcie Gwardii. Uwolnijcie uwięzionych Gwardzistów z klatek — staną i będą strzelać — potem ewakuujcie się razem z nimi. Tyranidzi już są na pozycji; fal z krawędzi nie ma.',
+    objective: 'Uwolnij Gwardzistów i ewakuuj się.',
+    kind: 'destroy',
+    map: 'wave',
+    timeLimit: 210,
+    extractOpensAt: null,
+    extractWindow: null,
+    extractHold: 5,
+    crates: true,
+    crash: false,
+    assault: true,
+    rescue: true,
+    start: [400, 1100],
+    targets: 3,
+    targetHp: 260,
+    targetLabel: 'Klatki',
+    targetAt: [
+      [1100, 900],
+      [1800, 1400],
+      [2400, 600],
+    ],
+    patrols: [
+      [1100, 900, 1],
+      [1800, 1400, 0],
+      [2400, 600, 1],
+      [1500, 500, 1],
+    ],
   },
 ];
 

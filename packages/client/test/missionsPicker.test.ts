@@ -41,9 +41,9 @@ describe('resolved / initial mission id', () => {
 });
 
 describe('mission picker markup', () => {
-  it('lists all five missions and checks hive_siege by default', () => {
+  it('lists every catalogue mission and checks hive_siege by default', () => {
     const html = missionPickerMarkup('');
-    expect(MISSIONS).toHaveLength(5);
+    expect(MISSIONS.length).toBeGreaterThanOrEqual(5);
     for (const m of MISSIONS) {
       expect(html).toContain(`value="${m.id}"`);
       expect(html).toContain(m.name);

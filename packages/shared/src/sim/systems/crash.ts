@@ -50,7 +50,7 @@ export function updateCrash(world: World, dt: number): void {
     return;
   }
   placeWreck(world, c.x, c.y);
-  spawnSoldiers(world, c.x, c.y);
+  spawnGuardsmen(world, c.x, c.y);
   world.crash = null;
 }
 
@@ -130,9 +130,10 @@ function placeWreck(world: World, cx: number, cy: number): void {
 const overlap = (a: WallDef, b: WallDef, pad: number): boolean =>
   a.x < b.x + b.w + pad && b.x < a.x + a.w + pad && a.y < b.y + b.h + pad && b.y < a.y + a.h + pad;
 
-function spawnSoldiers(world: World, cx: number, cy: number): void {
+export function spawnGuardsmen(world: World, cx: number, cy: number, count?: number): void {
   const live = world.allies.filter((a) => !a.dead).length;
-  const n = Math.min(perTeam(CRASH.soldiers, world.teamSize), CRASH.maxAllies - live);
+  const want = count ?? perTeam(CRASH.soldiers, world.teamSize);
+  const n = Math.min(want, CRASH.maxAllies - live);
   for (let i = 0; i < n; i++) {
     const a = (i / Math.max(1, n)) * Math.PI * 2 + world.rng.range(-0.3, 0.3);
     let x = cx + Math.cos(a) * 30;

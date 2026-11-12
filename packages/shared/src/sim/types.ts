@@ -140,6 +140,8 @@ export interface Enemy {
   /** Cooldown of the secondary lobbed attack (EnemyDef.lobAttack). */
   lobCooldown?: number;
   dead: boolean;
+  /** Sleeping until a marine or a shot gets too close (infiltration). */
+  asleep?: boolean;
   /** Spawned by another enemy (spore mine from a Biovore...): counts toward the wave, never drops. */
   child: boolean;
   /** Children this enemy has spawned so far (capped by its `spawner.max`). */
@@ -440,6 +442,8 @@ export interface MissionState {
   bossId?: number;
   /** Seconds until each destroy-target nest tries to spawn (assault). */
   nestNext?: number[];
+  /** Cages already opened (rescue missions). */
+  freed?: boolean[];
 }
 
 export interface ReinforcePod {

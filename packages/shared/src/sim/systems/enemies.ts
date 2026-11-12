@@ -168,8 +168,14 @@ function updateCharge(
 /** Enemy AI: steering + behaviour-specific attacks, separation, collisions. */
 export function updateEnemies(world: World, hash: SpatialHash<Enemy>, dt: number): void {
   applySynapse(world, hash);
+  wakeSleepers(world);
   for (const e of world.enemies) {
     if (e.dead) continue;
+    if (e.asleep) {
+      e.vx = 0;
+      e.vy = 0;
+      continue;
+    }
     const def = world.content.enemy(e.type);
     e.attackCooldown = Math.max(0, e.attackCooldown - dt);
     e.attackAnim = Math.max(0, e.attackAnim - dt);
@@ -412,4 +418,32 @@ function spit(
     dead: false,
   });
   world.events.push({ e: 'spit', x: Math.round(e.x), y: Math.round(e.y), t: e.type });
+}
+
+const SEE_R2 = 140 * 140;
+const SHOT_R2 = 180 * 180;
+const CHAIN_R2 = 200 * 200;
+
+function wakeSleepers(world: World): void {
+  const slept = world.enemies.filter((e) => !e.dead && e.asleep);
+  if (!slept.length) return;
+  const wake = (e: Enemy, x: number, y: number, r2: number): void => {
+    if (e.asleep && dist2(e.x, e.y, x, y) < r2) e.asleep = false;
+  };
+  for (const e of slept) {
+    for (const p of world.players) {
+      if (p.state === 'alive') wake(e, p.x, p.y, SEE_R2);
+    }
+  }
+  for (const pr of world.projectiles) {
+    for (const e of slept) wake(e, pr.x, pr.y, SHOT_R2);
+  }
+  // Cascade only through groups that started this tick asleep (awake patrols do not auto-raise the map).
+  for (let n = 0; n < 4; n++) {
+    const newly = slept.filter((e) => !e.asleep);
+    if (!newly.length) break;
+    for (const a of newly) {
+      for (const e of slept) wake(e, a.x, a.y, CHAIN_R2);
+    }
+  }
 }

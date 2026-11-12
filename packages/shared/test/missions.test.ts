@@ -49,6 +49,8 @@ describe('mission catalogue', () => {
       'evacuation',
       'synapse_purge',
       'relic_recovery',
+      'infiltration',
+      'fortress_raid',
     ]);
   });
 

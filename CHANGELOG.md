@@ -1,5 +1,11 @@
 # Changelog
 
+## v40
+
+- **Ewakuacja** i **Odzyskaj relikwię** przebudowane na desant ofensywny (jak v34): lądujecie wśród już rozstawionych Tyranidów, bez fal z krawędzi. Identyfikatory i pola katalogu (`name`, `description`, `objective`, `map`, `crates`, `timeLimit`) zachowane. Ewakuacja: przebicie przez wrak hulka do otwartej strefy (limit 165 s). Relikwia: zrzut przy artefakcie, część roju śpi, cień w warpie nadal tłumi skrzynie.
+- Nowe zlecenia: **Infiltracja** (`infiltration`) — uśpione grupy, zbliżenie lub strzał budzi okolicę, cel augur, burza zarodników ogranicza widoczność; **Rajd na fortecę Gwardii** (`fortress_raid`) — uwolnij Gwardzistów z klatek, staną i strzelają, potem ewakuacja.
+- Minimalna poprawka testu pickera menu (`toHaveLength(5)` → katalog może rosnąć), żeby picker listował nowe id. Plików menu nie ruszano.
+
 ## v39
 
 - Ranking główny liczy tylko **Oblężenie ula** (`hive_siege`, `ranked: true`): ten sam pokład, ten sam startowy loadout, fale jak dotychczas; seed nadal losowy na bieg (stały seed zepsułby porównanie z istniejącymi wynikami). Inne misje zapisują wynik tylko w przeglądarce — bez zapisu do Firestore / głównej tablicy. Stare biegi bez pola `mission` nadal się liczą (to było Oblężenie).

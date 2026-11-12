@@ -3,6 +3,7 @@ import { getMission } from '../../data/missions.js';
 import { clamp, dist2 } from '../../math/vec.js';
 import type { World } from '../types.js';
 import { spawnCrate, spawnEnemy } from './director.js';
+import { spawnGuardsmen } from './crash.js';
 import { dropCaps } from './director.js';
 import { unlockWaveWeapons } from './weapons.js';
 
@@ -36,7 +37,8 @@ export function setupAssault(world: World): void {
     world.mission.bossId = boss.id;
     seedAround(world, bx, by, bossGuard(team));
   }
-  for (const g of def.patrols ?? []) seedAround(world, g[0], g[1], patrol(team, g[2]));
+  for (const g of def.patrols ?? [])
+    seedAround(world, g[0], g[1], patrol(team, g[2]), def.sleeping || g[2] >= 2);
   // No edge waves, so grant the wave-2 loadout (chapter melee) at the drop.
   for (let wave = 1; wave <= 2; wave++) unlockWaveWeapons(world, wave);
 }
@@ -44,6 +46,7 @@ export function setupAssault(world: World): void {
 export function updateAssault(world: World, dt: number): void {
   const def = getMission(world.mission.id);
   if (!def.assault) return;
+  releaseCages(world, def);
   const st = world.director;
   if (world.mission.crates && world.time >= st.nextCrateAt) {
     const cfg = world.content.director;
@@ -73,11 +76,24 @@ export function updateAssault(world: World, dt: number): void {
   }
 }
 
-function seedAround(world: World, x: number, y: number, roster: string[]): void {
+function releaseCages(world: World, def: ReturnType<typeof getMission>): void {
+  if (!def.rescue) return;
+  const st = world.mission;
+  st.freed ??= st.targets.map(() => false);
+  for (let i = 0; i < st.targets.length; i++) {
+    const t = st.targets[i]!;
+    if (t.hp > 0 || st.freed[i]) continue;
+    st.freed[i] = true;
+    spawnGuardsmen(world, t.x, t.y, 2 + world.teamSize);
+  }
+}
+
+function seedAround(world: World, x: number, y: number, roster: string[], asleep = false): void {
   roster.forEach((type, i) => {
     const a = (i / Math.max(1, roster.length)) * Math.PI * 2 + world.rng.range(-0.2, 0.2);
     const d = 70 + (i % 4) * 28;
-    spawnEnemy(world, type, x + Math.cos(a) * d, y + Math.sin(a) * d);
+    const e = spawnEnemy(world, type, x + Math.cos(a) * d, y + Math.sin(a) * d);
+    if (asleep) e.asleep = true;
   });
 }
 

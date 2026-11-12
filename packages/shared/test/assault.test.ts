@@ -96,4 +96,42 @@ describe('assault missions', () => {
     const sp = siege.players[0]!;
     expect(sp.weapons).not.toContain(siege.content.chapter(sp.chapter).meleeWeapon);
   });
+
+  it('evacuation and relic_recovery drop among already-placed Tyranids', () => {
+    const ev = world('evacuation');
+    expect(getMission('evacuation').assault).toBe(true);
+    expect(ev.enemies.length).toBeGreaterThan(5);
+    expect(ev.director.nextWaveAt).toBe(Number.POSITIVE_INFINITY);
+    const rel = world('relic_recovery');
+    expect(rel.enemies.length).toBeGreaterThan(5);
+    expect(rel.enemies.some((e) => e.asleep)).toBe(true);
+    expect(rel.mission.crates).toBe(false);
+  });
+
+  it('infiltration sleepers stay down until a marine gets close', () => {
+    const w = world('infiltration', 7);
+    const n0 = w.enemies.filter((e) => e.asleep).length;
+    expect(n0).toBeGreaterThan(3);
+    steps(w, Math.ceil(2 / TICK_DT));
+    expect(w.enemies.filter((e) => e.asleep).length).toBe(n0);
+    const e = w.enemies.find((x) => x.asleep)!;
+    const p = w.players[0]!;
+    p.x = e.x;
+    p.y = e.y;
+    steps(w, 3);
+    expect(e.asleep).toBeFalsy();
+  });
+
+  it('fortress_raid freeing cages spawns Guardsmen and opens extract after the last cage', () => {
+    const w = world('fortress_raid');
+    expect(w.allies.length).toBe(0);
+    expect(w.mission.targets).toHaveLength(3);
+    damageObjective(w, w.mission.targets[0]!, w.mission.targets[0]!.hp);
+    steps(w, 2);
+    expect(w.allies.length).toBeGreaterThan(0);
+    expect(w.mission.extractOpen).toBe(false);
+    for (const tg of w.mission.targets) damageObjective(w, tg, tg.hp);
+    steps(w, 2);
+    expect(w.mission.extractOpen).toBe(true);
+  });
 });

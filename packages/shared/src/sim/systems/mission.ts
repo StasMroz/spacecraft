@@ -65,7 +65,7 @@ export function initMission(world: World, missionId: string): MissionState {
   const ex = place(world, marks.extract[0], marks.extract[1], EXTRACT_RADIUS);
   const targets: MissionTarget[] = [];
   if (def.kind === 'destroy' && def.targets && def.targetHp) {
-    const pts = marks.targets ?? [];
+    const pts = def.targetAt ?? marks.targets ?? [];
     for (let i = 0; i < def.targets; i++) {
       const raw = pts[i] ?? [
         world.map.arena.width * (0.2 + 0.3 * (i % 3)),

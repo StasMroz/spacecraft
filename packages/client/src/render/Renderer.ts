@@ -448,6 +448,7 @@ export class Renderer {
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.drawVignette();
+    this.drawSporeHaze(f);
   }
 
   private drawFloor(): void {
@@ -1940,6 +1941,26 @@ export class Renderer {
     }
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
+  }
+
+  private drawSporeHaze(f: RenderFrame): void {
+    const id = f.b.mi?.id;
+    if (!id || !findMission(id)?.fog) return;
+    const { ctx, canvas, camera } = this;
+    const p = this.viewer;
+    const cx = p
+      ? (p.x - camera.x - camera.shakeX) * camera.zoom * this.dpr + canvas.width / 2
+      : canvas.width / 2;
+    const cy = p
+      ? (p.y - camera.y - camera.shakeY) * camera.zoom * this.dpr + canvas.height / 2
+      : canvas.height / 2;
+    const r = Math.hypot(canvas.width, canvas.height);
+    const g = ctx.createRadialGradient(cx, cy, 90 * this.dpr * camera.zoom, cx, cy, r * 0.55);
+    g.addColorStop(0, 'rgba(30, 50, 20, 0)');
+    g.addColorStop(0.4, 'rgba(24, 42, 16, 0.28)');
+    g.addColorStop(1, 'rgba(8, 16, 6, 0.64)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
   private drawVignette(): void {
