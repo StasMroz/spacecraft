@@ -14,6 +14,7 @@ import { config, getServerInfo } from '../config.js';
 import { PeerLink } from './PeerLink.js';
 import { BrowserWsLink } from './WsLink.js';
 import { forceRelay, hasTurn, iceServers } from './ice.js';
+import { submitGameResult } from '../duel/ranking.js';
 import { classifyPeerError, JoinError, joinErrorMessage, type JoinFailure } from './joinErrors.js';
 
 /**
@@ -134,7 +135,7 @@ export async function hostPeerGame(name: string, submit?: SubmitFn): Promise<Gam
   const host = new HostSession({
     roomCode: code,
     mode: 'p2p',
-    submitResult: submit,
+    submitResult: submit ?? submitGameResult,
     log: (...a) => console.info(...a),
     ...(config.mission ? { missionId: config.mission } : {}),
   });

@@ -28,6 +28,8 @@ export async function startServer(config: ServerConfig): Promise<RunningServer> 
   if (config.wsGameHost) {
     gameHost = new WsGameHost(app.server, {
       submitResult: async (r) => {
+        // 1v1 duel ratings are written by the P2P browser host to Firestore, not this hive repo.
+        if (r.mission === 'duel') return { status: 'failed' };
         const res = await repo.add(r);
         return { status: 'server', rank: res.rank };
       },

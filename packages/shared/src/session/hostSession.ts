@@ -185,7 +185,14 @@ export class HostSession {
             code: 'not_owner',
             message: 'Only the room owner can start',
           });
-        else this.start();
+        else if (!this.start()) {
+          if (this.missionId === 'duel' && this.opts.mode !== 'local' && this.members.size < 2)
+            this.send(link, {
+              t: 'error',
+              code: 'bad_message',
+              message: 'Pojedynek rankingowy wymaga dwóch graczy (1v1).',
+            });
+        }
         break;
       case 'toLobby':
         if (member.playerId === this.ownerId && this.phase === 'over') this.toLobby();
@@ -307,6 +314,8 @@ export class HostSession {
 
   start(): boolean {
     if (this.phase === 'playing' || this.members.size === 0 || this.closed) return false;
+    if (this.missionId === 'duel' && this.opts.mode !== 'local' && this.members.size < 2)
+      return false;
     const seed = (this.opts.seed ?? randomSeed)();
     const players = this.lobbyPlayers();
     this.world = createWorld(players, seed, this.content, undefined, this.missionId);

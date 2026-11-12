@@ -699,12 +699,13 @@ export class Hud {
       ctx.font = F(700, 8);
       ctx.fillStyle = HUD.gold;
       const duel = s.snap.mi?.id === 'duel';
-      ctx.fillText(duel ? 'DUEL' : 'SCORE', x + w - 10, y + 16);
+      const training = duel && s.snap.players.length < 2;
+      ctx.fillText(training ? 'TRENING' : duel ? 'DUEL' : 'SCORE', x + w - 10, y + 16);
       ctx.font = F(800, 18, true);
       ctx.fillStyle = '#fff2c8';
       if (duel) {
         const [a, b] = snapDuelScore(s.snap.players);
-        ctx.fillText(`${a}–${b}`, x + w - 10, y + 34);
+        ctx.fillText(training ? '—' : `${a}–${b}`, x + w - 10, y + 34);
       } else ctx.fillText(String(me.sc ?? 0), x + w - 10, y + 34);
     }
     ctx.textAlign = 'left';
@@ -758,14 +759,15 @@ export class Hud {
     ctx.font = F(700, 10);
     ctx.fillStyle = HUD.gold;
     if (s.snap.mi?.id === 'duel') {
+      const training = s.snap.players.length < 2;
       const [a, b] = snapDuelScore(s.snap.players);
-      ctx.fillText('POJEDYNEK', x + 55, 24);
+      ctx.fillText(training ? 'TRENING' : 'POJEDYNEK', x + 55, 24);
       ctx.font = F(800, 26, true);
       ctx.fillStyle = '#fff2c8';
-      ctx.fillText(`${a} – ${b}`, x + 55, 54);
+      ctx.fillText(training ? '— —' : `${a} – ${b}`, x + 55, 54);
       ctx.font = F(600, 9);
       ctx.fillStyle = HUD.dim;
-      ctx.fillText('DO 2 ZABÓJSTW', x + 55, 66);
+      ctx.fillText(training ? 'ESC ŻEBY WYJŚĆ' : 'DO 2 ZABÓJSTW', x + 55, 66);
     } else {
       ctx.fillText('YOUR SCORE', x + 55, 24);
       ctx.font = F(800, 26, true);

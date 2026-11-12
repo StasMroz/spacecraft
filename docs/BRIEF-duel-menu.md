@@ -1,4 +1,4 @@
-# Brief dla spacecraft menu: Pojedynek PvP (`duel`) — v46
+# Brief dla spacecraft menu: Pojedynek PvP (`duel`) — v46 / v48
 
 Gra (silnik i host) już obsługuje pojedynki. Menu **nie musi** ruszać Firebase ani protokołu (`PROTOCOL_VERSION` zostaje 10). Wystarczy podpiąć istniejące API.
 
@@ -10,7 +10,7 @@ Gra (silnik i host) już obsługuje pojedynki. Menu **nie musi** ruszać Firebas
 - **Best of 3**: pierwszy zespół / zawodnik do **2 zabójstw** wygrywa (`duelTo: 2`).
 - Po upadku: odrodzenie w swoim rogu (~1,5 s), pełne HP, krótka nietykalność. Bez reanimacji, bez Tyranidów, bez fal, bez skrzyń.
 - Wynik w HUD (`1 – 0`). Ekran końca: „DUEL COMPLETE” i wynik — ten sam dla całej izby (nie „MISJA WYKONANA / LINIA PADŁA”).
-- **Nie wchodzi do rankingu głównego** (`ranked` nieustawione, `countsForLeaderboard('duel') === false`). Nic nie zmieniać w Firestore.
+- **Nie wchodzi do rankingu głównego** (`ranked` nieustawione, `countsForLeaderboard('duel') === false`). Ranking 1v1 jest osobną tablicą (v48, niżej).
 
 ## API, które menu już ma
 
@@ -29,3 +29,19 @@ Gra (silnik i host) już obsługuje pojedynki. Menu **nie musi** ruszać Firebas
 ## Test ręczny
 
 `?autosolo=1&mission=duel&firestore=0` — pojedynczy marine na arenie (do podglądu). Pełny 1v1: host `?mission=duel`, gość `?join=KOD`.
+
+## v48 — ranking 1v1 (tylko dokładnie dwóch graczy)
+
+```ts
+import { fetchDuelRanking } from '../../packages/client/src/highscores/duelRanking.ts';
+
+const rows = await fetchDuelRanking();
+// { name: string; rating: number; wins: number; losses: number }[]
+// posortowane malejąco po ratingu, limit 50
+```
+
+- Liczy się wyłącznie skończony Pojedynek 1v1 (dokładnie 2 graczy, first to 2). 2v2, 2v1 i solo/trening nie wchodzą. Zapisuje host P2P, raz na mecz (`runId`).
+- Elo: start 1000, K=32. Pola: `name`, `rating`, `wins`, `losses`.
+- Kolekcje Firestore: `duelMatches`, `duelRatings`. Nie ruszają `boards/*/highscores`.
+- P2P z jednym graczem nie wystartuje Pojedynku. Solo (`?autosolo=1&mission=duel`) to trening z wyjściem ESC — mecz sam się nie kończy.
+- `GAME_VERSION` zostaje `0.6.1`, protokół 10.

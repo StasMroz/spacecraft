@@ -1,5 +1,10 @@
 # Changelog
 
+## v48
+
+- Ranking 1v1 Pojedynku: host P2P zapisuje wynik meczu `duel` tylko przy dokładnie dwóch graczach (2v2, 2v1 i solo nie liczą się). Jedna, idempotentna karta meczu w Firestore (`duelMatches/{runId}`: zwycięzca i przegrany po nicku). Elo (start 1000, K=32) w czystej funkcji `@sms/shared`. Tablica `fetchDuelRanking()` dla menu (`packages/client/src/highscores/duelRanking.ts`). Błąd zapisu nie psuje gry. Istniejący ranking Oblężenia bez zmian.
+- Solo Pojedynek (`?autosolo=1&mission=duel`) to trening: mecz sam się nie kończy, HUD „TRENING / ESC ŻEBY WYJŚĆ”, host P2P/dedicated nie startuje duelu przy mniej niż dwóch graczach.
+
 ## v47
 
 - Menu: Pojedynek (kind=duel) w pickerze z tagiem PvP i odprawą „2 graczy = 1v1, 4 = 2v2, pierwszy do N zabójstw, bez rankingu” (N z duelTo). SOLO DEPLOY jest zablokowane — pojedynek wymaga drużyny (HOST SQUAD). `?autosolo=1&mission=duel` nadal odpalą pustą arenę do podglądu.

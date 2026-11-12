@@ -12,7 +12,8 @@ import {
   stepWorld,
   type World,
 } from '../src/sim/index.js';
-import { HostSession } from '../src/session/hostSession.js';
+import { createLocalLinkPair } from '../src/net/link.js';
+import { ClientSession, HostSession } from '../src/session/index.js';
 
 const pair = () => [
   { id: 1, name: 'A', chapter: 0 },
@@ -118,5 +119,58 @@ describe('PvP duel', () => {
     expect(w.mission.outcome).toBe('victory');
     expect(duelScore(w)).toEqual([2, 0]);
     void cornerX;
+  });
+});
+
+describe('duel start and solo training', () => {
+  it('P2P host refuses to start a duel with fewer than two marines; local training may start solo', async () => {
+    const flush = () => new Promise((r) => setTimeout(r, 0));
+    const p2p = new HostSession({ roomCode: 'D1', mode: 'p2p' });
+    p2p.setMission('duel');
+    const [h1, c1] = createLocalLinkPair('a');
+    p2p.addLink(h1);
+    const a = new ClientSession(c1, 'SoloHopeful');
+    const errors: string[] = [];
+    a.on('error', (e) => errors.push(e.message));
+    a.join();
+    await flush();
+    a.requestStart();
+    await flush();
+    expect(p2p.phase).toBe('lobby');
+    expect(p2p.world).toBeNull();
+    expect(errors.some((m) => m.includes('dwóch'))).toBe(true);
+    p2p.close();
+
+    const local = new HostSession({
+      roomCode: 'SOLO',
+      mode: 'local',
+      maxPlayers: 1,
+      missionId: 'duel',
+    });
+    const [h, c] = createLocalLinkPair('s');
+    local.addLink(h);
+    const s = new ClientSession(c, 'Trainee');
+    s.join();
+    await flush();
+    s.requestStart();
+    await flush();
+    expect(local.phase).toBe('playing');
+    expect(local.world?.players).toHaveLength(1);
+    expect(local.world?.mission.kind).toBe('duel');
+    local.close();
+  });
+
+  it('a solo training bout does not end by itself', () => {
+    const w = createWorld(
+      [{ id: 1, name: 'Trainee', chapter: 0 }],
+      2,
+      undefined,
+      undefined,
+      'duel',
+    );
+    expect(w.players).toHaveLength(1);
+    for (let t = 0; t < 90; t++) stepWorld(w, TICK_DT);
+    expect(w.over).toBe(false);
+    expect(w.mission.outcome).toBeUndefined();
   });
 });
