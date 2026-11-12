@@ -54,9 +54,14 @@ describe('40k content data', () => {
       'plasma_gun',
       'meltagun',
       'frag_grenade',
-      'chainsword',
-      'power_axe',
+      'power_sword',
+      'encarmine_blade',
+      'heavenfall_blade',
       'thunder_hammer',
+      'frost_axe',
+      'forge_hammer',
+      'power_glaive',
+      'lightning_claws',
     ]);
     expect(content.weaponOrder[0]!.unlockAtWave).toBe(0);
     expect(content.weapon('plasma_gun').heat).toBeDefined();

@@ -55,12 +55,15 @@ function table(head: string[], rows: string[][], cls = ''): string {
     .join('')}</tbody></table></div>`;
 }
 
-const unlockLabel = (w: WeaponDef): string =>
-  w.unlockAtWave === 0
-    ? 'od startu'
-    : w.unlockAtWave === null
-      ? 'tylko skrzynie'
-      : `fala ${w.unlockAtWave}`;
+const unlockLabel = (w: WeaponDef): string => {
+  const wave =
+    w.unlockAtWave === 0
+      ? 'od startu'
+      : w.unlockAtWave === null
+        ? 'tylko skrzynie'
+        : `fala ${w.unlockAtWave}`;
+  return w.chapter ? `${wave} · ${w.chapter.replace(/_/g, ' ')}` : wave;
+};
 
 const SIZE_LABEL: Record<EnemySize, string> = {
   large: 'duże',
@@ -119,6 +122,10 @@ export function weaponSpecials(c: ContentRegistry): string {
   const items = c.weaponOrder.map((w) => {
     const p = w.projectile;
     const s: string[] = [`odrzut ${p.knockback}`, `prędkość pocisku ${p.speed} px/s`];
+    if (w.melee)
+      s.push(
+        `wręcz: bez amunicji, zamach ${w.meleeFx?.motion ?? 'slash'} (${n(w.meleeFx?.duration ?? w.fireInterval * 0.7, 2)} s)`,
+      );
     if (p.drag) s.push(`hamowanie pocisku ${pct(p.drag)}/s`);
     if (p.explosion)
       s.push(

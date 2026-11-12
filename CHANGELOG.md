@@ -1,5 +1,11 @@
 # Changelog
 
+## v32
+
+- Każdy zakon ma jedną broń wręcz (klawisz 7 / kółko ARMS, od fali 2) zamiast trzech wspólnych (Chainsword / Power Axe / Thunder Hammer na 7–9). Mapowanie: Ultramarines — Power Sword; Blood Angels — Encarmine Blade; Dark Angels — Heavenfall Blade; Imperial Fists — Thunder Hammer; Space Wolves — Frost Axe; Salamanders — Forge Hammer; White Scars — Power Glaive; Raven Guard — Lightning Claws. Profile różnią się tempem, obrażeniami, łukiem i odrzutem, w okolicy dawnych trzech. Skrzynia z cudzą bronią wręcz zamienia się w twoją.
+- Prawdziwa animacja zamachu w rendererze: widoczny łuk broni przed marine, krótka smuga w kolorze pola mocy / mrozu / iskier, zsynchronizowana z trafieniem i łukiem obrażeń (czas zamachu z symulacji, działa też u klientów MP). Młoty dodają iskry i krótki wstrząs w momencie ciosu. Pocisk `slash` zostaje tylko jako trafienie, nie jako jedyny efekt wizualny.
+- Gwardziści sojuszniczy bez ataku wręcz (zostają przy lasgunie). Zasady, kompendium i testy zachowania zaktualizowane.
+
 ## v31
 
 - Menu: wybór misji nie renderuje już radia jak pola tekstowego. Globalna reguła `input` była stosowana do radio; teraz radio jest ukryte wizualnie, a cały wiersz działa jak chip zakonu — nazwa z lewej, zrzuty i limit z prawej, w szerokości karty.

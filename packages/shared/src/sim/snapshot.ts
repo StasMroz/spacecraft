@@ -45,6 +45,8 @@ export interface PlayerSnap {
   wd?: number;
   /** Defensive stance (guard) active. Optional so older peers ignore it. */
   gd?: 1;
+  /** Melee swing remaining in seconds (omitted when idle). JSON fallback while set. */
+  sw?: number;
 }
 
 /** Spawn point state in Snapshot.sp: idle, telegraphing (about to emerge), active (emerging). */
@@ -250,6 +252,7 @@ export function buildSnapshot(world: World, bleedOutTime: number): Snapshot {
       ...heatFields(world, p),
       ...sprintFields(p),
       ...recoilFields(p),
+      ...(p.swing > 0 ? { sw: round(p.swing, 2) } : {}),
     })),
     enemies: world.enemies.map((e) => [
       e.id,

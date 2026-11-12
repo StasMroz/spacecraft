@@ -44,12 +44,18 @@ function quietWorld(seed = 7): World {
 }
 
 describe('v0.4 arsenal', () => {
-  it('has no power sword; shared slots stay unique and chapter specials share slot 3', () => {
-    expect(content.weaponOrder.map((w) => w.id)).not.toContain('power_sword');
+  it('shared slots stay unique; chapter specials share slot 3 and chapter melee share slot 7', () => {
     const shared = content.weaponOrder.filter((w) => !w.chapter).map((w) => w.slot);
-    expect(shared).toEqual([1, 2, 4, 5, 6, 7, 8, 9]);
-    expect(content.weaponOrder.filter((w) => w.chapter).every((w) => w.slot === 3)).toBe(true);
-    expect(() => content.weapon('power_sword')).toThrow();
+    expect(shared).toEqual([1, 2, 4, 5, 6]);
+    const tagged = content.weaponOrder.filter((w) => w.chapter);
+    expect(
+      tagged
+        .filter((w) => w.slot === 3)
+        .map((w) => w.chapter)
+        .sort(),
+    ).toEqual(content.chapters.map((c) => c.id).sort());
+    expect(tagged.filter((w) => w.melee).every((w) => w.slot === 7)).toBe(true);
+    expect(content.weapon('power_sword').chapter).toBe('ultramarines');
   });
 
   it('every enemy is worth the configured points', () => {

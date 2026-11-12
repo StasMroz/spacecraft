@@ -175,6 +175,27 @@ export interface WeaponDef {
   chapter?: string;
   /** Melee swing: no ammo, fireInterval is the swing recovery. */
   melee?: boolean;
+  /** Visible swing style (chapter melee). Ignored on ranged weapons. */
+  meleeFx?: MeleeFx;
+}
+
+/** How a melee weapon is swung in the renderer (pose is derived from remaining swing time). */
+export type MeleeMotion = 'slash' | 'chop' | 'smash' | 'sweep' | 'rake';
+
+export interface MeleeFx {
+  motion: MeleeMotion;
+  /** Primary smear / power-field colour. */
+  trail: string;
+  /** Secondary accent (frost, blood, sparks). */
+  trail2?: string;
+  /** Visible swing length in seconds (recovery may be longer). */
+  duration: number;
+  /** 0..1 along the swing when the blade crosses the damage arc. */
+  impactAt?: number;
+  /** Visual blade reach from the marine centre (px). */
+  reach?: number;
+  /** Camera shake added at impact (thunder / forge hammers). */
+  shake?: number;
 }
 
 export type EnemySize = 'tiny' | 'small' | 'medium' | 'large';
@@ -454,4 +475,6 @@ export interface ChapterDef {
   motto: string;
   /** Signature special (replaces the shared flamer at wave 4). */
   specialWeapon: string;
+  /** Signature melee (shared slot 7, unlocks at wave 2). */
+  meleeWeapon: string;
 }

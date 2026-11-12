@@ -30,9 +30,11 @@ describe('weapon unlocks by wave (v0.6.0 hotfix)', () => {
     expect(rows).toContainEqual(['bolt_rifle', 0]);
     expect(rows).toContainEqual(['heavy_bolter', 3]);
     expect(rows).toContainEqual(['flamer', 4]);
-    expect(rows).toContainEqual(['chainsword', 2]);
-    expect(rows).toContainEqual(['power_axe', 5]);
-    expect(rows).toContainEqual(['thunder_hammer', 7]);
+    expect(rows).toContainEqual(['frost_axe', 2]);
+    expect(rows).toContainEqual(['power_sword', 2]);
+    expect(rows).toContainEqual(['thunder_hammer', 2]);
+    expect(rows).not.toContainEqual(['chainsword', 2]);
+    expect(rows).not.toContainEqual(['power_axe', 5]);
     expect(defaultContent.weapon('flamer').chapter).toBe('salamanders');
   });
 
@@ -79,8 +81,8 @@ describe('weapon unlocks by wave (v0.6.0 hotfix)', () => {
       return log;
     };
     const a = play();
-    // 2 marines × (chainsword, HB, own special, plasma, axe, melta, frag, hammer)
-    expect(a).toHaveLength(2 * 8);
+    // 2 marines × (own melee, HB, own special, plasma, melta, frag)
+    expect(a).toHaveLength(2 * 6);
     expect(play()).toEqual(a);
   });
 });

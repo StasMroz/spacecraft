@@ -127,6 +127,7 @@ export function createPlayer(
     current: weapons[0],
     ammo,
     fireCooldown: 0,
+    swing: 0,
     reloadTimer: 0,
     triggerWasDown: false,
     heat: {},

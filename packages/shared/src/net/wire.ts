@@ -410,7 +410,8 @@ const playerFits = (p: PlayerSnap) =>
     (exact(p.rc, RECOIL_WIRE.scale) &&
       Math.abs(p.rc * RECOIL_WIRE.scale) < RECOIL_WIRE.bias - 1)) &&
   [p.hp, p.mhp, p.c, p.seq, p.k, p.sc ?? 0, p.ammo ?? 0].every((v) => exact(v, 1)) &&
-  p.ws.every((w) => !w.includes(','));
+  p.ws.every((w) => !w.includes(',')) &&
+  p.sw === undefined;
 
 // ---- events: binary for the high-volume ones, JSON for the rest ----
 const EV = { json: 0, shot: 1, hit: 2, die: 3 } as const;

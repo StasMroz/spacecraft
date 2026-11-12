@@ -18,9 +18,14 @@ export const WEAPON_TINT: Record<string, string> = {
   plasma_pistol: '#8ec8ff',
   bolt_carbine: '#e84848',
   stalker_bolter: '#5a5a68',
-  chainsword: '#c8c0b0',
-  power_axe: '#6a9cff',
+  power_sword: '#6a9cff',
+  encarmine_blade: '#ff2a3a',
+  heavenfall_blade: '#d9cda4',
   thunder_hammer: '#c9a227',
+  frost_axe: '#9fe8ff',
+  forge_hammer: '#ff6a1a',
+  power_glaive: '#e8d24a',
+  lightning_claws: '#b8e0ff',
 };
 
 const BRASS = '#b8913a';
@@ -123,6 +128,138 @@ const ICONS: Record<string, (ctx: Ctx, c: string, d: string) => void> = {
     ctx.lineWidth = 1.5;
     ctx.stroke();
   },
+  power_sword: (ctx, c, d) => {
+    roundRect(ctx, 10, 12, 16, 5, 1, '#5a5048', d, 1);
+    poly(
+      ctx,
+      [
+        [24, 11],
+        [60, 13],
+        [60, 16],
+        [24, 18],
+      ],
+      c,
+      d,
+      1.2,
+    );
+    line(ctx, 28, 13.5, 56, 14.5, '#9ec4ff', 1.4);
+    roundRect(ctx, 20, 8, 6, 13, 1, BRASS, d, 1);
+  },
+  encarmine_blade: (ctx, c, d) => {
+    roundRect(ctx, 8, 12, 14, 5, 1, '#3a201c', d, 1);
+    poly(
+      ctx,
+      [
+        [22, 10],
+        [62, 12],
+        [58, 15],
+        [22, 19],
+      ],
+      c,
+      d,
+      1.2,
+    );
+    line(ctx, 26, 13, 54, 14, '#ff6a6a', 1.5);
+    circle(ctx, 18, 14.5, 3, '#8c1c18', d, 0.8);
+  },
+  heavenfall_blade: (ctx, c, d) => {
+    roundRect(ctx, 6, 12, 16, 5, 1, '#2a2a24', d, 1);
+    poly(
+      ctx,
+      [
+        [20, 11],
+        [62, 13],
+        [62, 16],
+        [20, 18],
+      ],
+      c,
+      d,
+      1.2,
+    );
+    line(ctx, 24, 13.5, 58, 14.5, '#e8dfc0', 1.3);
+    poly(
+      ctx,
+      [
+        [16, 8],
+        [22, 12],
+        [16, 21],
+        [12, 16],
+      ],
+      '#1d4a2c',
+      d,
+      1,
+    );
+  },
+  thunder_hammer: (ctx, c, d) => {
+    roundRect(ctx, 8, 13, 30, 4, 1, '#4a4038', d, 1);
+    roundRect(ctx, 36, 6, 24, 18, 3, c, d, 1.4);
+    roundRect(ctx, 40, 9, 16, 12, 2, '#e8d48a', d, 1);
+    line(ctx, 48, 9, 48, 21, d, 1);
+  },
+  frost_axe: (ctx, c, d) => {
+    roundRect(ctx, 8, 13, 28, 4, 1, '#3a4450', d, 1);
+    poly(
+      ctx,
+      [
+        [32, 5],
+        [60, 8],
+        [56, 15],
+        [60, 22],
+        [32, 24],
+        [36, 15],
+      ],
+      c,
+      d,
+      1.3,
+    );
+    line(ctx, 40, 9, 52, 15, '#e8f7ff', 1.5);
+    line(ctx, 40, 21, 52, 15, '#e8f7ff', 1.5);
+  },
+  forge_hammer: (ctx, c, d) => {
+    roundRect(ctx, 8, 13, 28, 4, 1, '#3a2a20', d, 1);
+    roundRect(ctx, 34, 6, 26, 18, 3, c, d, 1.4);
+    roundRect(ctx, 38, 9, 18, 12, 2, '#ff9a3a', d, 1);
+    circle(ctx, 47, 15, 3, '#ffe0a0');
+  },
+  power_glaive: (ctx, c, d) => {
+    roundRect(ctx, 2, 13, 36, 3.5, 1, '#4a4038', d, 1);
+    poly(
+      ctx,
+      [
+        [36, 9],
+        [62, 12],
+        [58, 15],
+        [62, 18],
+        [36, 20],
+        [40, 15],
+      ],
+      c,
+      d,
+      1.2,
+    );
+    line(ctx, 42, 13, 56, 15, '#fff0a0', 1.3);
+    roundRect(ctx, 14, 11, 5, 8, 1, '#b0201c', d, 0.8);
+  },
+  lightning_claws: (ctx, c, d) => {
+    for (const x of [10, 34]) {
+      poly(
+        ctx,
+        [
+          [x, 8],
+          [x + 8, 10],
+          [x + 22, 6],
+          [x + 20, 12],
+          [x + 22, 18],
+          [x + 8, 16],
+          [x, 20],
+        ],
+        c,
+        d,
+        1.1,
+      );
+      line(ctx, x + 8, 12, x + 18, 11, '#e8f4ff', 1.2);
+    }
+  },
   generic: (ctx, c, d) => {
     roundRect(ctx, 6, 9, 46, 10, 2, c, d, 1.5);
     roundRect(ctx, 20, 18, 8, 8, 1, c, d, 1.2);
@@ -216,6 +353,127 @@ const HELD: Record<string, (ctx: Ctx) => void> = {
     roundRect(ctx, RX + 10, RY - 2.8, 5, 3.6, 1, GUN_L, GUN_D, 0.8);
     circle(ctx, LX + 3, LY - 1, 3.4, '#4f5a2e', '#1a1f0c', 1);
     line(ctx, LX + 1, LY - 1, LX + 5, LY - 1, '#1a1f0c', 0.7);
+  },
+  power_sword: (ctx) => {
+    roundRect(ctx, RX - 2, 2, 8, 4, 1, '#5a5048', GUN_D, 0.8);
+    poly(
+      ctx,
+      [
+        [RX + 5, 2.2],
+        [39, 2.6],
+        [40, 4],
+        [39, 5.4],
+        [RX + 5, 5.8],
+      ],
+      '#8aa8d8',
+      GUN_D,
+      1,
+    );
+    line(ctx, RX + 8, 4, 38, 4, '#cfe4ff', 1.2);
+    glow(ctx, 39, 4, 3, '#6a9cff', 0.7);
+  },
+  encarmine_blade: (ctx) => {
+    roundRect(ctx, RX - 2, 2, 7, 4, 1, '#3a201c', GUN_D, 0.8);
+    poly(
+      ctx,
+      [
+        [RX + 4, 2],
+        [36, 2.4],
+        [38, 4],
+        [36, 5.8],
+        [RX + 4, 6],
+      ],
+      '#8c1c18',
+      GUN_D,
+      1,
+    );
+    line(ctx, RX + 8, 4, 35, 4, '#ff6a6a', 1.2);
+    glow(ctx, 37, 4, 3, '#ff2a3a', 0.8);
+  },
+  heavenfall_blade: (ctx) => {
+    roundRect(ctx, RX - 2, 2, 8, 4, 1, '#2a2a24', GUN_D, 0.8);
+    poly(
+      ctx,
+      [
+        [RX + 5, 2.2],
+        [43, 2.6],
+        [44, 4],
+        [43, 5.4],
+        [RX + 5, 5.8],
+      ],
+      '#d9cda4',
+      GUN_D,
+      1,
+    );
+    line(ctx, RX + 8, 4, 42, 4, '#1d4a2c', 1);
+    glow(ctx, 43, 4, 3, '#e8dfc0', 0.6);
+  },
+  thunder_hammer: (ctx) => {
+    roundRect(ctx, RX - 1, 2.4, 24, 3.2, 1, '#4a4038', GUN_D, 0.8);
+    roundRect(ctx, 30, -2, 12, 12, 2, '#c9a227', GUN_D, 1.2);
+    roundRect(ctx, 32, 0, 8, 8, 1, '#e8d48a', GUN_D, 0.8);
+    glow(ctx, 40, 4, 4, '#fff4a0', 0.6);
+  },
+  frost_axe: (ctx) => {
+    roundRect(ctx, RX - 1, 2.4, 22, 3.2, 1, '#3a4450', GUN_D, 0.8);
+    poly(
+      ctx,
+      [
+        [30, -3],
+        [42, 4],
+        [30, 11],
+        [33, 4],
+      ],
+      '#8ec8e8',
+      GUN_D,
+      1,
+    );
+    line(ctx, 32, 1, 40, 4, '#e8f7ff', 1.2);
+    glow(ctx, 41, 4, 4, '#9fe8ff', 0.8);
+  },
+  forge_hammer: (ctx) => {
+    roundRect(ctx, RX - 1, 2.4, 24, 3.2, 1, '#3a2a20', GUN_D, 0.8);
+    roundRect(ctx, 30, -2, 12, 12, 2, '#8a3a18', GUN_D, 1.2);
+    roundRect(ctx, 32, 0, 8, 8, 1, '#ff6a1a', GUN_D, 0.8);
+    glow(ctx, 40, 4, 4.5, '#ff9a3a', 0.85);
+  },
+  power_glaive: (ctx) => {
+    roundRect(ctx, RX - 4, 2.6, 36, 2.8, 1, '#4a4038', GUN_D, 0.8);
+    poly(
+      ctx,
+      [
+        [32, -1],
+        [50, 2.2],
+        [50, 5.8],
+        [32, 9],
+        [35, 4],
+      ],
+      '#e8d24a',
+      GUN_D,
+      1,
+    );
+    line(ctx, 36, 4, 47, 4, '#fff0a0', 1.2);
+    glow(ctx, 49, 4, 3.5, '#e8d24a', 0.7);
+  },
+  lightning_claws: (ctx) => {
+    const claw = (x0: number, y0: number, dir: number, tipX: number) => {
+      for (const k of [-2.2, 0, 2.2]) {
+        poly(
+          ctx,
+          [
+            [x0, y0 + k],
+            [tipX, y0 + k * 1.1 + dir],
+            [tipX - 2, y0 + k * 1.1],
+          ],
+          '#b8e0ff',
+          GUN_D,
+          0.7,
+        );
+      }
+      glow(ctx, tipX - 1, y0, 3, '#e8f4ff', 0.7);
+    };
+    claw(RX + 1, 4, 0, 30);
+    claw(LX - 2, LY, 0, LX + 10);
   },
   generic: (ctx) => roundRect(ctx, RX, 1, 24, 6, 2, GUN, GUN_D, 1.2),
 };

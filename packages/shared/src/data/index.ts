@@ -13,6 +13,7 @@ export * from './profile.js';
 export * from './armour.js';
 export * from './sprint.js';
 export * from './guard.js';
+export * from './melee.js';
 export * from './muzzle.js';
 export * from './recoil.js';
 export * from './crash.js';
@@ -134,7 +135,7 @@ export class ContentRegistry {
     return this.weaponOrder.filter((w) => w.unlockAtWave === 0).map((w) => w.id);
   }
 
-  /** Weapons this chapter can use: shared arsenal plus its signature special. */
+  /** Weapons this chapter can use: shared arsenal plus its signature special and melee. */
   weaponsForChapter(chapterId: string): WeaponDef[] {
     return this.weaponOrder.filter((w) => !w.chapter || w.chapter === chapterId);
   }
@@ -209,6 +210,18 @@ export class ContentRegistry {
         errors.push(`chapter ${c.id} specialWeapon '${c.specialWeapon}' is unknown`);
       else if (this.weapons.get(c.specialWeapon)!.chapter !== c.id)
         errors.push(`chapter ${c.id} specialWeapon must set chapter: '${c.id}'`);
+      if (!c.meleeWeapon) errors.push(`chapter ${c.id} needs a meleeWeapon`);
+      else if (!this.weapons.has(c.meleeWeapon))
+        errors.push(`chapter ${c.id} meleeWeapon '${c.meleeWeapon}' is unknown`);
+      else if (this.weapons.get(c.meleeWeapon)!.chapter !== c.id)
+        errors.push(`chapter ${c.id} meleeWeapon must set chapter: '${c.id}'`);
+      else if (!this.weapons.get(c.meleeWeapon)!.melee)
+        errors.push(`chapter ${c.id} meleeWeapon must set melee: true`);
+      const melees = this.weaponsForChapter(c.id).filter((w) => w.melee);
+      if (melees.length !== 1)
+        errors.push(
+          `chapter ${c.id} must have exactly one melee weapon (has ${melees.map((w) => w.id).join(', ') || 'none'})`,
+        );
     }
     for (const e of this.enemies.values()) {
       if (e.spawner && !this.enemies.has(e.spawner.enemy))

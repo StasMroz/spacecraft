@@ -4,11 +4,13 @@ import type { World } from '../types.js';
 import type { Player } from '../types.js';
 import { grantWeapon } from './weapons.js';
 
-/** A crate with another chapter's special becomes this marine's signature weapon. */
+/** A crate with another chapter's special or melee becomes this marine's own counterpart. */
 export function resolvePickupWeapon(world: World, player: Player, weaponId: string): string {
   const def = world.content.weapon(weaponId);
   if (!def.chapter) return weaponId;
-  return world.content.chapter(player.chapter).specialWeapon;
+  const ch = world.content.chapter(player.chapter);
+  if (def.chapter === ch.id) return weaponId;
+  return def.melee ? ch.meleeWeapon : ch.specialWeapon;
 }
 
 export function updatePickups(world: World, dt: number): void {

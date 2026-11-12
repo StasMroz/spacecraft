@@ -23,6 +23,7 @@ import {
 import { lerp, lerpAngle } from '../game/interpolation.js';
 import { drawBreach } from './breaches.js';
 import { chapterUiColor } from './colors.js';
+import { drawMeleeTrail, meleeImpactBurst, meleeTrailMotes, swingPose } from './melee.js';
 import type { Assets } from './assets.js';
 import { Camera } from './camera.js';
 import { Particles } from './particles.js';
@@ -125,6 +126,8 @@ export class Renderer {
   readonly landings: Landing[] = [];
   private corpses: Corpse[] = [];
   private recoil = new Map<number, number>();
+  /** Last swing progress per marine, to fire impact FX once when the blade crosses the arc. */
+  private swingProg = new Map<number, number>();
   /** Held-weapon transform as last drawn, per player (muzzle FX + shot origins use it). */
   private heldPose = new Map<
     number,
@@ -1542,8 +1545,28 @@ export class Renderer {
           const e = pose * pose * (3 - 2 * pose);
           const guardTuck = guarding ? 1 : 0;
           const back = rec * e + 6 * (1 - e) + 10 * guardTuck;
-          const wRot = (1 - e) * 0.7 + 0.7 * guardTuck;
+          let wRot = (1 - e) * 0.7 + 0.7 * guardTuck;
           const wScale = (0.9 + 0.1 * e) * (1 - 0.05 * guardTuck);
+          const def = this.content.weapons.get(p.w);
+          const prevP = f.a.players.find((q) => q.id === p.id);
+          const swingRem =
+            (p.sw ?? 0) > 0 || (prevP?.sw ?? 0) > 0 ? lerp(prevP?.sw ?? 0, p.sw ?? 0, f.t) : 0;
+          const poseSwing = def ? swingPose(def, swingRem) : null;
+          if (poseSwing && weaponDrawn(pose)) {
+            wRot = poseSwing.angle;
+            drawMeleeTrail(ctx, x, y, a, def!, poseSwing.u);
+            meleeTrailMotes(this.particles, x, y, a, def!, poseSwing.u, f.dt);
+            const impactAt = def!.meleeFx?.impactAt ?? 0.42;
+            const prevU = this.swingProg.get(p.id) ?? 0;
+            if (prevU < impactAt && poseSwing.u >= impactAt) {
+              meleeImpactBurst(this.particles, x, y, a, def!, poseSwing.u);
+              const shake = def!.meleeFx?.shake ?? 0;
+              if (shake > 0) this.camera.addShake(shake);
+            }
+            this.swingProg.set(p.id, poseSwing.u);
+          } else {
+            this.swingProg.delete(p.id);
+          }
           this.heldPose.set(p.id, {
             x,
             y,
@@ -1737,6 +1760,8 @@ export class Renderer {
       const simX = pa ? lerp(pa[2], bx, f.t) : bx;
       const simY = pa ? lerp(pa[3], by, f.t) : by;
       const kind = this.content.projectileKinds[kindIdx] ?? '';
+      // Melee hits are a slash projectile; the visible arc is the weapon swing, not this blob.
+      if (kind === 'slash' || kind.startsWith('slash')) continue;
       // Player shots: drawn leaving the visual barrel tip, blending into the sim path.
       let m = this.projMuzzle.get(id);
       if (m === undefined) {

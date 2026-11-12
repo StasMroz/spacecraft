@@ -34,6 +34,14 @@ export function rulesHtml(c: ContentRegistry): string {
       return `<li><b>${esc(ch.name)}</b> — ${esc(w.name)} (fala ${w.unlockAtWave})</li>`;
     })
     .join('');
+  const chapterMelee = c.chapters
+    .map((ch) => {
+      const w = c.weapon(ch.meleeWeapon);
+      const dmg = String(w.projectile.damage).replace('.', ',');
+      const iv = String(Number(w.fireInterval.toFixed(2))).replace('.', ',');
+      return `<li><b>${esc(ch.name)}</b> — ${esc(w.name)} (${dmg} obr., co ${iv} s)</li>`;
+    })
+    .join('');
   const bursts = ws
     .filter((w) => w.projectile.endBurst)
     .map((w) => {
@@ -113,7 +121,7 @@ ${MISSIONS.map((m) => {
       <li><b>WASD / strzałki</b> — ruch</li>
       <li><b>Mysz</b> — celowanie</li>
       <li><b>Lewy przycisk / Spacja</b> — strzał (przytrzymaj przy broni automatycznej)</li>
-      <li><b>1–9</b>, <b>Q / E</b>, <b>kółko myszy</b> — zmiana broni (7–9 to broń wręcz)</li>
+      <li><b>1–9</b>, <b>Q / E</b>, <b>kółko myszy</b> — zmiana broni (klawisz 7 to broń wręcz zakonu)</li>
       <li><b>Shift</b> (przytrzymaj) — sprint</li>
       <li><b>Prawy przycisk myszy</b> (przytrzymaj) — postawa obronna (tylko stojąc w miejscu)</li>
       <li><b>R</b> — przeładowanie</li>
@@ -176,7 +184,7 @@ ${MISSIONS.map((m) => {
 <section id="bron"><h2>Broń</h2>
   <p>Na start masz: <b>${start}</b>. Kolejne bronie odblokowują się wszystkim (żywym i powalonym) na początku kolejnych fal:</p><ul>${unlocks}</ul>
   <p>Na starcie fali 4.  każdy zakon dostaje <b>własną broń specjalną</b> zamiast wspólnego flamera (klawisz 3). Skrzynia z cudzą specjalnością staje się twoją. Mapowanie:</p><ul>${chapterSpecials}</ul>
-  <p><b>Wręcz</b> wybierasz jak inną broń (klawisze 7–9 albo kółko ARMS): <b>Chainsword</b> (szybki, krótki łuk), <b>Power Axe</b> (wolniejszy, szerszy, twardszy cios), <b>Thunder Hammer</b> (najwolniejszy, najszerszy, miażdżący odrzut). Broń wręcz nie zużywa amunicji.</p>
+  <p>Na starcie fali 2. każdy zakon dostaje <b>jedną broń wręcz</b> (klawisz 7 albo kółko ARMS) zamiast wspólnego wyboru trzech. Skrzynia z cudzą bronią wręcz staje się twoją. Zamach jest widoczny (łuk ostrza i smuga w kolorze broni), zsynchronizowany z trafieniem. Broń wręcz nie zużywa amunicji. Gwardziści sojuszniczy strzelają lasgunem — nie mają ataku wręcz. Mapowanie:</p><ul>${chapterMelee}</ul>
   <p>Dodatkowo na większości misji spadają <b>skrzynie z bronią</b> (co ${sec(d.crates.intervalMin)}–${sec(d.crates.intervalMax)}, średnio ${num(soloDrops.crates)} na falę w pojedynkę), a z zabitych Tyranidów — <b>apteczki</b> (do średnio ${num(soloDrops.medkits)} na falę w pojedynkę; więcej w większym oddziale, boss zawsze zostawia apteczkę). Każda broń ma rolę: ANTI-HORDE na roje drobnicy, ANTI-ELITE/ANTI-TANK na duże bestie.</p>
   <ul>
     <li><b>Strzelanie spowalnia</b>: ciężka broń spowalnia zawsze, a przy wciśniętym spuście jeszcze bardziej.</li>

@@ -70,6 +70,8 @@ export interface Player {
   current: string;
   ammo: Record<string, number>;
   fireCooldown: number;
+  /** Visible melee swing remaining (seconds). 0 = idle. Synced on the snapshot as `sw`. */
+  swing: number;
   /** > 0 while reloading (seconds remaining). */
   reloadTimer: number;
   /** For semi-automatic weapons. */

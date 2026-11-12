@@ -34,9 +34,14 @@ export const WEAPON_MUZZLE: Readonly<Record<string, MuzzleDef>> = {
   plasma_pistol: { forward: 35, lateral: 4, breech: 16 },
   bolt_carbine: { forward: 35, lateral: 4, breech: 16 },
   stalker_bolter: { forward: 35, lateral: 4, breech: 16 },
-  chainsword: { forward: 35, lateral: 4, breech: 16 },
-  power_axe: { forward: 35, lateral: 4, breech: 16 },
-  thunder_hammer: { forward: 35, lateral: 4, breech: 16 },
+  power_sword: { forward: 40, lateral: 4, breech: 16 },
+  encarmine_blade: { forward: 38, lateral: 4, breech: 16 },
+  heavenfall_blade: { forward: 44, lateral: 4, breech: 16 },
+  thunder_hammer: { forward: 42, lateral: 4, breech: 18 },
+  frost_axe: { forward: 42, lateral: 4, breech: 16 },
+  forge_hammer: { forward: 42, lateral: 4, breech: 18 },
+  power_glaive: { forward: 50, lateral: 4, breech: 22 },
+  lightning_claws: { forward: 30, lateral: 4, breech: 10 },
 };
 
 /** Any future weapon without an entry (matches the generic held sprite: tip at x = 35). */

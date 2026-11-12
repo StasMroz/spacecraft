@@ -1,5 +1,6 @@
 import {
   applyRecoilKick,
+  meleeSwingDuration,
   recoilMoveMul,
   SIM_MUZZLE_FORWARD,
   stepRecoil,
@@ -51,6 +52,7 @@ export function updatePlayerWeapon(world: World, p: Player, dt: number): void {
   if (p.state !== 'alive') {
     p.triggerWasDown = false;
     p.recoil = 0;
+    p.swing = 0;
     return;
   }
   const input = p.input;
@@ -69,6 +71,7 @@ export function updatePlayerWeapon(world: World, p: Player, dt: number): void {
       p.venting = false;
       p.fireCooldown = Math.max(p.fireCooldown, 0.15);
       world.events.push({ e: 'switch', p: p.id, w: target });
+      p.swing = 0;
     }
   }
 
@@ -80,6 +83,7 @@ export function updatePlayerWeapon(world: World, p: Player, dt: number): void {
   // ticks; reset to 0 when idle (no stored burst).
   const held = p.triggerWasDown && effectiveFire(p.input.fire, p.sprint) && def.automatic;
   p.fireCooldown = Math.max(held ? -dt : 0, p.fireCooldown - dt);
+  if (p.swing > 0) p.swing = Math.max(0, p.swing - dt);
   coolWeapons(world, p, dt);
 
   if (def.melee) {
@@ -175,6 +179,7 @@ export function isSupercharged(p: Player, def: WeaponDef): boolean {
 }
 
 export function fireWeapon(world: World, p: Player, def: WeaponDef, braced = false): void {
+  if (def.melee) p.swing = meleeSwingDuration(def);
   const spec = def.projectile;
   const sc = isSupercharged(p, def);
   const dmgMul = sc ? def.heat!.superchargeDamageMul : 1;
