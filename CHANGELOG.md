@@ -1,5 +1,9 @@
 # Changelog
 
+## v44
+
+- Misje ofensywne gęstsze i bardziej zróżnicowane: więcej patroli, w składzie Hive Guard, Zoanthrope, Lictor i Tyrant Guard. **Zabójstwo tyrana** ma teraz Hive Tyranta jako bossa (zamiast wzmocnionego Carnifexa), z gwardią Tyrant Guard. Przy gniazdach w **Spaleniu gniazd** stoi Hive Guard. Opisy i kompendium/rules zaktualizowane.
+
 ## v43
 
 - Nowi Tyranidzi: **Hive Guard** (ciężki strzelec, Impaler Cannon przebija niskie osłony), **Hive Tyrant** (boss: wręcz, szarża, pocisk psychiczny, aura synapsy i Bio-stimulus dla roju), **Lictor** (ukryty zabójca, podkop), **Zoanthrope** (psy-strzał nad barykadami, mniejsza synapsa), **Tyrant Guard** (żywa tarcza, ciężki pancerz). Własne sprite'y w stylu v27, wpisy w kompendium, pociski `impaler` / `warpblast`. Wchodzą do późniejszych fal Oblężenia (Tyrant zostaje bossem misji — nie losową falą).

@@ -99,8 +99,8 @@ export const MISSIONS: readonly MissionDef[] = [
     id: 'hold_the_line',
     name: 'Zabójstwo tyrana',
     description:
-      'Lądujecie na pokładzie, który już roi się od Tyranidów. Zapolcie na wzmocnionego Carnifexa — strażnika synapsy — chronionego przez gwardię, potem wezwijcie Thunderhawka. Bez fal z krawędzi: wróg już stoi na pozycji.',
-    objective: 'Zabij strażnika synapsy i ewakuuj się.',
+      'Lądujecie na pokładzie, który już roi się od Tyranidów. Zapolcie na Hive Tyranta — władcę roju — otoczonego Tyrant Guard i synapsą, potem wezwijcie Thunderhawka. Bez fal z krawędzi: wróg już stoi na pozycji.',
+    objective: 'Zabij Hive Tyranta i ewakuuj się.',
     kind: 'hold',
     map: 'wave',
     timeLimit: 190,
@@ -111,13 +111,16 @@ export const MISSIONS: readonly MissionDef[] = [
     crash: false,
     assault: true,
     start: [480, 1100],
-    boss: 'carnifex',
-    bossHpMul: 1.7,
+    boss: 'hive_tyrant',
+    bossHpMul: 1.2,
     bossAt: [2500, 400],
     patrols: [
       [1100, 900, 1],
       [1700, 600, 0],
       [2000, 1200, 1],
+      [2300, 550, 6],
+      [800, 700, 3],
+      [1500, 1400, 5],
     ],
   },
   {
@@ -141,6 +144,8 @@ export const MISSIONS: readonly MissionDef[] = [
       [1400, 1200, 0],
       [2000, 900, 1],
       [2400, 1300, 0],
+      [1600, 600, 3],
+      [2200, 1500, 5],
     ],
   },
   {
@@ -161,10 +166,12 @@ export const MISSIONS: readonly MissionDef[] = [
     targetHp: 400,
     assault: true,
     start: [600, 580],
-    nests: { interval: 5, maxAlive: 5, types: ['termagant', 'hormagaunt'] },
+    nests: { interval: 5, maxAlive: 6, types: ['termagant', 'hormagaunt'] },
     patrols: [
       [1200, 800, 1],
       [1800, 1100, 0],
+      [900, 1400, 3],
+      [2000, 600, 5],
     ],
   },
   {
@@ -190,6 +197,8 @@ export const MISSIONS: readonly MissionDef[] = [
       [1200, 900, 2],
       [1800, 1400, 0],
       [2300, 1600, 1],
+      [900, 1200, 4],
+      [2000, 800, 5],
     ],
   },
   {
@@ -219,6 +228,8 @@ export const MISSIONS: readonly MissionDef[] = [
       [1400, 500, 2],
       [1900, 800, 2],
       [2300, 600, 2],
+      [1100, 1000, 4],
+      [2000, 400, 5],
     ],
   },
   {
@@ -251,6 +262,8 @@ export const MISSIONS: readonly MissionDef[] = [
       [1800, 1400, 0],
       [2400, 600, 1],
       [1500, 500, 1],
+      [800, 700, 3],
+      [2000, 1000, 5],
     ],
   },
 ];

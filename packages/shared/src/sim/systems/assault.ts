@@ -101,23 +101,35 @@ function seedAround(world: World, x: number, y: number, roster: string[], asleep
 }
 
 function nestGuard(team: number): string[] {
-  const n = 2 + team;
-  const out: string[] = ['warrior'];
+  const n = 3 + team;
+  const out: string[] = ['warrior', 'hive_guard'];
   for (let i = 0; i < n; i++) out.push(i % 2 ? 'hormagaunt' : 'termagant');
   return out;
 }
 
 function bossGuard(team: number): string[] {
-  const out: string[] = ['warrior', 'warrior'];
+  const out: string[] = ['tyrant_guard', 'warrior', 'warrior'];
   for (let i = 0; i < 1 + team; i++) out.push('genestealer');
-  if (team >= 3) out.push('warrior');
+  if (team >= 2) out.push('zoanthrope');
+  if (team >= 3) out.push('tyrant_guard');
   return out;
 }
 
 function patrol(team: number, kind: number): string[] {
   if (kind === 1)
     return team >= 3
-      ? ['warrior', 'termagant', 'termagant']
+      ? ['warrior', 'termagant', 'termagant', 'hormagaunt']
       : ['termagant', 'hormagaunt', 'hormagaunt'];
-  return ['genestealer', 'genestealer', ...(team >= 2 ? (['hormagaunt'] as const) : [])];
+  if (kind === 3)
+    return ['hive_guard', 'termagant', ...(team >= 2 ? (['termagant'] as const) : [])];
+  if (kind === 4) return ['lictor', ...(team >= 2 ? (['lictor'] as const) : [])];
+  if (kind === 5) return ['zoanthrope', 'termagant', 'hormagaunt'];
+  if (kind === 6) return ['tyrant_guard', ...(team >= 2 ? (['hormagaunt'] as const) : [])];
+  // kind 0 (and 2, sleeping mixed): genestealers
+  return [
+    'genestealer',
+    'genestealer',
+    ...(team >= 2 ? (['hormagaunt'] as const) : []),
+    ...(team >= 3 ? (['genestealer'] as const) : []),
+  ];
 }

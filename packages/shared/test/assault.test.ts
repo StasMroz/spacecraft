@@ -39,7 +39,7 @@ describe('assault missions', () => {
     const p = w.players[0]!;
     expect(Math.hypot(p.x - def.start![0], p.y - def.start![1])).toBeLessThan(80);
     const boss = w.enemies.find((e) => e.id === w.mission.bossId);
-    expect(boss?.type).toBe('carnifex');
+    expect(boss?.type).toBe('hive_tyrant');
     expect(boss!.maxHp).toBeGreaterThan(1000);
     expect(w.mission.extractOpen).toBe(false);
     const wave0 = w.director.wave;
@@ -133,5 +133,21 @@ describe('assault missions', () => {
     for (const tg of w.mission.targets) damageObjective(w, tg, tg.hp);
     steps(w, 2);
     expect(w.mission.extractOpen).toBe(true);
+  });
+
+  it('synapse_purge stations a Hive Guard at every nest, and the hunt boss is a Hive Tyrant', () => {
+    const purge = world('synapse_purge');
+    for (const t of purge.mission.targets) {
+      const near = purge.enemies.filter((e) => !e.dead && Math.hypot(e.x - t.x, e.y - t.y) < 280);
+      expect(
+        near.some((e) => e.type === 'hive_guard'),
+        `nest ${t.id}`,
+      ).toBe(true);
+    }
+    const hunt = world('hold_the_line');
+    const boss = hunt.enemies.find((e) => e.id === hunt.mission.bossId);
+    expect(boss?.type).toBe('hive_tyrant');
+    expect(hunt.enemies.some((e) => e.type === 'tyrant_guard')).toBe(true);
+    expect(hunt.enemies.length).toBeGreaterThan(12);
   });
 });
