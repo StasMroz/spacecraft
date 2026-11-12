@@ -1,5 +1,10 @@
 # Changelog
 
+## v30
+
+- Menu: wybór misji przed SOLO DEPLOY — 5 zleceń z katalogu (nazwa, krótki opis, zrzuty i limit czasu, podpis mapy). Domyślnie Oblężenie ula (hive_siege).
+- Lobby: host zmienia misję w tym samym pickerze (`setMission`); wszyscy widzą nazwę i opis z lobby. Ostatni wybór zapamiętywany. `?mission=` nadal wygrywa, gdy id jest znane.
+
 ## v29
 
 - Misje w stylu Helldivers 2, klimat 40k. Domyślnie **Oblężenie ula** (dotychczasowe niekończące się fale). Nowe zlecenia: **Oczyść i utrzymaj** (150 s walki, potem 40 s okno ekstrakcji Thunderhawka), **Ewakuacja** (wrak hulka, okno od 120 s przez 45 s), **Czystka synapsy** (dżungla biomasy, zniszcz 3 kapilary, potem ekstrakcja, limit 300 s), **Odzyskaj relikwię** (lodowy świat, donieś relikwię do strefy, limit 240 s, cień w warpie tłumi zrzuty zaopatrzenia).

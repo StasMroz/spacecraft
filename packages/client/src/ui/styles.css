@@ -248,6 +248,65 @@ button.primary:hover:not(:disabled) {
 .squad > button {
   width: 100%;
 }
+.missions {
+  margin: 8px 0 10px;
+}
+.missions h2 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+.mission-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.mission-chip {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+.mission-chip input {
+  accent-color: var(--accent);
+  margin: 0;
+  flex: 0 0 auto;
+}
+.mission-chip .mission-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+.mission-tags {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+.mission-chip:has(input:checked) {
+  outline: 2px solid var(--accent);
+  background: linear-gradient(rgba(150, 115, 50, 0.6), rgba(70, 50, 22, 0.8));
+}
+.mission-desc {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.mission-map {
+  margin: 2px 0 0;
+}
+.mission-picked {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
 .help b {
   color: var(--text);
 }

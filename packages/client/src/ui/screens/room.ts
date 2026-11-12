@@ -2,6 +2,13 @@ import { MAX_PLAYERS, type ClientSession, type ContentRegistry, type LobbyInfo }
 import { chapterBadgeSvg, createChapterPicker } from '../chapters.js';
 import { prefs } from '../prefs.js';
 import { escapeHtml } from '../format.js';
+import {
+  bindMissionPicker,
+  lobbyMissionMarkup,
+  missionPickerMarkup,
+  paintMissionDetails,
+  resolvedMissionId,
+} from './menu.js';
 import { config } from '../../config.js';
 import { buildJoinUrl } from '../../net/joinUrl.js';
 import { renderQr } from '../qr.js';
@@ -11,6 +18,8 @@ export interface RoomActions {
   leave(): void;
   /** Present for the P2P host only: the room's voice-chat opt-in (CZAT GŁOSOWY). */
   setVoice?(on: boolean): void;
+  /** Present for the host: pick a mission while still in the lobby. */
+  setMission?(id: string): void;
 }
 
 /** Pre-game lobby: room code + QR + share link, player list, owner starts the run. */
@@ -40,6 +49,7 @@ export function createRoomScreen(
         </div>
       </div>
       <p class="muted small">Up to ${MAX_PLAYERS} battle-brothers, one chapter each. Each squad size has its own leaderboard.</p>
+      <div id="mission-slot"></div>
       <ul class="players" id="players"></ul>
       ${
         mode === 'p2p'
@@ -73,6 +83,17 @@ export function createRoomScreen(
     session.selectChapter(id);
   });
   $(el, '#chapters').append(picker.el);
+  const missionSlot = $(el, '#mission-slot');
+  const canPickMission = !!actions.setMission;
+  missionSlot.innerHTML = canPickMission
+    ? missionPickerMarkup(resolvedMissionId(session.lobby?.mission))
+    : lobbyMissionMarkup(session.lobby?.mission);
+  if (canPickMission) {
+    bindMissionPicker(missionSlot, (id) => {
+      prefs.setMission(id);
+      actions.setMission?.(id);
+    });
+  }
   const render = (l: LobbyInfo | null) => {
     if (!l) return;
     players.innerHTML = Array.from({ length: l.maxPlayers }, (_, i) => {
@@ -91,6 +112,7 @@ export function createRoomScreen(
     start.style.display = owner ? '' : 'none';
     start.disabled = l.phase === 'playing';
     renderVoice(l);
+    paintMissionDetails(missionSlot, l.mission);
     hint.textContent = owner
       ? `Start when your squad is ready (${l.players.length}/${l.maxPlayers}).`
       : 'Waiting for the squad leader to start…';

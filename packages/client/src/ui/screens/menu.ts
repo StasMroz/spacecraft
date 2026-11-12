@@ -1,4 +1,13 @@
-import { sanitizeName, type ContentRegistry } from '@sms/shared';
+import {
+  DEFAULT_MISSION_ID,
+  MISSIONS,
+  findMap,
+  findMission,
+  getMission,
+  sanitizeName,
+  type ContentRegistry,
+  type MissionDef,
+} from '@sms/shared';
 import { DEV_PREVIEW } from '../../devPreview.js';
 import { storage } from '../../util/storage.js';
 import { $, html } from '../dom.js';
@@ -9,7 +18,7 @@ import { createVersionsLink, versionLabel } from '../versions.js';
 import { createMixerPanel, type MixerControls } from '../mixerPanel.js';
 
 export interface MenuActions {
-  solo(name: string): void;
+  solo(name: string, missionId?: string): void;
   host(name: string): void;
   join(name: string, code: string): void;
 }
@@ -23,17 +32,112 @@ export interface MenuOptions {
   dedicated: boolean;
   /** Per-bus volume sliders; omitted when audio is unavailable. */
   mixer?: MixerControls;
+  /** Pre-selected mission (`?mission=` or last remembered). */
+  missionId?: string;
 }
 
 const NAME_KEY = 'sms.name';
 
+/** Known catalogue id, or the default when the value is missing or unknown. */
+export function resolvedMissionId(id: string | undefined | null): string {
+  return findMission(id ?? undefined)?.id ?? DEFAULT_MISSION_ID;
+}
+
+/** A valid `?mission=` wins, then the remembered pref, then hive_siege. */
+export function initialMissionId(urlMission?: string, pref?: string): string {
+  return findMission(urlMission)?.id ?? findMission(pref)?.id ?? DEFAULT_MISSION_ID;
+}
+
+export function formatTimeLimit(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+/** Compact tags: supply drops and/or a clock, omitted when neither applies. */
+export function missionTags(m: MissionDef): string {
+  const tags: string[] = [];
+  if (m.crates) tags.push('drops');
+  if (m.timeLimit !== null) tags.push(formatTimeLimit(m.timeLimit));
+  return tags.join(' · ');
+}
+
+export function mapLabel(mapId: string): string {
+  return findMap(mapId)?.name ?? mapId;
+}
+
+export function missionDetailsHtml(id: string | undefined | null): string {
+  const m = getMission(resolvedMissionId(id));
+  return `<p class="mission-desc" id="mission-desc">${escapeHtml(m.description)}</p>
+    <p class="mission-map muted small" id="mission-map">${escapeHtml(mapLabel(m.map))}</p>`;
+}
+
+/** Compact radio list: one row per mission, description + map for the selection only. */
+export function missionPickerMarkup(selectedId: string): string {
+  const selected = resolvedMissionId(selectedId);
+  const options = MISSIONS.map((m) => {
+    const tags = missionTags(m);
+    const checked = m.id === selected ? ' checked' : '';
+    return `<label class="mission-chip"><input type="radio" name="mission" value="${escapeHtml(m.id)}"${checked}><span class="mission-name">${escapeHtml(m.name)}</span>${tags ? `<span class="mission-tags">${escapeHtml(tags)}</span>` : ''}</label>`;
+  }).join('');
+  return `<section class="missions" aria-labelledby="mission-title">
+    <h2 id="mission-title">MISSION</h2>
+    <div class="mission-list" role="radiogroup" aria-label="Mission" aria-describedby="mission-desc">${options}</div>
+    ${missionDetailsHtml(selected)}
+  </section>`;
+}
+
+/** Read-only briefing for anyone in the lobby (name + description from the catalogue). */
+export function lobbyMissionMarkup(missionId: string | undefined | null): string {
+  const m = getMission(resolvedMissionId(missionId));
+  return `<section class="missions mission-brief" aria-labelledby="mission-title">
+    <h2 id="mission-title">MISSION</h2>
+    <p class="mission-picked">${escapeHtml(m.name)}</p>
+    ${missionDetailsHtml(m.id)}
+  </section>`;
+}
+
+export function selectedMissionId(root: {
+  querySelector: (sel: string) => { value: string } | null;
+}): string {
+  const el = root.querySelector('input[name="mission"]:checked');
+  return resolvedMissionId(el?.value);
+}
+
+export function paintMissionDetails(root: ParentNode, id: string | undefined | null): void {
+  const mid = resolvedMissionId(id);
+  const m = getMission(mid);
+  const desc = root.querySelector('#mission-desc');
+  const map = root.querySelector('#mission-map');
+  const picked = root.querySelector('.mission-picked');
+  if (desc) desc.textContent = m.description;
+  if (map) map.textContent = mapLabel(m.map);
+  if (picked) picked.textContent = m.name;
+  for (const input of root.querySelectorAll<HTMLInputElement>('input[name="mission"]')) {
+    input.checked = input.value === mid;
+  }
+}
+
+export function bindMissionPicker(root: ParentNode, onPick: (id: string) => void): void {
+  for (const input of root.querySelectorAll<HTMLInputElement>('input[name="mission"]')) {
+    input.addEventListener('change', () => {
+      if (!input.checked) return;
+      const id = resolvedMissionId(input.value);
+      paintMissionDetails(root, id);
+      onPick(id);
+    });
+  }
+}
+
 export function createMenuScreen(actions: MenuActions, opts: MenuOptions): HTMLElement {
-  const el = html(menuMarkup(opts));
+  const missionId = initialMissionId(opts.missionId, prefs.mission());
+  const el = html(menuMarkup({ ...opts, missionId }));
   $(el, '#chapters').append(
     createChapterPicker(opts.content, prefs.chapter(), (id) => prefs.setChapter(id)).el,
   );
   $(el, '#meta').append(createVersionsLink());
   if (opts.mixer) $(el, '#mixer').append(createMixerPanel(opts.mixer));
+  bindMissionPicker(el, (id) => prefs.setMission(id));
   const name = $<HTMLInputElement>(el, '#name');
   const code = $<HTMLInputElement>(el, '#code');
   const err = $(el, '#err');
@@ -53,7 +157,9 @@ export function createMenuScreen(actions: MenuActions, opts: MenuOptions): HTMLE
     busy(true);
     fn();
   };
-  $(el, '#solo').addEventListener('click', () => run(() => actions.solo(getName()!)));
+  $(el, '#solo').addEventListener('click', () =>
+    run(() => actions.solo(getName()!, selectedMissionId(el))),
+  );
   $(el, '#host').addEventListener('click', () => run(() => actions.host(getName()!)));
   const doJoin = () => {
     if (!code.value.trim()) {
@@ -69,7 +175,9 @@ export function createMenuScreen(actions: MenuActions, opts: MenuOptions): HTMLE
 }
 
 /** Menu markup: solo CTA first, host/join grouped under PLAY WITH FRIENDS, controls collapsed. */
-export function menuMarkup(opts: Pick<MenuOptions, 'baseUrl' | 'content' | 'dedicated'>): string {
+export function menuMarkup(
+  opts: Pick<MenuOptions, 'baseUrl' | 'content' | 'dedicated' | 'missionId'>,
+): string {
   const [main, sub] = splitTitle(opts.content.title);
   return `<div class="screen menu">
     <div class="title">
@@ -85,6 +193,7 @@ export function menuMarkup(opts: Pick<MenuOptions, 'baseUrl' | 'content' | 'dedi
         <label>CALLSIGN<input id="name" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Marine"></label>
         <label>CHAPTER</label>
         <div id="chapters"></div>
+        ${missionPickerMarkup(opts.missionId ?? '')}
         <button id="solo" class="primary">▶ SOLO DEPLOY</button>
         <section class="squad" aria-labelledby="squad-title">
           <h2 id="squad-title">PLAY WITH FRIENDS</h2>

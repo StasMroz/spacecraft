@@ -22,9 +22,10 @@ import { Assets } from '../render/assets.js';
 import { createGameOverScreen } from '../ui/screens/gameOver.js';
 import { stripJoinParams } from '../net/joinUrl.js';
 import { createJoinScreen } from '../ui/screens/join.js';
-import { createMenuScreen } from '../ui/screens/menu.js';
+import { createMenuScreen, initialMissionId } from '../ui/screens/menu.js';
 import { createRoomScreen } from '../ui/screens/room.js';
 import { stageHiveDemo } from '../game/demo.js';
+import { prefs } from '../ui/prefs.js';
 import { attachVoice } from '../voice/index.js';
 
 type Screen = 'boot' | 'menu' | 'join' | 'room' | 'game' | 'over';
@@ -129,11 +130,16 @@ export class App {
     this.setUi(
       createMenuScreen(
         {
-          solo: (name) => this.solo(name),
+          solo: (name, missionId) => this.solo(name, false, missionId),
           host: (name) =>
-            void this.connect(() =>
-              config.useDedicatedHost ? connectDedicated(name) : hostPeerGame(name),
-            ),
+            void this.connect(async () => {
+              const conn = await (config.useDedicatedHost
+                ? connectDedicated(name)
+                : hostPeerGame(name));
+              const id = findMission(config.mission)?.id ?? prefs.mission();
+              if (id && conn.host) conn.host.setMission(id);
+              return conn;
+            }),
           join: (name, code) =>
             void this.connect(() =>
               config.useDedicatedHost
@@ -148,13 +154,14 @@ export class App {
           error,
           dedicated: config.useDedicatedHost,
           mixer: this.audio.mixerControls(),
+          missionId: initialMissionId(config.mission, prefs.mission()),
         },
       ),
     );
   }
 
-  private solo(name: string, demo = false): void {
-    const conn = createLocalGame(name, undefined, config.mission || undefined);
+  private solo(name: string, demo = false, missionId?: string): void {
+    const conn = createLocalGame(name, undefined, findMission(config.mission)?.id ?? missionId);
     this.attach(conn);
     if (demo) {
       const off = conn.session.on('start', () => {
@@ -233,11 +240,12 @@ export class App {
     this.game = null;
     this.screen = 'room';
     this.audio.playMusic('menu');
-    const host = conn.mode === 'p2p' ? conn.host : undefined;
+    const host = conn.host;
     const room = createRoomScreen(conn.session, conn.roomCode, conn.mode, this.content, {
       leave: () => this.showMenu(),
       // Voice chat opt-in: the P2P host decides for the room (sent to all in 'lobby').
-      ...(host ? { setVoice: (on: boolean) => host.setVoice(on) } : {}),
+      ...(conn.mode === 'p2p' && host ? { setVoice: (on: boolean) => host.setVoice(on) } : {}),
+      ...(host ? { setMission: (id: string) => host.setMission(id) } : {}),
     });
     this.setUi(room.el);
     this.cleanup.push(room.dispose);
