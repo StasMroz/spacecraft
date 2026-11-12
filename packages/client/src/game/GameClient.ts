@@ -372,6 +372,7 @@ export class GameClient extends Emitter<GameClientEvents> {
       const lp = this.lookPoint ?? target;
       const tx = target.x + (lp.x - target.x) * look;
       const ty = target.y + (lp.y - target.y) * look;
+      r.camera.setBounds(this.content.map.arena.width, this.content.map.arena.height);
       r.camera.follow(tx, ty, dt, !this.cameraInit);
       this.cameraInit = true;
     }

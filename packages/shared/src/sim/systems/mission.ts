@@ -32,6 +32,24 @@ const LANDMARKS: Record<string, Landmark> = {
   },
   ice: { extract: [2700, 1800], relic: [600, 450] },
   hulk: { extract: [2700, 1100] },
+  city: {
+    extract: [6200, 2240],
+    targets: [
+      [6200, 1140],
+      [280, 3340],
+      [4340, 3340],
+    ],
+  },
+  desert: { extract: [5800, 3600], relic: [900, 800] },
+  volcanic: {
+    extract: [5800, 3800],
+    targets: [
+      [800, 2000],
+      [4800, 800],
+      [5400, 3600],
+    ],
+  },
+  ship: { extract: [6000, 2200] },
 };
 
 function circleHitsWall(world: World, x: number, y: number, r: number): boolean {

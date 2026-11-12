@@ -119,7 +119,7 @@ describe('mission timer and extract', () => {
 describe('destroy and retrieve objectives', () => {
   it('synapse capillaries take damage and extract opens after the last one falls', () => {
     const w = one('synapse_purge', 2);
-    expect(w.map.id).toBe('jungle');
+    expect(w.map.id).toBe('volcanic');
     expect(w.mission.targets).toHaveLength(3);
     expect(w.mission.extractOpen).toBe(false);
     for (const t of w.mission.targets) t.hp = 0;
@@ -136,7 +136,7 @@ describe('destroy and retrieve objectives', () => {
 
   it('the relic must be carried into the extract zone; it drops when the carrier is downed', () => {
     const w = one('relic_recovery', 5);
-    expect(w.map.id).toBe('ice');
+    expect(w.map.id).toBe('desert');
     expect(w.mission.crates).toBe(false);
     expect(w.mission.crash).toBe(false);
     expect(w.mission.relicCarrier).toBeNull();

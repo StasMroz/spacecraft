@@ -1,5 +1,10 @@
 # Changelog
 
+## v45
+
+- Cztery nowe, dwukrotnie większe biomy (arena 6400×4400, kamera przewija i trzyma widok na mapie): **Miasto-ul** (hab-bloki i aleje), **Pustynia** (wydmy i wychodnie), **Świat wulkaniczny** (kanały lawy z przeprawami), **Statek-ul** (hangar, długie grodzie, śluza). Infiltracja, Odzyskaj relikwię, Spalenie gniazd i Ewakuacja grają się na tych mapach (Oblężenie, Zabójstwo i Rajd zostają na klasycznym pokładzie — ranking bez zmian).
+- Minimapa pokazuje strefę ekstrakcji, cele, relikwię i ramkę aktualnego widoku kamery. Gdy cel jest poza ekranem, na krawędzi pojawia się złota strzałka z etykietą (Cel / Relikwia / Ekstrakcja).
+
 ## v44
 
 - Misje ofensywne gęstsze i bardziej zróżnicowane: więcej patroli, w składzie Hive Guard, Zoanthrope, Lictor i Tyrant Guard. **Zabójstwo tyrana** ma teraz Hive Tyranta jako bossa (zamiast wzmocnionego Carnifexa), z gwardią Tyrant Guard. Przy gniazdach w **Spaleniu gniazd** stoi Hive Guard. Opisy i kompendium/rules zaktualizowane.

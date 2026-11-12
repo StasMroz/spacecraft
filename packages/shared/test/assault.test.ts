@@ -69,7 +69,7 @@ describe('assault missions', () => {
   it('synapse_purge pre-places enemies and a destroyed nest stops spawning', () => {
     const w = world('synapse_purge', 7);
     expect(w.enemies.length).toBeGreaterThan(5);
-    expect(w.map.id).toBe('jungle');
+    expect(w.map.id).toBe('volcanic');
     const nest = w.mission.targets[0]!;
     for (const t of w.mission.targets.slice(1)) damageObjective(w, t, t.hp);
     for (const e of w.enemies) {

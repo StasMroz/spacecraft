@@ -25,6 +25,7 @@ import {
 } from '../input/touchControls.js';
 import type { Assets } from './assets.js';
 import { chapterUiColor } from './colors.js';
+import { edgeChevron, missionWaypoint } from './waypoint.js';
 
 /** Gothic HUD palette: smoked umber panels, brass frames, parchment text. */
 export const HUD = {
@@ -375,7 +376,8 @@ export class Hud {
       this.timer(ctx, w, s);
       if (s.me) this.score(ctx, w, s.me);
     }
-    this.minimap(ctx, w, s);
+    this.minimap(ctx, w, h, s);
+    this.objectiveArrow(ctx, w, h, s);
     if (L.block) {
       // armour bar lives inside the compact block
     } else if (touch) {
@@ -758,7 +760,7 @@ export class Hud {
     ctx.fillText(text, w / 2, y);
   }
 
-  private minimap(ctx: CanvasRenderingContext2D, w: number, s: HudState): void {
+  private minimap(ctx: CanvasRenderingContext2D, w: number, h: number, s: HudState): void {
     const mw = 190;
     const mh = (mw * this.content.map.arena.height) / this.content.map.arena.width;
     const x0 = w - mw - 12;
@@ -773,6 +775,23 @@ export class Hud {
       ctx.beginPath();
       ctx.arc(x0 + p.x * k, y0 + p.y * k, 2.5, 0, Math.PI * 2);
       ctx.fill();
+    }
+    const mi = s.snap.mi;
+    if (mi) {
+      ctx.strokeStyle = 'rgba(224,184,80,0.85)';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.arc(x0 + mi.ex * k, y0 + mi.ey * k, Math.max(4, mi.er * k), 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = '#e08a40';
+      for (const t of mi.tg) {
+        if (t.hp <= 0) continue;
+        ctx.fillRect(x0 + t.x * k - 2.5, y0 + t.y * k - 2.5, 5, 5);
+      }
+      if (mi.rx !== undefined && mi.ry !== undefined && !mi.rc) {
+        ctx.fillStyle = HUD.gold;
+        ctx.fillRect(x0 + mi.rx * k - 2.5, y0 + mi.ry * k - 2.5, 5, 5);
+      }
     }
     // every xeno looks the same (no straggler highlight)
     ctx.fillStyle = '#c05ad0';
@@ -797,6 +816,55 @@ export class Hud {
         ctx.stroke();
       }
     }
+    if (s.camera && s.camera.zoom > 0) {
+      const rw = w / s.camera.zoom;
+      const rh = h / s.camera.zoom;
+      ctx.strokeStyle = 'rgba(232,217,176,0.7)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(
+        x0 + (s.camera.x - rw / 2) * k,
+        y0 + (s.camera.y - rh / 2) * k,
+        rw * k,
+        rh * k,
+      );
+    }
+  }
+
+  /** Off-screen pointer at the view edge toward the current objective (extract, relic, target). */
+  private objectiveArrow(ctx: CanvasRenderingContext2D, w: number, h: number, s: HudState): void {
+    if (!s.camera) return;
+    const wp = missionWaypoint(s.snap.mi);
+    if (!wp) return;
+    const chev = edgeChevron(wp.x, wp.y, s.camera, w, h, 56);
+    if (chev.hidden) return;
+    const { x, y, angle } = chev;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.fillStyle = HUD.gold;
+    ctx.strokeStyle = 'rgba(8,6,4,0.75)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(14, 0);
+    ctx.lineTo(-10, 9);
+    ctx.lineTo(-6, 0);
+    ctx.lineTo(-10, -9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+    ctx.save();
+    ctx.font = F(700, 11);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const lx = x - Math.cos(angle) * 28;
+    const ly = y - Math.sin(angle) * 28;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(8,6,4,0.75)';
+    ctx.strokeText(wp.label, lx, ly);
+    ctx.fillStyle = HUD.parchment;
+    ctx.fillText(wp.label, lx, ly);
+    ctx.restore();
   }
 
   private health(ctx: CanvasRenderingContext2D, h: number, me: PlayerSnap): void {

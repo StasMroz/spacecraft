@@ -60,7 +60,7 @@ export interface MapDef {
   theme?: MapTheme;
 }
 
-export type MapBiome = 'hive' | 'jungle' | 'ice' | 'hulk';
+export type MapBiome = 'hive' | 'jungle' | 'ice' | 'hulk' | 'city' | 'desert' | 'volcanic' | 'ship';
 
 export interface MapTheme {
   biome: MapBiome;

@@ -1,5 +1,7 @@
 import { ARENA } from '@sms/shared';
 
+const clamp = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, v));
+
 /** Follows a target with smoothing, aim look-ahead and screen shake. */
 export class Camera {
   x = ARENA.width / 2;
@@ -8,15 +10,25 @@ export class Camera {
   height = 0;
   /** Device-independent zoom (world px -> CSS px). */
   zoom = 1;
+  /** Current map arena; 0 = not set (no clamp). */
+  boundsW = 0;
+  boundsH = 0;
   private shake = 0;
   shakeX = 0;
   shakeY = 0;
+
+  setBounds(w: number, h: number): void {
+    this.boundsW = w;
+    this.boundsH = h;
+    this.clampToBounds();
+  }
 
   resize(w: number, h: number): void {
     this.width = w;
     this.height = h;
     // Keep roughly the same visible world area across screen sizes.
     this.zoom = Math.max(0.6, Math.min(1.3, Math.sqrt((w * h) / (1500 * 900))));
+    this.clampToBounds();
   }
 
   addShake(amount: number): void {
@@ -27,9 +39,28 @@ export class Camera {
     const k = snap ? 1 : 1 - Math.exp(-dt * 10);
     this.x += (tx - this.x) * k;
     this.y += (ty - this.y) * k;
+    this.clampToBounds();
     this.shake *= Math.exp(-dt * 9);
     this.shakeX = (Math.random() * 2 - 1) * this.shake;
     this.shakeY = (Math.random() * 2 - 1) * this.shake;
+  }
+
+  /** Keep the view on the map when the arena is larger than the viewport. */
+  clampToBounds(): void {
+    if (!(
+      this.boundsW > 0 &&
+      this.boundsH > 0 &&
+      this.zoom > 0 &&
+      this.width > 0 &&
+      this.height > 0
+    ))
+      return;
+    const hw = this.width / 2 / this.zoom;
+    const hh = this.height / 2 / this.zoom;
+    if (this.boundsW > 2 * hw) this.x = clamp(this.x, hw, this.boundsW - hw);
+    else this.x = this.boundsW / 2;
+    if (this.boundsH > 2 * hh) this.y = clamp(this.y, hh, this.boundsH - hh);
+    else this.y = this.boundsH / 2;
   }
 
   /** Screen (CSS px) -> world. */
