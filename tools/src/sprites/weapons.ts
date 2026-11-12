@@ -260,6 +260,182 @@ const ICONS: Record<string, (ctx: Ctx, c: string, d: string) => void> = {
       line(ctx, x + 8, 12, x + 18, 11, '#e8f4ff', 1.2);
     }
   },
+  storm_bolter: (ctx, c, d) => {
+    poly(
+      ctx,
+      [
+        [0, 10],
+        [7, 11],
+        [7, 18],
+        [0, 20],
+      ],
+      c,
+      d,
+      1.2,
+    );
+    roundRect(ctx, 7, 8, 22, 13, 2, c, d, 1.5);
+    roundRect(ctx, 28, 8, 22, 4, 1, c, d, 1.2);
+    roundRect(ctx, 28, 16, 22, 4, 1, c, d, 1.2);
+    roundRect(ctx, 48, 7, 8, 15, 1, c, d, 1.2);
+    roundRect(ctx, 14, 20, 10, 7, 1, c, d, 1.1);
+    roundRect(ctx, 26, 20, 10, 7, 1, c, d, 1.1);
+  },
+  inferno_pistol: (ctx, c, d) => {
+    poly(
+      ctx,
+      [
+        [0, 12],
+        [10, 9],
+        [10, 20],
+        [0, 18],
+      ],
+      c,
+      d,
+      1.2,
+    );
+    roundRect(ctx, 10, 8, 18, 13, 3, c, d, 1.5);
+    poly(
+      ctx,
+      [
+        [28, 9],
+        [48, 6],
+        [56, 8],
+        [56, 20],
+        [48, 22],
+        [28, 19],
+      ],
+      c,
+      d,
+      1.2,
+    );
+    roundRect(ctx, 16, 21, 8, 6, 1, c, d, 1);
+    line(ctx, 34, 14, 52, 14, '#ff6a2a', 1.4);
+  },
+  plasma_caster: (ctx, c, d) => {
+    poly(
+      ctx,
+      [
+        [0, 11],
+        [8, 10],
+        [8, 19],
+        [0, 20],
+      ],
+      c,
+      d,
+      1.2,
+    );
+    roundRect(ctx, 8, 7, 16, 14, 3, c, d, 1.5);
+    for (let i = 0; i < 4; i++) roundRect(ctx, 24 + i * 6, 6, 5, 16, 2, c, d, 1);
+    roundRect(ctx, 48, 10, 12, 8, 2, c, d, 1.2);
+    line(ctx, 26, 14, 46, 14, '#3cff9a', 1.4);
+  },
+  siege_bolter: (ctx, c, d) => {
+    poly(
+      ctx,
+      [
+        [0, 9],
+        [8, 10],
+        [8, 20],
+        [0, 21],
+      ],
+      c,
+      d,
+      1.2,
+    );
+    roundRect(ctx, 8, 7, 26, 14, 2, c, d, 1.5);
+    poly(
+      ctx,
+      [
+        [6, 4],
+        [28, 2],
+        [30, 8],
+        [8, 9],
+      ],
+      c,
+      d,
+      1.2,
+    ); // slab shield
+    roundRect(ctx, 34, 10, 18, 8, 1, c, d, 1.2);
+    roundRect(ctx, 52, 8, 8, 12, 1, c, d, 1.2);
+    roundRect(ctx, 16, 20, 12, 7, 1, c, d, 1.1);
+  },
+  plasma_pistol: (ctx, c, d) => {
+    poly(
+      ctx,
+      [
+        [2, 12],
+        [12, 9],
+        [12, 20],
+        [2, 18],
+      ],
+      c,
+      d,
+      1.2,
+    );
+    roundRect(ctx, 12, 8, 16, 13, 3, c, d, 1.5);
+    roundRect(ctx, 28, 7, 10, 15, 3, c, d, 1.2);
+    roundRect(ctx, 38, 11, 16, 7, 2, c, d, 1.2);
+    line(ctx, 30, 14, 50, 14, '#8ec8ff', 1.4);
+  },
+  bolt_carbine: (ctx, c, d) => {
+    poly(
+      ctx,
+      [
+        [2, 11],
+        [10, 12],
+        [10, 18],
+        [2, 19],
+      ],
+      c,
+      d,
+      1.2,
+    );
+    roundRect(ctx, 10, 9, 22, 11, 2, c, d, 1.5);
+    roundRect(ctx, 32, 11, 22, 5, 1, c, d, 1.2);
+    roundRect(ctx, 54, 10, 6, 7, 1, c, d, 1.2);
+    poly(
+      ctx,
+      [
+        [16, 19],
+        [26, 19],
+        [24, 27],
+        [15, 27],
+      ],
+      c,
+      d,
+      1.2,
+    );
+  },
+  stalker_bolter: (ctx, c, d) => {
+    poly(
+      ctx,
+      [
+        [0, 10],
+        [8, 11],
+        [8, 18],
+        [0, 20],
+      ],
+      c,
+      d,
+      1.2,
+    );
+    roundRect(ctx, 8, 8, 22, 11, 2, c, d, 1.5);
+    roundRect(ctx, 30, 11, 22, 4, 1, c, d, 1.2);
+    roundRect(ctx, 52, 10, 10, 6, 2, c, d, 1.2); // suppressor
+    roundRect(ctx, 14, 3, 16, 5, 1, c, d, 1); // long scope
+    poly(
+      ctx,
+      [
+        [18, 18],
+        [26, 18],
+        [24, 27],
+        [17, 27],
+      ],
+      c,
+      d,
+      1.2,
+    );
+  },
   generic: (ctx, c, d) => {
     roundRect(ctx, 6, 9, 46, 10, 2, c, d, 1.5);
     roundRect(ctx, 20, 18, 8, 8, 1, c, d, 1.2);
@@ -474,6 +650,80 @@ const HELD: Record<string, (ctx: Ctx) => void> = {
     };
     claw(RX + 1, 4, 0, 30);
     claw(LX - 2, LY, 0, LX + 10);
+  },
+  storm_bolter: (ctx) => {
+    roundRect(ctx, RX - 6, 0, 14, 8, 2, GUN, GUN_D, 1.2);
+    roundRect(ctx, RX + 6, 0.2, 16, 2.6, 1, GUN_L, GUN_D, 0.8);
+    roundRect(ctx, RX + 6, 5.2, 16, 2.6, 1, GUN_L, GUN_D, 0.8);
+    roundRect(ctx, RX + 21, 0, 4, 8, 1, GUN, GUN_D, 1);
+    line(ctx, RX, 4, RX + 16, 4, BRASS, 1);
+  },
+  inferno_pistol: (ctx) => {
+    roundRect(ctx, RX - 2, 0.5, 10, 7, 2, GUN, GUN_D, 1);
+    roundRect(ctx, RX + 7, -0.5, 12, 9, 2, '#3a2e28', GUN_D, 1.2);
+    poly(
+      ctx,
+      [
+        [RX + 18, 0.5],
+        [RX + 24, 1.2],
+        [RX + 24, 6.8],
+        [RX + 18, 7.5],
+      ],
+      GUN,
+      GUN_D,
+      1,
+    );
+    glow(ctx, RX + 24, 4, 3, '#ff6a2a', 0.75);
+  },
+  plasma_caster: (ctx) => {
+    roundRect(ctx, RX - 5, 0.5, 8, 7, 2, GUN, GUN_D, 1);
+    roundRect(ctx, RX + 2, -0.5, 12, 9, 3, GUN, GUN_D, 1.2);
+    for (let i = 0; i < 3; i++) {
+      roundRect(ctx, RX + 13 + i * 4, -1, 2.4, 10, 1, '#1d4a38', GUN_D, 0.6);
+      glow(ctx, RX + 14.2 + i * 4, 4, 2.8, '#3cff9a', 0.7);
+    }
+    roundRect(ctx, RX + 24, 1, 6, 6, 2, GUN_L, GUN_D, 1);
+    circle(ctx, RX + 31, 4, 1.5, '#c8ffe8');
+  },
+  siege_bolter: (ctx) => {
+    poly(
+      ctx,
+      [
+        [RX - 2, -3],
+        [RX + 14, -4],
+        [RX + 14, 2],
+        [RX - 2, 1.5],
+      ],
+      '#4a4038',
+      GUN_D,
+      1,
+    ); // slab
+    roundRect(ctx, RX - 4, 1, 16, 7, 2, GUN, GUN_D, 1.2);
+    roundRect(ctx, RX + 11, 2, 12, 4.5, 1, GUN_L, GUN_D, 1);
+    roundRect(ctx, RX + 22, 1.5, 4, 6, 1, GUN, GUN_D, 1);
+    line(ctx, RX, 4.2, RX + 16, 4.2, '#c9a227', 1.1);
+  },
+  plasma_pistol: (ctx) => {
+    roundRect(ctx, RX - 2, 0.8, 9, 6.4, 2, GUN, GUN_D, 1);
+    roundRect(ctx, RX + 6, -0.5, 8, 9, 3, GUN, GUN_D, 1.2);
+    glow(ctx, RX + 10, 4, 3, '#8ec8ff', 0.7);
+    roundRect(ctx, RX + 13, 1.2, 8, 5.6, 2, GUN_L, GUN_D, 1);
+    circle(ctx, RX + 21, 4, 1.4, '#cfefff');
+  },
+  bolt_carbine: (ctx) => {
+    roundRect(ctx, RX - 4, RY - 3, 8, 5.5, 2, GUN, GUN_D, 1);
+    roundRect(ctx, RX, 1, 16, 6, 2, GUN, GUN_D, 1.2);
+    roundRect(ctx, RX + 15, 2.2, 12, 3.6, 1, GUN_L, GUN_D, 1);
+    roundRect(ctx, RX + 26, 1.8, 3.5, 4.4, 1, GUN, GUN_D, 1);
+    line(ctx, RX + 2, 4, RX + 14, 4, BRASS, 1);
+  },
+  stalker_bolter: (ctx) => {
+    roundRect(ctx, RX - 8, RY - 3, 10, 6, 2, GUN, GUN_D, 1);
+    roundRect(ctx, RX, 0.8, 18, 6.4, 2, GUN, GUN_D, 1.2);
+    roundRect(ctx, RX + 6, -2, 10, 2.6, 1, GUN_L); // scope
+    roundRect(ctx, RX + 17, 2.2, 18, 3.4, 1, GUN_L, GUN_D, 0.8);
+    roundRect(ctx, RX + 34, 1.6, 6, 4.6, 1.5, GUN, GUN_D, 1); // suppressor
+    line(ctx, RX + 2, 4, RX + 16, 4, '#5a5a68', 1);
   },
   generic: (ctx) => roundRect(ctx, RX, 1, 24, 6, 2, GUN, GUN_D, 1.2),
 };

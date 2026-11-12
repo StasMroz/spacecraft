@@ -1,5 +1,11 @@
 # Changelog
 
+## v38
+
+- Broń zakonów (specjale z v28): własne ikony HUD i held-sprite'y zamiast generycznego prostokąta — Storm Bolter (podwójna lufa), Inferno Pistol, Plasma Caster, Siege Bolter (płyta), Plasma Pistol, Bolt Carbine, Stalker Bolter (tłumik i luneta). Lufy zgrają się z flashu (muzzle).
+- Lepszy feel: własne wstrząsy i flash dla tych broni, dłuższe smugi pocisków, wyraźniejszy odrzut celownika. Trafienia speceali mają dźwięk impact; Storm/Siege korzystają z cięższego strzału, Caster z wyładowania supercharge.
+- Balans tylko w górę (bez nerfów HB / plazmy / melty / Inferno): podciągnięte słabe specjale i najsłabsze wręcze (Glaive, Lightning Claws). Storm Bolter S5 AP1; Siege Bolter S5 AP1 i wyższe obrażenia; Stalker S6 AP2; Carbine i pistolet plazmowy mocniejsze. Tabela przed/po w raporcie.
+
 ## v37
 
 - Menu: pod motto zakonu kompaktowy podgląd loadoutu (broń specjalna i wręcz, z falą odblokowania z danych broni). Aktualizuje się przy zmianie zakonu.

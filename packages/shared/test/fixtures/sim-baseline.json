@@ -10,12 +10,12 @@
       "3500:69a0c089",
       "4000:010e27d1",
       "4500:1e9eaff7",
-      "5000:32006011",
-      "5500:b25d2798",
-      "6000:fe3a5a22"
+      "5000:96f156ec",
+      "5500:203d260b",
+      "6000:b61ffa4e"
     ],
-    "events": "5a726208",
-    "summary": "wave=5 kills=107 over=false time=200.00"
+    "events": "4cefa15c",
+    "summary": "wave=4 kills=107 over=false time=200.00"
   },
   "solo-immortal": {
     "checkpoints": [
@@ -24,22 +24,22 @@
       "1500:e893f964",
       "2000:5260ebe5",
       "2500:85c107bb",
-      "3000:360f0376",
-      "3500:43b18ba6",
-      "4000:daeb3e5e",
-      "4500:d87b9f12",
-      "5000:31e66798",
-      "5500:9fc24028",
-      "6000:d10f43ab",
-      "6500:acabc811",
-      "7000:6a35f9af",
-      "7500:24c58add",
-      "8000:8b68faee",
-      "8500:abb01095",
-      "9000:598e33e8"
+      "3000:d72701ad",
+      "3500:34ea489c",
+      "4000:857025e1",
+      "4500:996a5ef5",
+      "5000:4a9f9bcc",
+      "5500:969fc8c6",
+      "6000:c5e07d28",
+      "6500:c80f5b0d",
+      "7000:015c40fd",
+      "7500:efc9bc3c",
+      "8000:a74660b3",
+      "8500:f14b0011",
+      "9000:2a72b0a9"
     ],
-    "events": "b9f48182",
-    "summary": "wave=6 kills=178 over=false time=300.00"
+    "events": "36371d82",
+    "summary": "wave=6 kills=205 over=false time=300.00"
   },
   "duo-immortal": {
     "checkpoints": [
@@ -54,12 +54,12 @@
       "4500:3b46ed39",
       "5000:ce95fc8b",
       "5500:dd771d6a",
-      "6000:b5962152",
-      "6500:773be22c",
-      "7000:2bddeebd"
+      "6000:b6216dab",
+      "6500:77eee138",
+      "7000:c1ae382e"
     ],
-    "events": "3fc47853",
-    "summary": "wave=4 kills=215 over=false time=233.33"
+    "events": "655da15d",
+    "summary": "wave=4 kills=214 over=false time=233.33"
   },
   "squad4-natural": {
     "checkpoints": [
@@ -67,16 +67,16 @@
       "1000:2b6bac7a",
       "1500:3cf8b4fd",
       "2000:0c7177ae",
-      "2500:220a1ad6",
-      "3000:43545829",
-      "3500:73ab6125",
-      "4000:406c7ff1",
-      "4500:f575214b",
-      "5000:7216b7d4",
-      "5500:687c826e",
-      "6000:74ac2504"
+      "2500:16bba677",
+      "3000:315e5ab2",
+      "3500:d475bafe",
+      "4000:e5ca5755",
+      "4500:497c1577",
+      "5000:38fb862e",
+      "5500:c5117952",
+      "6000:c58dc13e"
     ],
-    "events": "fbc58773",
+    "events": "80dd50f4",
     "summary": "wave=3 kills=337 over=false time=200.00"
   },
   "squad4-immortal": {
@@ -93,10 +93,10 @@
       "5000:fe04f6f3",
       "5500:26c04338",
       "6000:fdbdde1e",
-      "6500:e7178457",
-      "7000:018655a8"
+      "6500:366c75f4",
+      "7000:42556eda"
     ],
-    "events": "77e3138f",
-    "summary": "wave=4 kills=392 over=false time=233.33"
+    "events": "61f0db62",
+    "summary": "wave=4 kills=387 over=false time=233.33"
   }
 }

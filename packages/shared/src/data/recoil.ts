@@ -42,6 +42,13 @@ export const WEAPON_RECOIL: Readonly<Record<string, WeaponRecoilDef>> = {
   plasma_gun: { kickDeg: 2, kickDistPx: 4, recoveryPerS: 3, maxDeg: 5 },
   meltagun: { kickDeg: 6, kickDistPx: 10, recoveryPerS: 2.8, maxDeg: 7 },
   frag_grenade: { kickDeg: 2, recoveryPerS: 3, maxDeg: 4 },
+  storm_bolter: { kickDeg: 0.7, kickDistPx: 1.8, recoveryPerS: 3.2, maxDeg: 4 },
+  inferno_pistol: { kickDeg: 4, kickDistPx: 7, recoveryPerS: 2.8, maxDeg: 6 },
+  plasma_caster: { kickDeg: 1.2, kickDistPx: 3, recoveryPerS: 3.2, maxDeg: 4 },
+  siege_bolter: { kickDeg: 1.6, kickDistPx: 3.5, recoveryPerS: 2.8, maxDeg: 6 },
+  plasma_pistol: { kickDeg: 2.4, kickDistPx: 5, recoveryPerS: 3, maxDeg: 5 },
+  bolt_carbine: { kickDeg: 0.45, kickDistPx: 1.2, recoveryPerS: 3.4, maxDeg: 2.5 },
+  stalker_bolter: { kickDeg: 1.4, kickDistPx: 3, recoveryPerS: 2.8, maxDeg: 4 },
 };
 
 /** Weapons without an entry (future content) kick like a bolt rifle. */

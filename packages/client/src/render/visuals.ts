@@ -218,12 +218,19 @@ export interface WeaponVisual {
 }
 
 export const WEAPON_VISUALS: Record<string, WeaponVisual> = {
-  bolt_rifle: { muzzle: 1, muzzleColor: '#ffd070', recoil: 3, shake: 0.6, casing: true },
-  heavy_bolter: { muzzle: 1.35, muzzleColor: '#ffc060', recoil: 4, shake: 1.6, casing: true },
+  bolt_rifle: { muzzle: 1.15, muzzleColor: '#ffd070', recoil: 3, shake: 0.9, casing: true },
+  heavy_bolter: { muzzle: 1.45, muzzleColor: '#ffc060', recoil: 4, shake: 1.8, casing: true },
   flamer: { muzzle: 0, muzzleColor: '#ff9030', recoil: 0.5, shake: 0, casing: false },
-  plasma_gun: { muzzle: 1.1, muzzleColor: '#8fe4ff', recoil: 3, shake: 1.2, casing: false },
-  meltagun: { muzzle: 1.4, muzzleColor: '#ffb070', recoil: 5, shake: 3, casing: false },
+  plasma_gun: { muzzle: 1.25, muzzleColor: '#8fe4ff', recoil: 3, shake: 1.5, casing: false },
+  meltagun: { muzzle: 1.55, muzzleColor: '#ffb070', recoil: 5, shake: 3.2, casing: false },
   frag_grenade: { muzzle: 0, muzzleColor: '#ffd070', recoil: -3, shake: 0, casing: false },
+  storm_bolter: { muzzle: 1.2, muzzleColor: '#8ab0ff', recoil: 3, shake: 1.1, casing: true },
+  inferno_pistol: { muzzle: 1.5, muzzleColor: '#ff6a2a', recoil: 4, shake: 2.4, casing: false },
+  plasma_caster: { muzzle: 1.2, muzzleColor: '#3cff9a', recoil: 2.5, shake: 1.3, casing: false },
+  siege_bolter: { muzzle: 1.3, muzzleColor: '#e8d24a', recoil: 4, shake: 1.7, casing: true },
+  plasma_pistol: { muzzle: 1.25, muzzleColor: '#8ec8ff', recoil: 3, shake: 1.6, casing: false },
+  bolt_carbine: { muzzle: 0.95, muzzleColor: '#ffb070', recoil: 2.2, shake: 0.7, casing: true },
+  stalker_bolter: { muzzle: 0.85, muzzleColor: '#d0d4e0', recoil: 4, shake: 1.2, casing: true },
 };
 
 export const DEFAULT_WEAPON_VISUAL: WeaponVisual = {
@@ -239,9 +246,9 @@ export const DEFAULT_WEAPON_VISUAL: WeaponVisual = {
  * shot but never further back than the barrel tip, so the first frames visibly leave the muzzle.
  */
 export const PROJECTILE_TRACERS: Record<string, { len: number; color: string; width: number }> = {
-  bolt: { len: 26, color: '#ffd070', width: 2 },
-  heavy_bolt: { len: 34, color: '#ffc060', width: 2.6 },
-  plasma: { len: 24, color: '#8fe4ff', width: 3 },
+  bolt: { len: 32, color: '#ffd070', width: 2.2 },
+  heavy_bolt: { len: 40, color: '#ffc060', width: 2.8 },
+  plasma: { len: 30, color: '#8fe4ff', width: 3.2 },
   plasma_super: { len: 32, color: '#c8f4ff', width: 4 },
-  melta: { len: 30, color: '#ffb070', width: 3.4 },
+  melta: { len: 36, color: '#ffb070', width: 3.6 },
 };
