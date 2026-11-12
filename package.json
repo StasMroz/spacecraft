@@ -16,7 +16,7 @@
     "dev:client": "npm run dev -w @sms/client",
     "assets": "npm run generate -w @sms/tools",
     "build": "npm run typecheck && npm run build -w @sms/server && npm run build -w @sms/client",
-    "build:pages": "npm run assets --silent && BASE_PATH=${BASE_PATH:-/spacecraft/} npm run build -w @sms/client",
+    "build:pages": "npm run assets --silent && BASE_PATH=${BASE_PATH:-/spacecraft/} npm run build -w @sms/client && npx tsx scripts/write-versions-json.ts",
     "start": "npm run start -w @sms/server",
     "preview": "npm run preview -w @sms/client",
     "typecheck": "tsc -p packages/shared && tsc -p packages/server && tsc -p packages/client && tsc -p tools",

@@ -1,5 +1,9 @@
 # Changelog
 
+## v36
+
+- Pages: `build:pages` zapisuje `versions.json` z wpisów CHANGELOG (`version`, `date`, `title`, `path`). Na Actions nie ma zamrożonych katalogów `/vN/`, więc `path` prowadzi do GitHub Release danej wersji — menu „Previous versions” nie dostaje 404.
+
 ## v35
 
 - Misje ofensywne: na zrzucie odblokowana jest broń wręcz zakonu (ta, która w Oblężeniu ula wchodzi od fali 2 — tutaj fal z krawędzi nie ma). HUD nie pokazuje już „WAVE 0 / NEXT IN Infinity”, tylko „BEZ FAL”.
