@@ -1,5 +1,10 @@
 # Changelog
 
+## v47
+
+- Menu: Pojedynek (kind=duel) w pickerze z tagiem PvP i odprawą „2 graczy = 1v1, 4 = 2v2, pierwszy do N zabójstw, bez rankingu” (N z duelTo). SOLO DEPLOY jest zablokowane — pojedynek wymaga drużyny (HOST SQUAD). `?autosolo=1&mission=duel` nadal odpalą pustą arenę do podglądu.
+- Lobby: przy pojedynku START jest zablokowany przy 1 graczu (komunikat); przy 3 ostrzeżenie 2v1. Inne misje bez zmian.
+
 ## v46
 
 - Pojedynki PvP (`duel`, `?mission=duel`): marine vs marine na małej arenie z osłonami, na istniejącym P2P. 1v1 albo 2v2 (narożniki zachód–wschód). Pierwszy do dwóch zabójstw (best of 3). Po upadku odrodzenie w swoim rogu, wynik w HUD, bez Tyranidów i bez rankingu. `HostSession.setMission('duel')` działa jak przy innych zleceniach. Brief dla menu: `docs/BRIEF-duel-menu.md`.

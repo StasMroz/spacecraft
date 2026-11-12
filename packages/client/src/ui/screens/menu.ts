@@ -54,12 +54,51 @@ export function formatTimeLimit(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-/** Compact tags: supply drops and/or a clock, omitted when neither applies. */
+export function isDuelMission(id: string | undefined | null): boolean {
+  return getMission(resolvedMissionId(id)).kind === 'duel';
+}
+
+/** Compact tags: supply drops and/or a clock, omitted when neither applies. Duel shows PvP. */
 export function missionTags(m: MissionDef): string {
+  if (m.kind === 'duel') return 'PvP';
   const tags: string[] = [];
   if (m.crates) tags.push('drops');
   if (m.timeLimit !== null) tags.push(formatTimeLimit(m.timeLimit));
   return tags.join(' · ');
+}
+
+/** Why SOLO DEPLOY is blocked for a PvP duel, or null if solo is allowed. */
+const DUEL_SOLO_NEEDED = 'A duel needs a squad — use HOST SQUAD.';
+
+export function duelSoloMessage(missionId: string | undefined | null): string | null {
+  return isDuelMission(missionId) ? DUEL_SOLO_NEEDED : null;
+}
+
+export function duelBriefingHint(m: MissionDef): string | null {
+  if (m.kind !== 'duel') return null;
+  const n = m.duelTo ?? 2;
+  return `2 graczy = 1v1, 4 = 2v2, pierwszy do ${n} zabójstw, bez rankingu`;
+}
+
+/** Lobby start rules for a duel. Other missions leave blockStart false and hint null. */
+export function duelLobbyAdvice(
+  missionId: string | undefined | null,
+  playerCount: number,
+): { blockStart: boolean; hint: string | null } {
+  if (!isDuelMission(missionId)) return { blockStart: false, hint: null };
+  if (playerCount < 2) {
+    return {
+      blockStart: true,
+      hint: 'A duel needs at least two players (1v1 or 2v2).',
+    };
+  }
+  if (playerCount === 3) {
+    return {
+      blockStart: false,
+      hint: '3 players: the duel will be 2v1. 2 (1v1) or 4 (2v2) is better.',
+    };
+  }
+  return { blockStart: false, hint: null };
 }
 
 export function mapLabel(mapId: string): string {
@@ -76,6 +115,7 @@ export function missionClockLabel(m: MissionDef): string {
 
 /** Map, resupply and clock, one compact line for the briefing. */
 export function missionMetaLine(m: MissionDef): string {
+  if (m.kind === 'duel') return `${mapLabel(m.map)} · PvP`;
   const parts = [mapLabel(m.map), missionSupplyLabel(m), missionClockLabel(m)];
   if (m.assault) parts.push('desant ofensywny');
   return parts.join(' · ');
@@ -101,11 +141,13 @@ export function chapterLoadoutHtml(content: ContentRegistry, chapterId: string):
 /** 40k-style briefing for the selected mission, built only from catalogue fields. */
 export function missionBriefingHtml(id: string | undefined | null): string {
   const m = getMission(resolvedMissionId(id));
+  const hint = duelBriefingHint(m);
   return `<div class="mission-briefing">
     <h3 class="mission-briefing-title">BRIEFING</h3>
     <p class="mission-picked">${escapeHtml(m.name)}</p>
     <p class="mission-desc" id="mission-desc">${escapeHtml(m.description)}</p>
     <p class="mission-objective" id="mission-objective">${escapeHtml(m.objective)}</p>
+    <p class="mission-hint" id="mission-hint"${hint ? '' : ' hidden'}>${hint ? escapeHtml(hint) : ''}</p>
     <p class="mission-meta muted small" id="mission-meta">${escapeHtml(missionMetaLine(m))}</p>
   </div>`;
 }
@@ -152,8 +194,14 @@ export function paintMissionDetails(root: ParentNode, id: string | undefined | n
   const objective = root.querySelector('#mission-objective');
   const meta = root.querySelector('#mission-meta');
   const picked = root.querySelector('.mission-picked');
+  const hintEl = root.querySelector<HTMLElement>('#mission-hint');
+  const hint = duelBriefingHint(m);
   if (desc) desc.textContent = m.description;
   if (objective) objective.textContent = m.objective;
+  if (hintEl) {
+    hintEl.textContent = hint ?? '';
+    hintEl.hidden = !hint;
+  }
   if (meta) meta.textContent = missionMetaLine(m);
   if (picked) picked.textContent = m.name;
   for (const input of root.querySelectorAll<HTMLInputElement>('input[name="mission"]')) {
@@ -192,12 +240,23 @@ export function createMenuScreen(actions: MenuActions, opts: MenuOptions): HTMLE
   );
   $(el, '#meta').append(createVersionsLink());
   if (opts.mixer) $(el, '#mixer').append(createMixerPanel(opts.mixer));
-  bindMissionPicker(el, (id) => prefs.setMission(id));
   const name = $<HTMLInputElement>(el, '#name');
   const code = $<HTMLInputElement>(el, '#code');
   const err = $(el, '#err');
+  const soloBtn = $<HTMLButtonElement>(el, '#solo');
+  const syncSolo = () => {
+    const msg = duelSoloMessage(selectedMissionId(el));
+    soloBtn.disabled = !!msg;
+    if (msg) err.textContent = msg;
+    else if (err.textContent === DUEL_SOLO_NEEDED) err.textContent = '';
+  };
+  bindMissionPicker(el, (id) => {
+    prefs.setMission(id);
+    syncSolo();
+  });
   name.value = storage.get(NAME_KEY, '');
   if (opts.joinCode) code.value = opts.joinCode;
+  syncSolo();
   if (opts.error) err.textContent = opts.error;
 
   const getName = (): string | null => {
@@ -212,9 +271,14 @@ export function createMenuScreen(actions: MenuActions, opts: MenuOptions): HTMLE
     busy(true);
     fn();
   };
-  $(el, '#solo').addEventListener('click', () =>
-    run(() => actions.solo(getName()!, selectedMissionId(el))),
-  );
+  $(el, '#solo').addEventListener('click', () => {
+    const msg = duelSoloMessage(selectedMissionId(el));
+    if (msg) {
+      err.textContent = msg;
+      return;
+    }
+    run(() => actions.solo(getName()!, selectedMissionId(el)));
+  });
   $(el, '#host').addEventListener('click', () => run(() => actions.host(getName()!)));
   const doJoin = () => {
     if (!code.value.trim()) {

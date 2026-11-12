@@ -348,6 +348,12 @@ button.primary:hover:not(:disabled) {
   font-size: 12px;
   line-height: 1.35;
 }
+.mission-hint {
+  margin: 3px 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--accent);
+}
 .mission-meta,
 .mission-map {
   margin: 2px 0 0;

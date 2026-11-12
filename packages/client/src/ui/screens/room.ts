@@ -5,6 +5,7 @@ import { escapeHtml } from '../format.js';
 import {
   bindMissionPicker,
   chapterLoadoutHtml,
+  duelLobbyAdvice,
   lobbyMissionMarkup,
   missionPickerMarkup,
   paintMissionDetails,
@@ -120,12 +121,13 @@ export function createRoomScreen(
     picker.el.style.pointerEvents = l.phase === 'lobby' ? '' : 'none';
     const owner = session.isOwner;
     start.style.display = owner ? '' : 'none';
-    start.disabled = l.phase === 'playing';
+    const advice = duelLobbyAdvice(l.mission, l.players.length);
+    start.disabled = l.phase === 'playing' || (owner && advice.blockStart);
     renderVoice(l);
     paintMissionDetails(missionSlot, l.mission);
-    hint.textContent = owner
-      ? `Start when your squad is ready (${l.players.length}/${l.maxPlayers}).`
-      : 'Waiting for the squad leader to start…';
+    if (!owner) hint.textContent = 'Waiting for the squad leader to start…';
+    else if (advice.hint) hint.textContent = advice.hint;
+    else hint.textContent = `Start when your squad is ready (${l.players.length}/${l.maxPlayers}).`;
   };
   function renderVoice(l: LobbyInfo): void {
     const state = el.querySelector('#voice-state');
@@ -167,6 +169,8 @@ export function createRoomScreen(
     }
   });
   start.addEventListener('click', () => {
+    const l = session.lobby;
+    if (duelLobbyAdvice(l?.mission, l?.players.length ?? 0).blockStart) return;
     start.disabled = true;
     session.requestStart();
   });
