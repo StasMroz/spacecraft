@@ -4,6 +4,7 @@ import { clamp, dist2 } from '../../math/vec.js';
 import type { World } from '../types.js';
 import { spawnCrate, spawnEnemy } from './director.js';
 import { dropCaps } from './director.js';
+import { unlockWaveWeapons } from './weapons.js';
 
 /** Reposition the squad at the drop zone and seed the already-deployed Tyranid force. */
 export function setupAssault(world: World): void {
@@ -36,6 +37,8 @@ export function setupAssault(world: World): void {
     seedAround(world, bx, by, bossGuard(team));
   }
   for (const g of def.patrols ?? []) seedAround(world, g[0], g[1], patrol(team, g[2]));
+  // No edge waves, so grant the wave-2 loadout (chapter melee) at the drop.
+  for (let wave = 1; wave <= 2; wave++) unlockWaveWeapons(world, wave);
 }
 
 export function updateAssault(world: World, dt: number): void {

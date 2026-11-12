@@ -1,5 +1,9 @@
 # Changelog
 
+## v35
+
+- Misje ofensywne: na zrzucie odblokowana jest broń wręcz zakonu (ta, która w Oblężeniu ula wchodzi od fali 2 — tutaj fal z krawędzi nie ma). HUD nie pokazuje już „WAVE 0 / NEXT IN Infinity”, tylko „BEZ FAL”.
+
 ## v34
 
 - Dwie misje ofensywne zamiast „fale + timer”: **Zabójstwo tyrana** (`hold_the_line`) i **Spalenie gniazd** (`synapse_purge`). Oddział startuje w strefie zrzutu wśród już rozstawionych Tyranidów; dyrektor nie wysyła fal z krawędzi. Posiłki HD2 i zrzuty skrzyń zostają. Oblężenie ula bez zmian (klasyczne fale). Identyfikatory misji, pola `name` / `description` / `objective` / `map` / `crates` / `timeLimit` zachowane dla pickera menu.

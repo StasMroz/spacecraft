@@ -255,6 +255,19 @@ function missionBrief(s: HudState): {
 }
 
 /** Screen-space HUD drawn on the game canvas. */
+function waveStatusLine(s: HudState, kills: number, tail: string): string {
+  const wv = s.snap.wv;
+  if (wv && !wv.a && !Number.isFinite(wv.nx ?? 0)) {
+    return `BEZ FAL  ✠  ${kills}${tail}`;
+  }
+  const status = !wv
+    ? `${s.snap.enemies.length} XENOS`
+    : wv.a
+      ? `${wv.r} ${tail.includes('PURGED') ? 'LEFT' : 'REMAINING'}`
+      : `NEXT IN ${Math.ceil(wv.nx ?? 0)}s`;
+  return `WAVE ${s.snap.wave}  ✠  ${status}  ✠  ${kills}${tail}`;
+}
+
 export class Hud {
   constructor(
     private readonly assets: Assets,
@@ -525,13 +538,8 @@ export class Hud {
     ctx.font = F(600, 10);
     const kills = s.snap.players.reduce((a, p) => a + p.k, 0);
     const wv = s.snap.wv;
-    const status = !wv
-      ? `${s.snap.enemies.length} XENOS`
-      : wv.a
-        ? `${wv.r} REMAINING`
-        : `NEXT IN ${Math.ceil(wv.nx ?? 0)}s`;
     ctx.fillStyle = wv?.h ? '#ff8a60' : HUD.gold;
-    ctx.fillText(`WAVE ${s.snap.wave}  ✠  ${status}  ✠  ${kills}  ✠  ${m.reinf}`, w / 2, 82);
+    ctx.fillText(waveStatusLine(s, kills, `  ✠  ${m.reinf}`), w / 2, 82);
   }
 
   /** Compact-phone mission / timer / reinforcement plate in the top band. */
@@ -686,13 +694,8 @@ export class Hud {
     ctx.font = F(600, 10);
     const kills = s.snap.players.reduce((a, p) => a + p.k, 0);
     const wv = s.snap.wv;
-    const status = !wv
-      ? `${s.snap.enemies.length} XENOS`
-      : wv.a
-        ? `${wv.r} LEFT`
-        : `NEXT IN ${Math.ceil(wv.nx ?? 0)}s`;
     ctx.fillStyle = wv?.h ? '#ff8a60' : HUD.gold;
-    ctx.fillText(`WAVE ${s.snap.wave}  ✠  ${status}  ✠  ${kills} PURGED`, x + 10, y + 49);
+    ctx.fillText(waveStatusLine(s, kills, ' PURGED'), x + 10, y + 49);
     if (!me) return;
     const ay = b.armourY;
     const frac = me.st === 'alive' ? Math.max(0, me.hp / me.mhp) : 0;

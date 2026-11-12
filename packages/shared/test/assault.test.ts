@@ -86,4 +86,14 @@ describe('assault missions', () => {
     steps(w, Math.ceil(16 / TICK_DT));
     expect(alive()).toBeLessThanOrEqual(frozen);
   });
+  it('assault drop grants the chapter melee (wave 2) because there are no edge waves', () => {
+    const w = world('hold_the_line');
+    const p = w.players[0]!;
+    const melee = w.content.chapter(p.chapter).meleeWeapon;
+    expect(melee).toBeTruthy();
+    expect(p.weapons).toContain(melee);
+    const siege = world('hive_siege');
+    const sp = siege.players[0]!;
+    expect(sp.weapons).not.toContain(siege.content.chapter(sp.chapter).meleeWeapon);
+  });
 });
