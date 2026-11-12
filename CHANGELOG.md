@@ -1,5 +1,9 @@
 # Changelog
 
+## v31
+
+- Menu: wybór misji nie renderuje już radia jak pola tekstowego. Globalna reguła `input` była stosowana do radio; teraz radio jest ukryte wizualnie, a cały wiersz działa jak chip zakonu — nazwa z lewej, zrzuty i limit z prawej, w szerokości karty.
+
 ## v30
 
 - Menu: wybór misji przed SOLO DEPLOY — 5 zleceń z katalogu (nazwa, krótki opis, zrzuty i limit czasu, podpis mapy). Domyślnie Oblężenie ula (hive_siege).

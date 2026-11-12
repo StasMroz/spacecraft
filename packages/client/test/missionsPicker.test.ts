@@ -112,3 +112,18 @@ describe('lobby mission briefing', () => {
     expect(lobbyMissionMarkup('nope')).toContain(getMission('hive_siege').name);
   });
 });
+
+describe('mission picker CSS', () => {
+  it('resets radio inputs so the global text-field rule cannot stretch them', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+    const start = css.indexOf(".mission-chip input[type='radio']");
+    expect(start).toBeGreaterThanOrEqual(0);
+    const body = css.slice(start, css.indexOf('}', start) + 1);
+    expect(body).toContain('appearance: none');
+    expect(body).toMatch(/width:\s*1px/);
+    expect(body).toContain('min-height: 0');
+    expect(body).toContain('padding: 0');
+    expect(body).toContain('border: 0');
+  });
+});
