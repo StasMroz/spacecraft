@@ -1,5 +1,12 @@
 # Changelog
 
+## v34
+
+- Dwie misje ofensywne zamiast „fale + timer”: **Zabójstwo tyrana** (`hold_the_line`) i **Spalenie gniazd** (`synapse_purge`). Oddział startuje w strefie zrzutu wśród już rozstawionych Tyranidów; dyrektor nie wysyła fal z krawędzi. Posiłki HD2 i zrzuty skrzyń zostają. Oblężenie ula bez zmian (klasyczne fale). Identyfikatory misji, pola `name` / `description` / `objective` / `map` / `crates` / `timeLimit` zachowane dla pickera menu.
+- Zabójstwo tyrana (mapa ula, limit 190 s): wzmocniony Carnifex (strażnik synapsy) z gwardią na drugim końcu areny, patrole po drodze. Ekstrakcja otwiera się po jego śmierci.
+- Spalenie gniazd (dżungla, limit 300 s): trzy gniazda w kolejnych sektorach wypuszczają posiłki, aż zostaną zniszczone; potem ekstrakcja na drugim końcu. Strzałka HUD wskazuje najbliższe gniazdo albo strefę evakuacji.
+- Ewakuacja i Odzyskaj relikwię bez zmian w tej wersji. Testy zachowania (rozstawienie, brak fal, gniazdo przestaje sypać po zniszczeniu, zabicie bossa otwiera ekstrakcję) dodane.
+
 ## v33
 
 - Menu i lobby: zaznaczona misja ma zwartą odprawę BRIEFING (nazwa, opis, cel, mapa, zrzuty albo ich brak, limit czasu albo „bez limitu”), złożoną z pól katalogu — bez wpisanych na sztywno id ani nazw misji.

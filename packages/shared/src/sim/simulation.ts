@@ -1,6 +1,8 @@
 import { TICK_DT } from '../constants.js';
 import { SpatialHash } from './spatialHash.js';
 import { updateDirector } from './systems/director.js';
+import { setupAssault, updateAssault } from './systems/assault.js';
+import { worldBoot } from './world.js';
 import { updateEnemies } from './systems/enemies.js';
 import { updateAcid } from './systems/acid.js';
 import { updateAllies } from './systems/allies.js';
@@ -14,6 +16,7 @@ import { unlockWaveWeapons, updatePlayerWeapon } from './systems/weapons.js';
 import type { Enemy, PlayerInput, World } from './types.js';
 
 const enemyHash = new SpatialHash<Enemy>(64);
+worldBoot.push(setupAssault);
 
 /** Sets a player's input for the next tick. */
 export function applyInput(world: World, playerId: number, input: PlayerInput): void {
@@ -44,6 +47,7 @@ export function stepWorld(world: World, dt: number = TICK_DT): void {
   rebuildHash(world);
   const prevWave = world.director.wave;
   updateDirector(world, dt);
+  updateAssault(world, dt);
   // Weapons unlock at the start of their wave (after the director's 'surge' event).
   if (world.director.wave !== prevWave) unlockWaveWeapons(world, world.director.wave);
   updateCrash(world, dt);

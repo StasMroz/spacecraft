@@ -37,6 +37,21 @@ export interface MissionDef {
   targetHp?: number;
   /** Carry-object radius and pickup radius (kind === 'retrieve'). */
   relic?: { radius: number; carryMul: number };
+  /**
+   * Offensive drop: the squad starts at `start` among already-deployed Tyranids.
+   * The wave director does not send edge waves; enemies come from placement and nests.
+   */
+  assault?: boolean;
+  /** Drop-zone (world px). Default: west-centre of the arena. */
+  start?: [number, number];
+  /** Hunt target (existing enemy type, usually a buffed Carnifex). Extract opens when it dies. */
+  boss?: string;
+  bossHpMul?: number;
+  bossAt?: [number, number];
+  /** Destroy-targets act as nests and keep spawning until destroyed. */
+  nests?: { interval: number; maxAlive: number; types: string[] };
+  /** Extra pre-placed groups: [x, y, kind] (kind 0 = stealers, 1 = gaunts). */
+  patrols?: [number, number, number][];
 }
 
 export const DEFAULT_MISSION_ID = 'hive_siege';
@@ -59,18 +74,28 @@ export const MISSIONS: readonly MissionDef[] = [
   },
   {
     id: 'hold_the_line',
-    name: 'Oczyść i utrzymaj',
+    name: 'Zabójstwo tyrana',
     description:
-      'Utrzymaj pokład ula pod naporem fal. Po 2,5 minuty nadlatuje Thunderhawk — wejdź do strefy ekstrakcji i utrzymaj ją.',
-    objective: 'Utrzymaj pozycję, potem wejdź do strefy ekstrakcji.',
+      'Lądujecie na pokładzie, który już roi się od Tyranidów. Zapolcie na wzmocnionego Carnifexa — strażnika synapsy — chronionego przez gwardię, potem wezwijcie Thunderhawka. Bez fal z krawędzi: wróg już stoi na pozycji.',
+    objective: 'Zabij strażnika synapsy i ewakuuj się.',
     kind: 'hold',
     map: 'wave',
     timeLimit: 190,
-    extractOpensAt: 150,
-    extractWindow: 40,
+    extractOpensAt: null,
+    extractWindow: null,
     extractHold: 5,
     crates: true,
-    crash: true,
+    crash: false,
+    assault: true,
+    start: [480, 1100],
+    boss: 'carnifex',
+    bossHpMul: 1.7,
+    bossAt: [2500, 400],
+    patrols: [
+      [1100, 900, 1],
+      [1700, 600, 0],
+      [2000, 1200, 1],
+    ],
   },
   {
     id: 'evacuation',
@@ -89,20 +114,27 @@ export const MISSIONS: readonly MissionDef[] = [
   },
   {
     id: 'synapse_purge',
-    name: 'Czystka synapsy',
+    name: 'Spalenie gniazd',
     description:
-      'Na zainfekowanej dżungli biomasy stoją kapilary synapsy. Zniszcz je, potem wezwij ekstrakcję.',
-    objective: 'Zniszcz kapilary synapsy i ewakuuj się.',
+      'Lądujecie na skraju dżungli biomasy i przebijacie się przez trzy sektory ula. Spalcie gniazda — każde, dopóki stoi, wypuszcza posiłki. Tyranidzi są już rozstawieni; fal z krawędzi nie ma.',
+    objective: 'Zniszcz gniazda i ewakuuj się.',
     kind: 'destroy',
     map: 'jungle',
     timeLimit: 300,
-    extractOpensAt: null, // opens when the last target dies
+    extractOpensAt: null, // opens when the last nest dies
     extractWindow: null,
     extractHold: 5,
     crates: true,
     crash: false,
     targets: 3,
     targetHp: 400,
+    assault: true,
+    start: [600, 400],
+    nests: { interval: 5, maxAlive: 5, types: ['termagant', 'hormagaunt'] },
+    patrols: [
+      [1200, 800, 1],
+      [1800, 1100, 0],
+    ],
   },
   {
     id: 'relic_recovery',

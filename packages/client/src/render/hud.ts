@@ -230,7 +230,10 @@ function missionBrief(s: HudState): {
   if (mi) {
     if (mi.tg.length) {
       const done = mi.tg.filter((t) => t.hp <= 0).length;
-      objective = `Kapilary synapsy: ${done}/${mi.tg.length}`;
+      const nest = findMission(mi.id)?.nests;
+      objective = nest
+        ? `Gniazda: ${done}/${mi.tg.length}`
+        : `Kapilary synapsy: ${done}/${mi.tg.length}`;
     }
     if (mi.rx !== undefined) {
       objective = mi.rc ? 'Donieś relikwię do strefy ekstrakcji.' : 'Odzyskaj relikwię.';

@@ -1,4 +1,5 @@
 import { MAX_PLAYERS, PICKUP } from '../../constants.js';
+import { getMission } from '../../data/missions.js';
 import { pushOutOfWalls } from '../walls.js';
 import type { DirectorConfig, PerTeamSize, WaveTableEntry } from '../../data/index.js';
 import { clamp, dist2 } from '../../math/vec.js';
@@ -189,6 +190,7 @@ export function updateDirector(world: World, dt: number): void {
   const cfg = world.content.director;
   const st = world.director;
   if (st.idle) return;
+  if (getMission(world.mission.id).assault) return;
   const t = world.time;
   if (alivePlayers(world).length === 0) return;
 

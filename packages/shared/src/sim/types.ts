@@ -436,6 +436,10 @@ export interface MissionState {
   /** Player id carrying the relic; null = on the ground; undefined = no relic. */
   relicCarrier?: number | null;
   outcome?: 'victory' | 'defeat';
+  /** Hunt target (assault); extract opens when this enemy is dead or gone. */
+  bossId?: number;
+  /** Seconds until each destroy-target nest tries to spawn (assault). */
+  nestNext?: number[];
 }
 
 export interface ReinforcePod {

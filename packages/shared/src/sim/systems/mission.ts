@@ -23,7 +23,7 @@ const LANDMARKS: Record<string, Landmark> = {
     relic: [700, 400],
   },
   jungle: {
-    extract: [600, 400],
+    extract: [2500, 1700],
     targets: [
       [500, 1650],
       [2550, 450],
@@ -192,11 +192,19 @@ function tryPickupRelic(world: World): void {
   }
 }
 
+export function bossDown(world: World): boolean {
+  const id = world.mission.bossId;
+  if (id == null) return true;
+  const b = world.enemies.find((e) => e.id === id);
+  return !b || b.dead;
+}
+
 function extractEligible(world: World): boolean {
   const m = world.mission;
   if (m.kind === 'endless') return false;
   if (m.kind === 'destroy' && m.targets.some((t) => t.hp > 0)) return false;
   if (m.kind === 'retrieve' && m.relicCarrier == null) return false;
+  if (!bossDown(world)) return false;
   return m.extractHold > 0;
 }
 
@@ -210,8 +218,12 @@ function refreshExtractOpen(world: World): void {
     m.extractOpen = false;
     return;
   }
-  if (m.extractOpensAt === null && m.kind === 'destroy') {
-    // Opens once the last target dies.
+  if (!bossDown(world)) {
+    m.extractOpen = false;
+    return;
+  }
+  if (m.extractOpensAt === null && (m.kind === 'destroy' || m.bossId != null)) {
+    // Opens once the last nest dies / the hunt target is down.
     m.extractOpen = true;
     return;
   }

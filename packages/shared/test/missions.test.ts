@@ -64,11 +64,10 @@ describe('mission catalogue', () => {
 });
 
 describe('mission timer and extract', () => {
-  it('hold_the_line fails when the extract window closes with nobody in the zone', () => {
+  it('hold_the_line fails when the time limit runs out with the hunt unfinished', () => {
     const w = one('hold_the_line');
     expect(w.mission.timeLimit).toBe(190);
-    expect(w.mission.extractOpensAt).toBe(150);
-    // Skip to just after the window: 190s + a tick.
+    expect(w.mission.extractOpensAt).toBeNull();
     const ticks = Math.ceil(191 / TICK_DT);
     for (let i = 0; i < ticks && !w.over; i++) stepWorld(w, TICK_DT);
     expect(w.over).toBe(true);

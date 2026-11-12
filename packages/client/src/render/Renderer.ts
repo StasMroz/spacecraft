@@ -601,6 +601,55 @@ export class Renderer {
       ctx.fillStyle = `rgba(0,0,0,${0.25 + 0.4 * drop})`;
       ctx.fill();
     }
+    if (def?.assault) {
+      const cx = this.camera.x;
+      const cy = this.camera.y;
+      let tx: number | null = null;
+      let ty: number | null = null;
+      const live = mi.tg.filter((t) => t.hp > 0);
+      if (live.length) {
+        let best = live[0]!;
+        let d = Infinity;
+        for (const t of live) {
+          const dd = (t.x - cx) * (t.x - cx) + (t.y - cy) * (t.y - cy);
+          if (dd < d) {
+            d = dd;
+            best = t;
+          }
+        }
+        tx = best.x;
+        ty = best.y;
+      } else if (def.extractHold > 0) {
+        tx = mi.ex;
+        ty = mi.ey;
+      }
+      if (tx != null && ty != null) {
+        const dx = tx - cx;
+        const dy = ty - cy;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 200) {
+          const a = Math.atan2(dy, dx);
+          const r = 96;
+          const x = cx + Math.cos(a) * r;
+          const y = cy + Math.sin(a) * r;
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(a);
+          ctx.fillStyle = 'rgba(232, 200, 90, 0.9)';
+          ctx.strokeStyle = 'rgba(20, 12, 4, 0.8)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(18, 0);
+          ctx.lineTo(-12, 12);
+          ctx.lineTo(-6, 0);
+          ctx.lineTo(-12, -12);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+    }
     ctx.restore();
   }
 

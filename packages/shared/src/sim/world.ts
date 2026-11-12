@@ -19,6 +19,9 @@ export interface PlayerSetup {
   chapter?: number;
 }
 
+/** Post-create hooks (assault placement). Registered from simulation.ts to avoid cycles. */
+export const worldBoot: Array<(w: World) => void> = [];
+
 export function createWorld(
   players: PlayerSetup[],
   seed: number,
@@ -97,6 +100,7 @@ export function createWorld(
     );
   });
   world.mission = initMission(world, mid);
+  for (const boot of worldBoot) boot(world);
   return world;
 }
 
