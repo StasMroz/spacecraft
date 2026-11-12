@@ -1,5 +1,9 @@
 # Changelog
 
+## v42
+
+- Broń wręcz zakonów wyraźnie mocniejsza: ok. +49–55% DPS (termagant / warrior / carnifex), dłuższy zasięg i szerszy łuk, mocniejszy knockback. Przy zamachu krótki lifesteal (15–25% zadanych obrażeń) i odporność na przychodzące ciosy (25–35%). Tabela przed/po w raporcie. Broń dystansowa bez zmian. Charakter zachowany (pazury najszybsze, młoty najcięższe, głownia najdłuższa).
+
 ## v41
 
 - Głębia ścian: niskie osłony (barykady) malowały się _po_ cieniu LOS i w kolejności tablicy, więc było je widać jasno za wysokim murem (albo na jego wierzchu, gdy mapa listowała osłony po ścianach). Teraz niska osłona to warstwa podłoża — przed jednostkami i przed cieniem — a wysokie ściany malują się po cieniu, żeby ich lico zostało widoczne. W każdej warstwie y-sort (dalsze najpierw).

@@ -177,6 +177,10 @@ export interface WeaponDef {
   melee?: boolean;
   /** Visible swing style (chapter melee). Ignored on ranged weapons. */
   meleeFx?: MeleeFx;
+  /** Fraction of dealt melee damage healed on a connecting swing. */
+  meleeLifesteal?: number;
+  /** Incoming damage reduction while the swing is in motion (0.3 = 30% resist). */
+  meleeResist?: number;
 }
 
 /** How a melee weapon is swung in the renderer (pose is derived from remaining swing time). */

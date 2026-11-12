@@ -66,6 +66,10 @@ export function damageEnemy(
       ? world.players.find((p) => p.id === opts.sourcePlayerId)
       : undefined;
   if (shooter) shooter.damageDealt += dmg;
+  if (shooter && dmg > 0 && shooter.swing > 0 && shooter.state === 'alive') {
+    const steal = world.content.weapon(shooter.current).meleeLifesteal;
+    if (steal) shooter.hp = Math.min(shooter.maxHp, shooter.hp + dmg * steal);
+  }
   if (enemy.hp <= 0) killEnemy(world, enemy, shooter);
   return { dmg, saved };
 }
@@ -128,6 +132,10 @@ export function damagePlayer(
     const dy = 'dirX' in source ? source.dirY : source.fromY - player.y;
     const front = player.guarding ? MARINE_GUARD.frontMul : undefined;
     amount *= armourMul(player.aim, dx, dy, front);
+  }
+  if (player.swing > 0 && !opts?.dot) {
+    const resist = world.content.weapon(player.current).meleeResist;
+    if (resist) amount *= 1 - resist;
   }
   player.hp -= amount;
   if (!opts?.dot) player.invuln = PLAYER.hurtInvuln;
