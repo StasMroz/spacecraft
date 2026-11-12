@@ -16,6 +16,8 @@ export * from './guard.js';
 export * from './muzzle.js';
 export * from './recoil.js';
 export * from './crash.js';
+export * from './missions.js';
+export * from './reinforce.js';
 export { WEAPONS, ENEMIES, DIRECTOR, CHAPTERS, CRATE_DROP_FACTOR, MEDKIT_DROP_FACTOR };
 
 /**

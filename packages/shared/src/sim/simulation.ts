@@ -6,7 +6,9 @@ import { updateAcid } from './systems/acid.js';
 import { updateAllies } from './systems/allies.js';
 import { updateCrash } from './systems/crash.js';
 import { updatePickups } from './systems/pickups.js';
+import { updateMission } from './systems/mission.js';
 import { updatePlayerMovement, updatePlayerStatus } from './systems/players.js';
+import { squadWiped, updateReinforce } from './systems/reinforce.js';
 import { updateProjectiles } from './systems/projectiles.js';
 import { unlockWaveWeapons, updatePlayerWeapon } from './systems/weapons.js';
 import type { Enemy, PlayerInput, World } from './types.js';
@@ -52,11 +54,18 @@ export function stepWorld(world: World, dt: number = TICK_DT): void {
   updateProjectiles(world, enemyHash, dt);
   updateAcid(world, dt);
   updatePickups(world, dt);
+  updateMission(world, dt);
   updatePlayerStatus(world, dt);
+  updateReinforce(world, dt);
+  if (!world.over && squadWiped(world)) {
+    world.mission.outcome = 'defeat';
+    world.over = true;
+    world.events.push({ e: 'fail' });
+  }
   world.enemies = world.enemies.filter((e) => !e.dead);
 
   // One-shot inputs are consumed once per tick.
   for (const p of world.players) {
-    p.input = { ...p.input, slot: 0, reload: false };
+    p.input = { ...p.input, slot: 0, reload: false, reinforce: false };
   }
 }

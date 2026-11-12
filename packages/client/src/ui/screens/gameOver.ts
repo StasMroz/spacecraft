@@ -6,6 +6,7 @@ import type {
   RunResult,
   SquadSummary,
 } from '@sms/shared';
+import { findMission } from '@sms/shared';
 import { chapterBadgeSvg } from '../chapters.js';
 import { $, html } from '../dom.js';
 import { escapeHtml, formatTime } from '../format.js';
@@ -29,12 +30,14 @@ export function createGameOverScreen(
   },
   actions: GameOverActions,
 ): { el: HTMLElement } {
+  const won = result.outcome === 'victory';
+  const missionName = findMission(result.mission)?.name;
   const el = html(`<div class="screen gameover" data-tab="squad">
     <div class="go-left">
       <div class="card go-main">
-        <h1 class="dead">THE LINE HAS FALLEN</h1>
-        <div class="survived"><span class="muted">SURVIVED</span><div class="big">${formatTime(result.survivalMs)}</div>
-          <div class="muted">wave ${result.wave} · ${result.kills} kills · ${result.teamSize}-marine squad</div></div>
+        <h1 class="${won ? 'won' : 'dead'}">${won ? 'MISSION COMPLETE' : 'THE LINE HAS FALLEN'}</h1>
+        <div class="survived"><span class="muted">${won ? 'EXTRACTED' : 'SURVIVED'}</span><div class="big">${formatTime(result.survivalMs)}</div>
+          <div class="muted">${missionName ? `${escapeHtml(missionName)} · ` : ''}wave ${result.wave} · ${result.kills} kills · ${result.teamSize}-marine squad</div></div>
         <nav class="go-tabs" role="tablist">
           <button data-tab="squad" role="tab" class="active">SQUAD</button>
           <button data-tab="xenos" role="tab">XENOS</button>

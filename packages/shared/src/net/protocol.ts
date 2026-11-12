@@ -61,8 +61,10 @@ export type HostMessage =
        * own PeerJS mesh, so older clients just ignore the field (protocol stays v5).
        */
       voice?: boolean;
+      /** Chosen mission id (protocol v10). Absent = hive_siege. */
+      mission?: string;
     }
-  | { t: 'start'; seed: number; players: LobbyPlayer[] }
+  | { t: 'start'; seed: number; players: LobbyPlayer[]; mission?: string }
   | { t: 'snap'; s: Snapshot }
   | { t: 'over'; result: RunResult; summary: PlayerSummary[]; squad?: SquadSummary }
   | { t: 'submitted'; runId: string; status: SubmitStatus; rank?: number }
@@ -90,7 +92,9 @@ export function isClientMessage(m: unknown): m is ClientMessage {
       typeof i.aim === 'number' &&
       Number.isFinite(i.aim as number) &&
       // optional sprint bit (v5-compatible: older clients just never send it)
-      (i.sprint === undefined || typeof i.sprint === 'boolean')
+      (i.sprint === undefined || typeof i.sprint === 'boolean') &&
+      (i.guard === undefined || typeof i.guard === 'boolean') &&
+      (i.reinforce === undefined || typeof i.reinforce === 'boolean')
     );
   }
   if (t === 'join') {

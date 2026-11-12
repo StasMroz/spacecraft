@@ -37,3 +37,18 @@ export { STILL_INPUT, trackStillness, isReviving } from './systems/players.js';
 export { damageEnemy, damagePlayer, explode } from './systems/combat.js';
 export { grantWeapon, isBraced } from './systems/weapons.js';
 export { spawnEnemy } from './systems/director.js';
+export {
+  initMission,
+  updateMission,
+  relicCarryMul,
+  missionTimeLeft,
+  EXTRACT_RADIUS,
+  TARGET_RADIUS,
+} from './systems/mission.js';
+export {
+  initReinforce,
+  updateReinforce,
+  callReinforce,
+  canCallReinforce,
+  squadWiped,
+} from './systems/reinforce.js';

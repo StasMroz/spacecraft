@@ -6,6 +6,8 @@
  *   ?ws=1                   use the experimental dedicated WebSocket host instead of P2P
  *   ?names=generic          display-name preset (content data/naming.ts), e.g. IP-neutral names
  *   ?demo=hive              solo showcase: staged late-game fight, nothing is submitted
+ *   ?mission=id             solo / host mission id (hive_siege, hold_the_line, evacuation,
+ *                           synapse_purge, relic_recovery). Unknown ids fall back to hive_siege.
  */
 import { GAME_VERSION, leaderboardBoard } from '@sms/shared';
 import { boardFor } from './devPreview.js';
@@ -76,6 +78,8 @@ export const config = {
   names: params.get('names')?.trim() || import.meta.env.VITE_NAMES?.trim() || '',
   /** `?demo=hive` staged showcase fight (solo, never submitted). */
   demo: params.get('demo') === 'hive',
+  /** `?mission=id` for solo / hosting without the menu picker. */
+  mission: params.get('mission')?.trim() || '',
   peerOverride: import.meta.env.VITE_PEER_HOST
     ? {
         host: import.meta.env.VITE_PEER_HOST,

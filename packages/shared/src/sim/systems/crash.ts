@@ -22,6 +22,7 @@ export function updateCrash(world: World, dt: number): void {
   if (!c) {
     if (
       d.phase === 'active' &&
+      world.mission.crash &&
       isCrashWave(d.wave) &&
       world.crashWave !== d.wave &&
       world.time - d.waveStartedAt >= CRASH.delay

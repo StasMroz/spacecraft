@@ -122,6 +122,44 @@ export interface Snapshot {
   /** BREACH_STATE per director spawn point (content.director.spawnPoints order). */
   sp: number[];
   events: GameEvent[];
+  /** Mission + extract + objectives (protocol v10). */
+  mi: MissionSnap;
+  /** Reinforcement budget and falling pods (protocol v10). */
+  rf: ReinforceSnap;
+}
+
+export interface MissionTargetSnap {
+  id: number;
+  x: number;
+  y: number;
+  r: number;
+  hp: number;
+  maxHp: number;
+}
+
+export interface MissionSnap {
+  id: string;
+  /** Remaining seconds; -1 = no clock. Tenths. */
+  tl: number;
+  eo: 0 | 1;
+  ep: number;
+  ex: number;
+  ey: number;
+  er: number;
+  tg: MissionTargetSnap[];
+  /** Relic on the ground or carried (rc = player id, 0 = on ground). Absent = no relic. */
+  rx?: number;
+  ry?: number;
+  rr?: number;
+  rc?: number;
+  /** 0 running, 1 victory, 2 defeat. */
+  out: 0 | 1 | 2;
+}
+
+export interface ReinforceSnap {
+  left: number;
+  cd: number;
+  pods: Array<[number, number, number, number, number]>; // id, playerId, x, y, t
 }
 
 export function breachStates(world: World): number[] {
@@ -267,6 +305,47 @@ export function buildSnapshot(world: World, bleedOutTime: number): Snapshot {
     wk: world.wreck.map((w) => [w.x, w.y, w.w, w.h, w.kind === 'full' ? 1 : 0]),
     sp: breachStates(world),
     events: world.events,
+    mi: missionSnap(world),
+    rf: reinforceSnap(world),
+  };
+}
+
+function missionSnap(world: World): MissionSnap {
+  const m = world.mission;
+  const tl = m.timeLimit === null ? -1 : round(Math.max(0, m.timeLimit - world.time), 1);
+  const out: MissionSnap = {
+    id: m.id,
+    tl,
+    eo: m.extractOpen ? 1 : 0,
+    ep: round(m.extractProgress, 1),
+    ex: round(m.extractX),
+    ey: round(m.extractY),
+    er: round(m.extractR),
+    tg: m.targets.map((t) => ({
+      id: t.id,
+      x: round(t.x),
+      y: round(t.y),
+      r: t.r,
+      hp: Math.max(0, Math.round(t.hp)),
+      maxHp: t.maxHp,
+    })),
+    out: m.outcome === 'victory' ? 1 : m.outcome === 'defeat' ? 2 : 0,
+  };
+  if (m.relicX !== undefined && m.relicY !== undefined && m.relicR !== undefined) {
+    out.rx = round(m.relicX);
+    out.ry = round(m.relicY);
+    out.rr = m.relicR;
+    out.rc = m.relicCarrier ?? 0;
+  }
+  return out;
+}
+
+function reinforceSnap(world: World): ReinforceSnap {
+  const rf = world.reinforce;
+  return {
+    left: rf.left,
+    cd: round(rf.cooldown, 1),
+    pods: rf.pods.map((p) => [p.id, p.playerId, round(p.x), round(p.y), round(p.t, 1)]),
   };
 }
 

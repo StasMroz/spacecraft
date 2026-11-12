@@ -518,11 +518,132 @@ function snapFits(s: Snapshot): boolean {
   for (const a of s.al ?? []) if (!a.every((v, k) => exact(v, ALLY_SCALES[k]!))) return false;
   if (s.cr && !s.cr.every((v, k) => exact(v, CRASH_SCALES[k]!))) return false;
   for (const w of s.wk ?? []) if (!w.every((v) => exact(v, 1))) return false;
+  if (!missionFits(s)) return false;
   return (
     s.players.every(playerFits) &&
     exact(s.time, 1000) &&
     (s.wv.nx === undefined || exact(s.wv.nx, 10))
   );
+}
+
+function missionFits(s: Snapshot): boolean {
+  const m = s.mi;
+  if (!m || !s.rf) return false;
+  if (
+    !exact(m.tl, 10) ||
+    !exact(m.ep, 10) ||
+    !exact(m.ex, 10) ||
+    !exact(m.ey, 10) ||
+    !exact(m.er, 10)
+  )
+    return false;
+  for (const t of m.tg) {
+    if (
+      !exact(t.x, 10) ||
+      !exact(t.y, 10) ||
+      !exact(t.r, 1) ||
+      !exact(t.hp, 1) ||
+      !exact(t.maxHp, 1)
+    )
+      return false;
+  }
+  if (m.rx !== undefined && (!exact(m.rx, 10) || !exact(m.ry!, 10) || !exact(m.rr!, 1)))
+    return false;
+  if (!exact(s.rf.cd, 10)) return false;
+  for (const p of s.rf.pods) {
+    if (!exact(p[2], 10) || !exact(p[3], 10) || !exact(p[4], 10)) return false;
+  }
+  return true;
+}
+
+function writeMission(w: Writer, s: Snapshot, sym: Symbols): void {
+  const m = s.mi;
+  const rf = s.rf;
+  w.uv(sym.id(m.id));
+  w.sv(fx(m.tl, 10));
+  w.u8(m.eo);
+  w.uv(fx(m.ep, 10));
+  w.sv(fx(m.ex, 10));
+  w.sv(fx(m.ey, 10));
+  w.uv(fx(m.er, 10));
+  w.uv(m.tg.length);
+  for (const t of m.tg) {
+    w.uv(t.id);
+    w.sv(fx(t.x, 10));
+    w.sv(fx(t.y, 10));
+    w.uv(t.r);
+    w.uv(t.hp);
+    w.uv(t.maxHp);
+  }
+  const hasRelic = m.rx !== undefined;
+  w.u8(hasRelic ? 1 : 0);
+  if (hasRelic) {
+    w.sv(fx(m.rx!, 10));
+    w.sv(fx(m.ry!, 10));
+    w.uv(m.rr!);
+    w.uv(m.rc ?? 0);
+  }
+  w.u8(m.out);
+  w.uv(rf.left);
+  w.uv(fx(rf.cd, 10));
+  w.uv(rf.pods.length);
+  for (const p of rf.pods) {
+    w.uv(p[0]);
+    w.uv(p[1]);
+    w.sv(fx(p[2], 10));
+    w.sv(fx(p[3], 10));
+    w.uv(fx(p[4], 10));
+  }
+}
+
+function readMission(r: Reader, sym: Symbols): { mi: Snapshot['mi']; rf: Snapshot['rf'] } {
+  const id = sym.get(r.uv());
+  const tl = r.sv() / 10;
+  const eo = r.u8() ? 1 : 0;
+  const ep = r.uv() / 10;
+  const ex = r.sv() / 10;
+  const ey = r.sv() / 10;
+  const er = r.uv() / 10;
+  const tg: Snapshot['mi']['tg'] = [];
+  for (let n = r.uv(); n > 0; n--) {
+    tg.push({
+      id: r.uv(),
+      x: r.sv() / 10,
+      y: r.sv() / 10,
+      r: r.uv(),
+      hp: r.uv(),
+      maxHp: r.uv(),
+    });
+  }
+  const mi: Snapshot['mi'] = { id, tl, eo: eo as 0 | 1, ep, ex, ey, er, tg, out: 0 };
+  if (r.u8()) {
+    mi.rx = r.sv() / 10;
+    mi.ry = r.sv() / 10;
+    mi.rr = r.uv();
+    mi.rc = r.uv();
+  }
+  mi.out = r.u8() as 0 | 1 | 2;
+  const left = r.uv();
+  const cd = r.uv() / 10;
+  const pods: Snapshot['rf']['pods'] = [];
+  for (let n = r.uv(); n > 0; n--) {
+    pods.push([r.uv(), r.uv(), r.sv() / 10, r.sv() / 10, r.uv() / 10]);
+  }
+  return { mi, rf: { left, cd, pods } };
+}
+
+function defaultMissionSnap(): Snapshot['mi'] {
+  return {
+    id: 'hive_siege',
+    tl: -1,
+    eo: 0,
+    ep: 0,
+    ex: 0,
+    ey: 0,
+    er: 90,
+    tg: [],
+    out: 0,
+  };
 }
 
 const toRows = (rows: number[][], scales: number[]): Array<[number, number[]]> =>
@@ -565,13 +686,14 @@ export function createWireCodec(stats?: WireStats): WireCodec {
       sym.id(p.w ?? '');
     }
     for (const ev of s.events) internEvent(ev, sym);
+    sym.id(s.mi.id);
     w.u8(MAGIC);
     sym.flush(w);
     w.uv(s.tick);
     w.uv(fx(s.time, 1000));
     w.uv(s.wave);
     const wv = s.wv;
-    w.uv((wv.a ? 1 : 0) | (wv.h ? 2 : 0) | (wv.nx !== undefined ? 4 : 0) | (s.over ? 8 : 0));
+    w.uv((wv.a ? 1 : 0) | (wv.h ? 2 : 0) | (wv.nx !== undefined ? 4 : 0) | (s.over ? 8 : 0) | 16);
     w.uv(wv.r);
     w.uv(wv.t);
     if (wv.nx !== undefined) w.uv(fx(wv.nx, 10));
@@ -615,6 +737,7 @@ export function createWireCodec(stats?: WireStats): WireCodec {
     const anchors: Anchors = new Map(prow);
     for (const ev of s.events) writeEvent(w, ev, sym, anchors);
     section('events');
+    writeMission(w, s, sym);
     return w.done();
   }
 
@@ -660,6 +783,8 @@ export function createWireCodec(stats?: WireStats): WireCodec {
     for (let n = r.uv(); n > 0; n--) wk.push([0, 0, 0, 0, 0].map(() => r.sv()) as WreckSnap);
     const events: GameEvent[] = [];
     for (let n = r.uv(); n > 0; n--) events.push(readEvent(r, sym, anchors));
+    const extra =
+      f & 16 ? readMission(r, sym) : { mi: defaultMissionSnap(), rf: { left: 0, cd: 0, pods: [] } };
     return {
       tick,
       time,
@@ -676,6 +801,8 @@ export function createWireCodec(stats?: WireStats): WireCodec {
       wk,
       sp,
       events,
+      mi: extra.mi,
+      rf: extra.rf,
     };
   }
 

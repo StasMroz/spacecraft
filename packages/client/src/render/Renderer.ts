@@ -18,6 +18,7 @@ import {
   CRASH,
   GUARDSMAN,
   snapWalls,
+  findMission,
 } from '@sms/shared';
 import { lerp, lerpAngle } from '../game/interpolation.js';
 import { drawBreach } from './breaches.js';
@@ -426,6 +427,7 @@ export class Renderer {
     this.drawArenaEdge();
     // Terrain layer: pillars, rubble and edge boulders always sit UNDER every unit.
     this.drawProps();
+    this.drawMission(f.b, f.nowMs / 1000);
     // Breach holes / vents (spawn points) are part of the terrain too.
     this.drawBreaches();
     this.drawAcid(f);
@@ -447,6 +449,11 @@ export class Renderer {
 
   private drawFloor(): void {
     const { ctx } = this;
+    const theme = this.content.map.theme;
+    if (theme && theme.biome !== 'hive') {
+      this.drawThemedFloor(theme.floorA, theme.floorB, theme.edge);
+      return;
+    }
     const v = this.camera.view(TILE);
     const tx0 = Math.max(0, Math.floor(v.x0 / TILE));
     const ty0 = Math.max(0, Math.floor(v.y0 / TILE));
@@ -478,6 +485,120 @@ export class Renderer {
         }
       }
     }
+  }
+
+  private drawThemedFloor(a: string, b: string, edge: string): void {
+    const { ctx } = this;
+    const v = this.camera.view(TILE);
+    const { width, height } = this.content.map.arena;
+    const tx0 = Math.max(0, Math.floor(v.x0 / TILE));
+    const ty0 = Math.max(0, Math.floor(v.y0 / TILE));
+    const tx1 = Math.min(width / TILE, Math.ceil(v.x1 / TILE));
+    const ty1 = Math.min(height / TILE, Math.ceil(v.y1 / TILE));
+    for (let ty = ty0; ty < ty1; ty++) {
+      for (let tx = tx0; tx < tx1; tx++) {
+        ctx.fillStyle = (tx + ty) % 2 ? a : b;
+        ctx.fillRect(tx * TILE, ty * TILE, TILE, TILE);
+      }
+    }
+    // faint vignette toward the edge colour
+    ctx.fillStyle = edge;
+    ctx.globalAlpha = 0.18;
+    ctx.fillRect(v.x0, v.y0, v.x1 - v.x0, 80);
+    ctx.fillRect(v.x0, v.y1 - 80, v.x1 - v.x0, 80);
+    ctx.globalAlpha = 1;
+  }
+
+  private drawMission(snap: Snapshot, now: number): void {
+    const mi = snap.mi;
+    if (!mi) return;
+    const { ctx } = this;
+    const def = findMission(mi.id);
+    ctx.save();
+    if (def && def.extractHold > 0) {
+      const pulse = mi.eo ? 0.55 + 0.25 * Math.sin(now * 4) : 0.22;
+      ctx.beginPath();
+      ctx.arc(mi.ex, mi.ey, mi.er, 0, Math.PI * 2);
+      ctx.fillStyle = mi.eo
+        ? `rgba(80, 200, 120, ${0.12 + 0.08 * pulse})`
+        : 'rgba(180, 180, 80, 0.08)';
+      ctx.fill();
+      ctx.setLineDash([16, 12]);
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = mi.eo ? `rgba(120, 230, 150, ${pulse})` : 'rgba(200, 190, 80, 0.35)';
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = '700 22px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = mi.eo ? 'rgba(180, 255, 200, 0.9)' : 'rgba(220, 210, 140, 0.6)';
+      ctx.fillText(mi.eo ? 'EKSTRAKCJA' : 'STREFA EWAKUACJI', mi.ex, mi.ey - mi.er - 12);
+    }
+    for (const t of mi.tg) {
+      if (t.hp <= 0) continue;
+      const pulse = 0.7 + 0.3 * Math.sin(now * 3 + t.id);
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(120, 40, 160, ${0.35 * pulse})`;
+      ctx.fill();
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = `rgba(210, 80, 255, ${pulse})`;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, t.r * 0.45, 0, Math.PI * 2);
+      ctx.fillStyle = '#4a1860';
+      ctx.fill();
+      const frac = t.maxHp > 0 ? t.hp / t.maxHp : 0;
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillRect(t.x - t.r, t.y + t.r + 8, t.r * 2, 8);
+      ctx.fillStyle = '#d060ff';
+      ctx.fillRect(t.x - t.r, t.y + t.r + 8, t.r * 2 * frac, 8);
+    }
+    if (mi.rx !== undefined && mi.ry !== undefined && mi.rr !== undefined && !mi.rc) {
+      const pulse = 0.7 + 0.3 * Math.sin(now * 5);
+      ctx.beginPath();
+      ctx.arc(mi.rx, mi.ry, mi.rr + 6, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(230, 190, 60, ${0.35 * pulse})`;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(mi.rx, mi.ry - mi.rr);
+      ctx.lineTo(mi.rx + mi.rr * 0.7, mi.ry);
+      ctx.lineTo(mi.rx, mi.ry + mi.rr);
+      ctx.lineTo(mi.rx - mi.rr * 0.7, mi.ry);
+      ctx.closePath();
+      ctx.fillStyle = '#e8c040';
+      ctx.strokeStyle = '#fff4c0';
+      ctx.lineWidth = 3;
+      ctx.fill();
+      ctx.stroke();
+    }
+    for (const pod of snap.rf?.pods ?? []) {
+      const [, , x, y, t] = pod;
+      const drop = Math.max(0, Math.min(1, 1 - t / 1.4));
+      const alt = (1 - drop) * 280;
+      ctx.beginPath();
+      ctx.arc(x, y, 70, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255, 180, 60, ${0.35 + 0.4 * drop})`;
+      ctx.lineWidth = 4;
+      ctx.setLineDash([10, 8]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#c45a20';
+      ctx.strokeStyle = '#f0d080';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x, y - 28 - alt);
+      ctx.lineTo(x + 18, y + 10 - alt);
+      ctx.lineTo(x - 18, y + 10 - alt);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      // shadow on the ground
+      ctx.beginPath();
+      ctx.ellipse(x, y, 16, 8, 0, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0,0,0,${0.25 + 0.4 * drop})`;
+      ctx.fill();
+    }
+    ctx.restore();
   }
 
   private drawArenaEdge(): void {

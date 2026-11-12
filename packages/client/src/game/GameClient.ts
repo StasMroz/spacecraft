@@ -293,6 +293,7 @@ export class GameClient extends Emitter<GameClientEvents> {
         reload: actions.reload,
         ...(alive && intent.sprint ? { sprint: true } : {}),
         ...(alive && intent.guard ? { guard: true } : {}),
+        ...(alive && actions.reinforce ? { reinforce: true } : {}),
       });
       this.lastFire = sent.fire;
       this.lastGuard = sent.guard === true;
@@ -307,7 +308,8 @@ export class GameClient extends Emitter<GameClientEvents> {
           this.fireSlow = alive
             ? stepFireSlow(this.fireSlow, effectiveFire(sent.fire, sp), TICK_DT)
             : 0;
-          return cur ? marineMoveSpeed(cur, this.fireSlow) : playerMoveSpeed(1);
+          const carry = latest?.mi.rc === me.id ? 0.75 : 1;
+          return (cur ? marineMoveSpeed(cur, this.fireSlow) : playerMoveSpeed(1)) * carry;
         },
         alive,
         sprintOk,

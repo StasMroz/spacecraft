@@ -167,7 +167,7 @@ export function startWave(world: World, forced = false): void {
     world.enemies.filter((e) => !e.dead).length + st.queue.reduce((s, q) => s + q.n, 0);
   st.waveTotal = carried + st.roster.reduce((s, g) => s + g.n, 0);
   st.drops = { medkits: 0, crates: 0 };
-  st.nextCrateAt = world.time + cfg.crates.firstAfter;
+  st.nextCrateAt = world.mission.crates ? world.time + cfg.crates.firstAfter : Infinity;
   const [pMin, pMax] = cfg.waves.flankPoints;
   st.surgePoints = pickFlankingBreaches(world, world.rng.int(pMin, pMax));
   world.events.push({
@@ -223,7 +223,7 @@ export function updateDirector(world: World, dt: number): void {
   updateSpawners(world, dt);
 
   // Weapon crates: on a timer, within the wave's crate budget.
-  if (t >= st.nextCrateAt) {
+  if (world.mission.crates && t >= st.nextCrateAt) {
     st.nextCrateAt = t + world.rng.range(cfg.crates.intervalMin, cfg.crates.intervalMax);
     if (st.drops.crates < dropCaps(cfg, world.teamSize, st.wave).crates) {
       st.drops.crates++;

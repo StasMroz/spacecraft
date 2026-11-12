@@ -14,6 +14,9 @@ import {
   type ContentRegistry,
   CRASH,
   GUARDSMAN,
+  MISSIONS,
+  REINFORCE,
+  reinforceBudget,
 } from '@sms/shared';
 import { boardFor } from '../devPreview.js';
 import { escapeHtml as esc } from '../ui/format.js';
@@ -78,11 +81,31 @@ export function rulesHtml(c: ContentRegistry): string {
   <p class="muted">Wersja v${GAME_VERSION}</p>
 </header>
 <nav class="toc">
-  <a href="#cel">Cel</a><a href="#sterowanie">Sterowanie</a><a href="#sprint">Sprint</a><a href="#tryby">Tryby</a><a href="#multi">Multiplayer</a><a href="#glos">Czat głosowy</a><a href="#bron">Broń</a><a href="#odrzut">Odrzut</a><a href="#pancerz">Pancerz</a><a href="#postawa">Postawa obronna</a><a href="#wrogowie">Tyranidzi</a><a href="#punkty">Punkty</a><a href="#rady">Rady</a><a href="#kompendium">Kompendium</a>
+  <a href="#cel">Cel</a><a href="#misje">Misje</a><a href="#posilki">Posiłki</a><a href="#sterowanie">Sterowanie</a><a href="#sprint">Sprint</a><a href="#tryby">Tryby</a><a href="#multi">Multiplayer</a><a href="#glos">Czat głosowy</a><a href="#bron">Broń</a><a href="#odrzut">Odrzut</a><a href="#pancerz">Pancerz</a><a href="#postawa">Postawa obronna</a><a href="#wrogowie">Tyranidzi</a><a href="#punkty">Punkty</a><a href="#rady">Rady</a><a href="#kompendium">Kompendium</a>
 </nav>
 <section id="cel"><h2>Cel gry</h2>
   <p>Jesteś Space Marine broniącym zrujnowanej iglicy ula. Tyranidzi atakują <b>falami</b> z wyłomów w ścianach i szybów w podłodze. Następna fala rusza dopiero, gdy zginie cała poprzednia (po ${d.waves.breather} s przerwy). Każda fala jest większa, a potwory mają więcej życia. Co ${d.bosses.everyWave}. fala od ${d.bosses.firstWave}. prowadzi boss — <b>${esc(boss)}</b>.${d.support ? ` Od fali ${d.support.firstWave}. co ${d.support.everyWave}. falę dołącza boss wsparcia — <b>${esc(c.enemy(d.support.enemy).name)}</b>.` : ''}</p>
-  <p>Gra kończy się, gdy padnie cały oddział. Liczy się czas przetrwania i punkty za zabicia.</p>
+  <p>Domyślna misja — <b>Oblężenie ula</b> — to niekończące się fale: gra kończy się, gdy padnie cały oddział i skończą się posiłki. Inne misje mają cele, limit czasu i strefę ekstrakcji Thunderhawka. Liczy się czas, punkty za zabicia i (w misjach z ekstrakcją) powodzenie evakuacji.</p>
+</section>
+<section id="misje"><h2>Misje</h2>
+  <p>Oddział może dostać jedno z kilku zleceń (jak dropy w Helldivers 2, w klimacie 40k). Domyślnie grasz <b>Oblężenie ula</b>. Host wybierze misję w menu (gdy pojawi się przełącznik); do tej pory działa też <code>?mission=id</code>.</p>
+  <ul>
+${MISSIONS.map((m) => {
+  const time = m.timeLimit ? `${m.timeLimit} s` : 'bez limitu';
+  const crates = m.crates
+    ? 'zrzuty zaopatrzenia włączone'
+    : 'zrzuty zaopatrzenia wyłączone (cień w warpie)';
+  const crash = m.crash ? 'katastrofa okrętu włączona' : 'bez katastrofy okrętu';
+  return `    <li><b>${esc(m.name)}</b> (<code>${m.id}</code>) — ${esc(m.description)} Cel: ${esc(m.objective)} Limit: ${time}. ${crates}; ${crash}.</li>`;
+}).join('\n')}
+  </ul>
+  <p>Strefa ekstrakcji otwiera się w swoim czasie (albo po zniszczeniu celów). Wszyscy żywi marine muszą stać w strefie ${MISSIONS.find((m) => m.extractHold)?.extractHold ?? 5} s. Jeśli relikwię trzeba donieść, nosiciel też musi być w strefie. Po upływie limitu czasu misja przegrana — chyba że oddział już stoi w otwartej strefie (ostatnia szansa dokończyć ekstrakcję).</p>
+</section>
+<section id="posilki"><h2>Posiłki (zrzut kapsuły)</h2>
+  <p>Oddział ma wspólną pulę żyć: <b>${reinforceBudget(1)}</b> w pojedynkę, plus ${REINFORCE.budgetPerExtra} za każdego dodatkowego brata (np. ${reinforceBudget(3)} przy trzech marine). To nie jest zaopatrzenie — posiłki działają także w misjach, w których cień w warpie tłumi skrzynie z bronią.</p>
+  <p>Poległy marine wraca w <b>drop-podzie</b>. Żywy brat wzywa go klawiszem <b>X</b> albo przyciskiem <b>REINF</b> (kapsuła ląduje przed jego celownikiem, do ${REINFORCE.throwRange} px). W solo — albo gdy nikt nie został na nogach — zrzut leci automatycznie po cooldownie, dopóki pula &gt; 0. Lądowanie zadaje ${REINFORCE.impactDamage} obrażeń Tyranidom w promieniu ${REINFORCE.impactRadius} px (marines są bezpieczni). Po wyjściu z kapsuły marine ma ${REINFORCE.invulnS} s nietykalności i pełne życie.</p>
+  <p>Po wezwaniu następuje cooldown: najpierw ${REINFORCE.cooldownBaseS} s, potem +${REINFORCE.cooldownPerStreakS} s za każde kolejne wezwanie w serii (maks. ${REINFORCE.cooldownCapS} s). Seria spada o 1 po ${REINFORCE.streakDecayS} s bez wezwania. Podniesienie rannego brata na miejscu <b>nie zużywa</b> puli. Gdy pula spadnie do zera i wszyscy nie żyją (i żadna kapsuła już nie spada), misja jest przegrana.</p>
+  <p>Ostatni żywy marine, który padnie, ginie od razu (nie czeka na wykrwawienie — nie ma kto go podnieść). Jeśli w puli zostało życie, kapsuła przyleci po cooldownie.</p>
 </section>
 <section id="sterowanie"><h2>Sterowanie</h2>
   <div class="two">
@@ -94,6 +117,7 @@ export function rulesHtml(c: ContentRegistry): string {
       <li><b>Shift</b> (przytrzymaj) — sprint</li>
       <li><b>Prawy przycisk myszy</b> (przytrzymaj) — postawa obronna (tylko stojąc w miejscu)</li>
       <li><b>R</b> — przeładowanie</li>
+      <li><b>X</b> — wezwij posiłki (drop-pod poległego brata)</li>
       <li><b>M</b> — wycisz dźwięk</li>
       <li><b>Esc</b> — menu / wyjście (w grze solo pauza)</li>
     </ul></div>
@@ -103,7 +127,7 @@ export function rulesHtml(c: ContentRegistry): string {
       <li><b>SPRINT</b> (przytrzymaj, nad prawym drążkiem AIM · FIRE) — sprint. Przycisk jest nad atakiem, nie na lewym drążku.</li>
       <li><b>ARMS</b> (kółko nad przyciskiem sprintu i ataku) — stuknij albo przytrzymaj, żeby otworzyć kółko broni; wybierz palcem. Zastępuje dawny słupek ikon po prawej.</li>
       <li><b>🛡 GUARD</b> (przytrzymaj, prawa strona) — postawa obronna (tylko stojąc w miejscu)</li>
-      <li><b>⟳</b> — przeładowanie, <b>🔊</b> — dźwięk, <b>⏸</b> — menu</li>
+      <li><b>⟳</b> — przeładowanie, <b>⬇ REINF</b> — wezwij posiłki, <b>🔊</b> — dźwięk, <b>⏸</b> — menu</li>
       <li><b>⛶</b> — pełny ekran (Android). Na iPhonie: Udostępnij → „Do ekranu początkowego”, potem uruchamiaj grę z ikony.</li>
       <li>Najlepiej grać poziomo.</li>
     </ul></div>
@@ -153,7 +177,7 @@ export function rulesHtml(c: ContentRegistry): string {
   <p>Na start masz: <b>${start}</b>. Kolejne bronie odblokowują się wszystkim (żywym i powalonym) na początku kolejnych fal:</p><ul>${unlocks}</ul>
   <p>Na starcie fali 4.  każdy zakon dostaje <b>własną broń specjalną</b> zamiast wspólnego flamera (klawisz 3). Skrzynia z cudzą specjalnością staje się twoją. Mapowanie:</p><ul>${chapterSpecials}</ul>
   <p><b>Wręcz</b> wybierasz jak inną broń (klawisze 7–9 albo kółko ARMS): <b>Chainsword</b> (szybki, krótki łuk), <b>Power Axe</b> (wolniejszy, szerszy, twardszy cios), <b>Thunder Hammer</b> (najwolniejszy, najszerszy, miażdżący odrzut). Broń wręcz nie zużywa amunicji.</p>
-  <p>Dodatkowo na mapie spadają <b>skrzynie z bronią</b> (co ${sec(d.crates.intervalMin)}–${sec(d.crates.intervalMax)}, średnio ${num(soloDrops.crates)} na falę w pojedynkę), a z zabitych Tyranidów — <b>apteczki</b> (do średnio ${num(soloDrops.medkits)} na falę w pojedynkę; więcej w większym oddziale, boss zawsze zostawia apteczkę). Każda broń ma rolę: ANTI-HORDE na roje drobnicy, ANTI-ELITE/ANTI-TANK na duże bestie.</p>
+  <p>Dodatkowo na większości misji spadają <b>skrzynie z bronią</b> (co ${sec(d.crates.intervalMin)}–${sec(d.crates.intervalMax)}, średnio ${num(soloDrops.crates)} na falę w pojedynkę), a z zabitych Tyranidów — <b>apteczki</b> (do średnio ${num(soloDrops.medkits)} na falę w pojedynkę; więcej w większym oddziale, boss zawsze zostawia apteczkę). Każda broń ma rolę: ANTI-HORDE na roje drobnicy, ANTI-ELITE/ANTI-TANK na duże bestie.</p>
   <ul>
     <li><b>Strzelanie spowalnia</b>: ciężka broń spowalnia zawsze, a przy wciśniętym spuście jeszcze bardziej.</li>
     <li><b>Zaparcie</b>: niektóre ciężkie bronie, gdy stoisz w miejscu, strzelają szybciej i celniej.</li>

@@ -2,7 +2,7 @@
 
 export const GAME_VERSION = '0.6.1';
 /** Bump whenever the wire protocol or data tables change incompatibly. */
-export const PROTOCOL_VERSION = 9;
+export const PROTOCOL_VERSION = 10;
 
 export const TICK_RATE = 30;
 export const TICK_DT = 1 / TICK_RATE;

@@ -33,6 +33,11 @@ export interface PlayerInput {
    * (missing = not guarding). Only takes effect while standing still.
    */
   guard?: boolean;
+  /**
+   * One-shot: call a drop-pod reinforcement at the aim point (v10). Optional so older
+   * inputs stay valid (missing = no call).
+   */
+  reinforce?: boolean;
 }
 
 export const emptyInput = (): PlayerInput => ({
@@ -297,7 +302,18 @@ export type GameEvent =
   /** Marine braced a bracing weapon (heavy bolter). */
   | { e: 'brace'; p: number; w: string }
   | { e: 'reload'; p: number; w: string }
-  | { e: 'switch'; p: number; w: string };
+  | { e: 'switch'; p: number; w: string }
+  /** Reinforcement pod incoming at (x, y) for marine `p`. */
+  | { e: 'pod'; x: number; y: number; p: number }
+  /** Pod landed and the marine stepped out. */
+  | { e: 'land'; x: number; y: number; p: number }
+  /** Synapse capillary / objective took damage or was destroyed (`objd`). */
+  | { e: 'obj'; x: number; y: number }
+  | { e: 'objd'; x: number; y: number }
+  /** Relic picked up by marine `p`. */
+  | { e: 'relic'; p: number }
+  | { e: 'win' }
+  | { e: 'fail' };
 
 /** A group waiting to emerge from a breach (spawn point) once its telegraph ends. */
 export interface QueuedGroup {
@@ -376,6 +392,8 @@ export interface World {
   events: GameEvent[];
   teamSize: number;
   over: boolean;
+  mission: MissionState;
+  reinforce: ReinforceState;
   /** Totals for the run summary. */
   stats: {
     kills: number;
@@ -383,4 +401,54 @@ export interface World {
     /** Every kill of the run per enemy type id, credited to a marine or not (chain blasts). */
     killsByType: Record<string, number>;
   };
+}
+
+export interface MissionTarget {
+  id: number;
+  x: number;
+  y: number;
+  r: number;
+  hp: number;
+  maxHp: number;
+}
+
+export interface MissionState {
+  id: string;
+  kind: string;
+  timeLimit: number | null;
+  extractOpensAt: number | null;
+  extractWindow: number | null;
+  extractHold: number;
+  extractX: number;
+  extractY: number;
+  extractR: number;
+  extractOpen: boolean;
+  extractProgress: number;
+  crates: boolean;
+  crash: boolean;
+  targets: MissionTarget[];
+  relicX?: number;
+  relicY?: number;
+  relicR?: number;
+  relicCarryMul?: number;
+  /** Player id carrying the relic; null = on the ground; undefined = no relic. */
+  relicCarrier?: number | null;
+  outcome?: 'victory' | 'defeat';
+}
+
+export interface ReinforcePod {
+  id: number;
+  playerId: number;
+  x: number;
+  y: number;
+  /** Seconds remaining until landing. */
+  t: number;
+}
+
+export interface ReinforceState {
+  left: number;
+  cooldown: number;
+  streak: number;
+  streakAt: number;
+  pods: ReinforcePod[];
 }

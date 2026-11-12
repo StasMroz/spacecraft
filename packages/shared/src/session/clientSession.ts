@@ -1,4 +1,5 @@
 import { PROTOCOL_VERSION } from '../constants.js';
+import { DEFAULT_MISSION_ID } from '../data/missions.js';
 import type { RunResult, SubmitStatus } from '../highscore/types.js';
 import type { Link } from '../net/link.js';
 import type {
@@ -21,12 +22,14 @@ export interface LobbyInfo {
   players: LobbyPlayer[];
   /** Host enabled voice chat (see HostMessage 'lobby'). */
   voice: boolean;
+  /** Mission selected for the next / current run (protocol v10). */
+  mission: string;
 }
 
 export type ClientSessionEvents = {
   welcome: { playerId: number; room: string };
   lobby: LobbyInfo;
-  start: { seed: number; players: LobbyPlayer[] };
+  start: { seed: number; players: LobbyPlayer[]; mission: string };
   snapshot: Snapshot;
   over: { result: RunResult; summary: PlayerSummary[]; squad?: SquadSummary };
   submitted: { runId: string; status: SubmitStatus; rank?: number };
@@ -109,11 +112,16 @@ export class ClientSession extends Emitter<ClientSessionEvents> {
           maxPlayers: m.maxPlayers,
           players: m.players,
           voice: m.voice === true,
+          mission: typeof m.mission === 'string' && m.mission ? m.mission : DEFAULT_MISSION_ID,
         };
         this.emit('lobby', this.lobby);
         break;
       case 'start':
-        this.emit('start', { seed: m.seed, players: m.players });
+        this.emit('start', {
+          seed: m.seed,
+          players: m.players,
+          mission: typeof m.mission === 'string' && m.mission ? m.mission : DEFAULT_MISSION_ID,
+        });
         break;
       case 'snap':
         this.emit('snapshot', m.s);

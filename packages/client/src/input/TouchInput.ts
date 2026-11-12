@@ -192,6 +192,7 @@ export class TouchInput implements InputSource {
         <button class="tb" data-act="menu" aria-label="Menu / leave game">⏸</button>
         <button class="tb" data-act="mute" aria-label="Mute">🔊</button>
         <button class="tb main" data-act="reload" aria-label="Reload">⟳<span>RELOAD</span></button>
+        <button class="tb main" data-act="reinforce" aria-label="Call reinforcements">⬇<span>REINF</span></button>
         ${canFs ? '<button class="tb" data-act="fullscreen" aria-label="Fullscreen">⛶</button>' : ''}
       </div>
       <button class="tb hold guard-btn" data-act="guard" aria-label="Defensive stance (hold)">▣<span>GUARD</span></button>`;
@@ -253,6 +254,7 @@ export class TouchInput implements InputSource {
 
   private button(act: string, b: HTMLButtonElement): void {
     if (act === 'reload') this.latched.reload = true;
+    else if (act === 'reinforce') this.latched.reinforce = true;
     else if (act === 'mute') this.opts.onButton?.('mute');
     else if (act === 'menu') this.opts.onButton?.('menu');
     else if (act === 'fullscreen') void toggleFullscreen();

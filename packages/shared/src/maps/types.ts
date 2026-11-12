@@ -53,4 +53,21 @@ export interface MapDef {
   walls: readonly WallDef[];
   /** Waves, squad-size scaling, breaches (spawn points), drops, bosses and the wave table. */
   director: DirectorConfig;
+  /**
+   * Optional floor/theme for the client renderer. Missing = hive deck (existing tile art).
+   * Other biomes skip the hive tiles and use the given floor colours.
+   */
+  theme?: MapTheme;
+}
+
+export type MapBiome = 'hive' | 'jungle' | 'ice' | 'hulk';
+
+export interface MapTheme {
+  biome: MapBiome;
+  /** Main floor fill (css hex). */
+  floorA: string;
+  /** Alternate / grid colour. */
+  floorB: string;
+  /** Arena edge / vignette. */
+  edge: string;
 }

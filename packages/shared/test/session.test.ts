@@ -44,6 +44,8 @@ describe('HostSession over local links', () => {
 
     const world = host.world!;
     // simulate the swarm winning
+    world.reinforce.left = 0;
+    world.reinforce.pods = [];
     for (const p of world.players) {
       p.state = 'dead';
       p.diedAt = world.time;

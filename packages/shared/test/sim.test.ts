@@ -113,10 +113,11 @@ describe('simulation', () => {
     expect(a.hp).toBeCloseTo(a.maxHp * PLAYER.reviveHpFraction);
   });
 
-  it('game is over when nobody is left standing', () => {
+  it('game is over when nobody is left standing and the reinforcement budget is empty', () => {
     const w = createWorld([{ id: 1, name: 'A' }], 8);
     const a = w.players[0];
     a.invuln = 0;
+    w.reinforce.left = 0;
     damagePlayer(w, a, 10_000);
     stepWorld(w, TICK_DT);
     expect(w.over).toBe(true);

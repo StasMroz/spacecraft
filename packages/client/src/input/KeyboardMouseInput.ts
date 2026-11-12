@@ -2,7 +2,7 @@ import type { ActionIntent, ContinuousIntent, InputSource } from './InputSource.
 
 /**
  * Keyboard + mouse: WASD/arrows move, mouse aims, LMB/Space fires, Shift (hold) sprints, RMB (hold) defensive stance,
- * 1-9 / Q E / wheel switch weapons, R reloads.
+ * 1-9 / Q E / wheel switch weapons, R reloads, X calls a reinforcement pod.
  */
 export class KeyboardMouseInput implements InputSource {
   readonly kind = 'kbm' as const;
@@ -16,6 +16,7 @@ export class KeyboardMouseInput implements InputSource {
   hasPointer = false;
   private latchedSlot = 0;
   private latchedReload = false;
+  private latchedReinforce = false;
   private latchedCycle = 0;
   private listeners: Array<() => void> = [];
   /** Extra key handlers (e.g. M = mute, F3 = debug). */
@@ -37,6 +38,7 @@ export class KeyboardMouseInput implements InputSource {
       this.keys.add(e.code);
       if (/^Digit[1-9]$/.test(e.code)) this.latchedSlot = Number(e.code.slice(5));
       if (e.code === 'KeyR') this.latchedReload = true;
+      if (e.code === 'KeyX') this.latchedReinforce = true;
       if (e.code === 'KeyQ') this.latchedCycle = -1;
       if (e.code === 'KeyE') this.latchedCycle = 1;
       if (e.code === 'Space' || e.code === 'Tab') e.preventDefault();
@@ -94,10 +96,16 @@ export class KeyboardMouseInput implements InputSource {
   }
 
   takeActions(): ActionIntent {
-    const a = { slot: this.latchedSlot, cycle: this.latchedCycle, reload: this.latchedReload };
+    const a = {
+      slot: this.latchedSlot,
+      cycle: this.latchedCycle,
+      reload: this.latchedReload,
+      reinforce: this.latchedReinforce,
+    };
     this.latchedSlot = 0;
     this.latchedCycle = 0;
     this.latchedReload = false;
+    this.latchedReinforce = false;
     return a;
   }
 

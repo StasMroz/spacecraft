@@ -29,6 +29,11 @@ import {
   type WeaponDef,
   type EnemySize,
   type PierceBudget,
+  MISSIONS,
+  MAPS,
+  REINFORCE,
+  reinforceBudget,
+  reinforceCooldown,
 } from '@sms/shared';
 import { escapeHtml as esc } from '../ui/format.js';
 
@@ -376,7 +381,11 @@ export function marineTable(c: ContentRegistry): string {
         `×${n(MARINE_GUARD.frontMul, 2)} (+${Math.round(MARINE_GUARD.frontArmourBonus * 100)}% pancerza); rykoszet: nie-odbicie ×${n(MARINE_GUARD.nonDeflectFactor, 2)}; trafiony pocisk ×${n(MARINE_GUARD.landedDamageMul, 2)}`,
       ],
       ['Apteczka', `+${PICKUP.medkitHeal} życia, leży ${PICKUP.lifetime} s`],
-      ['Arena', `${c.map.arena.width} × ${c.map.arena.height} px`],
+      ['Arena (domyślna mapa)', `${c.map.arena.width} × ${c.map.arena.height} px`],
+      [
+        'Pula posiłków (1 / 2 / 3 marine)',
+        `${reinforceBudget(1)} / ${reinforceBudget(2)} / ${reinforceBudget(3)}`,
+      ],
       ['Symulacja', `${TICK_RATE} ticków/s`],
     ],
   );
@@ -513,9 +522,48 @@ export function armourTables(c: ContentRegistry): string {
 }
 
 /** Full compendium body (inside the <details>). */
+export function missionTable(): string {
+  return table(
+    ['Misja', 'Id', 'Mapa', 'Limit', 'Zrzuty', 'Katastrofa', 'Cel'],
+    MISSIONS.map((m) => [
+      esc(m.name),
+      m.id,
+      MAPS.find((x) => x.id === m.map)?.name ?? m.map,
+      m.timeLimit === null ? '—' : `${m.timeLimit} s`,
+      m.crates ? 'tak' : 'nie (cień w warpie)',
+      m.crash ? 'tak' : 'nie',
+      esc(m.objective),
+    ]),
+    'matrix',
+  );
+}
+
+export function reinforceTable(): string {
+  return table(
+    ['Parametr', 'Wartość'],
+    [
+      ['Pula (solo + za brata)', `${REINFORCE.budgetBase} + ${REINFORCE.budgetPerExtra} × (n−1)`],
+      ['Czas lotu kapsuły', `${REINFORCE.landS} s`],
+      [
+        'Lądowanie (obrażenia / promień)',
+        `${REINFORCE.impactDamage} / ${REINFORCE.impactRadius} px`,
+      ],
+      ['Nietykalność po lądowaniu', `${REINFORCE.invulnS} s`],
+      [
+        'Cooldown (pierwszy / za serię / maks.)',
+        `${reinforceCooldown(0)} s / +${REINFORCE.cooldownPerStreakS} s / ${REINFORCE.cooldownCapS} s`,
+      ],
+      ['Zanik serii', `${REINFORCE.streakDecayS} s bez wezwania`],
+      ['Zasięg zrzutu (celownik)', `${REINFORCE.throwRange} px`],
+    ],
+  );
+}
+
 export function compendiumHtml(c: ContentRegistry): string {
   return `
   <p class="muted">Wszystkie liczby są generowane z kodu gry v${GAME_VERSION}. Odległości w pikselach areny, czasy w sekundach. DPS = średnie obrażenia na sekundę przy trafieniu każdym pociskiem, z uwzględnieniem S vs T i pancerza (bez zasięgu, ciepła i zaparcia). Po kropce: czas zabicia jednego wroga z bazowym życiem (fala 1, solo).</p>
+  <h3>Misje</h3>${missionTable()}
+  <h3>Posiłki</h3>${reinforceTable()}
   <h3>Space Marine</h3>${marineTable(c)}
   <h3>Sprint</h3>${sprintTable()}
   <h3>Pancerz kierunkowy i rykoszety</h3>${armourTables(c)}

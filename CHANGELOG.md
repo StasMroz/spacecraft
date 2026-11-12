@@ -1,5 +1,16 @@
 # Changelog
 
+## v29
+
+- Misje w stylu Helldivers 2, klimat 40k. Domyślnie **Oblężenie ula** (dotychczasowe niekończące się fale). Nowe zlecenia: **Oczyść i utrzymaj** (150 s walki, potem 40 s okno ekstrakcji Thunderhawka), **Ewakuacja** (wrak hulka, okno od 120 s przez 45 s), **Czystka synapsy** (dżungla biomasy, zniszcz 3 kapilary, potem ekstrakcja, limit 300 s), **Odzyskaj relikwię** (lodowy świat, donieś relikwię do strefy, limit 240 s, cień w warpie tłumi zrzuty zaopatrzenia).
+- Trzy nowe mapy / biomy (ręczny układ osłon, ten sam rozmiar areny): dżungla biomasy, lodowy świat, wrak hulka — inny kolor podłogi i układ ścian. Hive Siege bez zmian.
+- Ekstrakcja: wszyscy żywi marine (i nosiciel relikwii, jeśli jest) stoją w strefie 5 s. Po limicie czasu porażka, chyba że oddział już stoi w otwartej strefie (ostatnia szansa).
+- Zrzuty skrzyń działają w większości misji; w „Odzyskaj relikwię” są wyłączone. Posiłki (kapsuły) działają zawsze — to nie zaopatrzenie.
+- Odradzanie przebudowane: wspólna pula posiłków 5 + 2×(wielkość oddziału−1). Żywy brat wzywa poległego klawiszem X / przyciskiem REINF (kapsuła przed celownikiem). W solo, albo gdy nikt nie został, zrzut leci automatycznie po cooldownie. Pierwszy cooldown 8 s, +4 s za serię zgonów (maks. 28 s), seria spada po 20 s bez wezwania. Lot 1,4 s, lądowanie 70 obr. / 80 px (rani tylko Tyranidów), 2 s nietykalności, pełne życie. Podniesienie rannego na miejscu nie zużywa puli. Porażka gdy pula = 0, wszyscy martwi i żadna kapsuła nie spada.
+- HUD: nazwa misji, cel, timer, pozostałe posiłki. Na mapie: strefa ekstrakcji, kapilary, relikwia, spadające kapsuły. Ekran końca: MISSION COMPLETE przy zwycięstwie.
+- API bez zmian w plikach menu: `MISSIONS` / `getMission` / `DEFAULT_MISSION_ID`, `HostSession.setMission(id)` / `getMissionId()`, pole `mission` na lobby i starcie, `?mission=id` dla solo/hosta. Protokół 10. Domyślny start nadal Oblężenie ula.
+- Zasady, kompendium, testy zachowania i baseline determinizmu zaktualizowane.
+
 ## v28
 
 - Telefon: przycisk SPRINT nad prawym drążkiem AIM · FIRE (zamiast sprintu na krawędzi lewego drążka). Nad nim uchwyt ARMS — stuknięcie lub przytrzymanie otwiera kółko wyboru broni; wybór palcem. Dawny słupek ikon po prawej na telefonie zastąpiony.

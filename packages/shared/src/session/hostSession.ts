@@ -7,7 +7,14 @@ import {
   PROTOCOL_VERSION,
   TICK_DT,
 } from '../constants.js';
-import { defaultContent, type ContentRegistry } from '../data/index.js';
+import {
+  DEFAULT_MISSION_ID,
+  defaultContent,
+  findMission,
+  getMission,
+  type ContentRegistry,
+} from '../data/index.js';
+import { relicCarryMul } from '../sim/systems/mission.js';
 import { sanitizeName } from '../highscore/limits.js';
 import type { RunMode, RunResult, SubmitStatus } from '../highscore/types.js';
 import { randomSeed } from '../math/rng.js';
@@ -41,6 +48,8 @@ export interface HostSessionOptions {
    * default map works in multiplayer until a picker + optional wire field are added.
    */
   mapId?: string;
+  /** Mission id (data/missions.ts). Omitted = Oblężenie ula. Sets the map unless `mapId` is also given. */
+  missionId?: string;
   scheduler?: Scheduler;
   /** Called once per finished run; returns where it was stored. */
   submitResult?: (result: RunResult) => Promise<{ status: SubmitStatus; rank?: number }>;
@@ -74,7 +83,9 @@ export class HostSession {
   readonly roomCode: string;
   private readonly opts: HostSessionOptions;
   private voiceOn: boolean;
-  private readonly content: ContentRegistry;
+  private content: ContentRegistry;
+  private readonly baseContent: ContentRegistry;
+  private missionId: string;
   private readonly scheduler: Scheduler;
   private members = new Map<string, Member>();
   private pending = new Set<Link>();
@@ -90,9 +101,28 @@ export class HostSession {
     this.opts = opts;
     this.voiceOn = opts.voice === true;
     this.roomCode = opts.roomCode;
-    const content = opts.content ?? defaultContent;
-    this.content = opts.mapId === undefined ? content : content.withMap(opts.mapId);
+    this.baseContent = opts.content ?? defaultContent;
+    this.missionId = findMission(opts.missionId)?.id ?? DEFAULT_MISSION_ID;
+    const mapId = opts.mapId ?? getMission(this.missionId).map;
+    this.content = this.baseContent.withMap(mapId);
     this.scheduler = opts.scheduler ?? realScheduler;
+  }
+
+  /** Currently selected mission id (lobby + next run). */
+  getMissionId(): string {
+    return this.missionId;
+  }
+
+  /**
+   * Pick a mission while in the lobby. Updates the content map to the mission's map
+   * (unless the session was constructed with an explicit `mapId`) and rebroadcasts lobby.
+   */
+  setMission(id: string): void {
+    if (this.phase !== 'lobby' || this.closed) return;
+    const def = getMission(id);
+    this.missionId = def.id;
+    if (this.opts.mapId === undefined) this.content = this.baseContent.withMap(def.map);
+    this.broadcastLobby();
   }
 
   get maxPlayers(): number {
@@ -260,6 +290,7 @@ export class HostSession {
       maxPlayers: this.maxPlayers,
       players: this.lobbyPlayers(),
       ...(this.voice ? { voice: true } : {}),
+      mission: this.missionId,
     });
   }
 
@@ -278,11 +309,11 @@ export class HostSession {
     if (this.phase === 'playing' || this.members.size === 0 || this.closed) return false;
     const seed = (this.opts.seed ?? randomSeed)();
     const players = this.lobbyPlayers();
-    this.world = createWorld(players, seed, this.content);
+    this.world = createWorld(players, seed, this.content, undefined, this.missionId);
     this.pendingEvents = [];
     for (const m of this.members.values()) m.inputs = [];
     this.phase = 'playing';
-    this.broadcast({ t: 'start', seed, players });
+    this.broadcast({ t: 'start', seed, players, mission: this.missionId });
     this.broadcastLobby();
     this.opts.log?.(
       `[room ${this.roomCode}] run started with ${players.length} marine(s), seed ${seed}`,
@@ -338,7 +369,8 @@ export class HostSession {
             p,
             extra.mx,
             extra.my,
-            marineMoveSpeed(this.content.weapon(p.current), p.fireSlow),
+            marineMoveSpeed(this.content.weapon(p.current), p.fireSlow) *
+              relicCarryMul(world, p.id),
             TICK_DT,
             world.map,
           );
@@ -350,7 +382,7 @@ export class HostSession {
       else {
         // No input this tick: hold aim/trigger, stop moving (client reconciles).
         const p = world.players.find((x) => x.id === m.playerId);
-        if (p) p.input = { ...p.input, mx: 0, my: 0, slot: 0, reload: false };
+        if (p) p.input = { ...p.input, mx: 0, my: 0, slot: 0, reload: false, reinforce: false };
       }
     }
     stepWorld(world, TICK_DT);
@@ -383,6 +415,8 @@ export class HostSession {
       endedAt: new Date().toISOString(),
       version: GAME_VERSION,
       mode: this.opts.mode,
+      mission: world.mission.id,
+      outcome: world.mission.outcome,
     };
     const summary: PlayerSummary[] = world.players.map((p) => ({
       id: p.id,

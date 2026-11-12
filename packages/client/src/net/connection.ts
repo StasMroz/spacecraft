@@ -34,12 +34,17 @@ const PEER_PREFIX = 'sms-v1-';
 const peerIdFor = (code: string) => `${PEER_PREFIX}${code}`;
 
 /** Solo play: host + client in the same tab over an in-memory link. */
-export function createLocalGame(name: string, submit?: SubmitFn): GameConnection {
+export function createLocalGame(
+  name: string,
+  submit?: SubmitFn,
+  missionId?: string,
+): GameConnection {
   const host = new HostSession({
     roomCode: 'SOLO',
     mode: 'local',
     maxPlayers: 1,
     submitResult: submit,
+    ...(missionId ? { missionId } : {}),
   });
   const [hostSide, clientSide] = createLocalLinkPair('local');
   host.addLink(hostSide);
@@ -131,6 +136,7 @@ export async function hostPeerGame(name: string, submit?: SubmitFn): Promise<Gam
     mode: 'p2p',
     submitResult: submit,
     log: (...a) => console.info(...a),
+    ...(config.mission ? { missionId: config.mission } : {}),
   });
   peer.on('connection', (conn) => {
     conn.on('open', () => host.addLink(new PeerLink(conn)));

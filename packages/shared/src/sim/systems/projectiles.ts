@@ -14,6 +14,7 @@ import type { Enemy, Player, Projectile, World } from '../types.js';
 import { segmentEntry } from '../walls.js';
 import { spawnAcid } from './acid.js';
 import { damageEnemy, damagePlayer, explode } from './combat.js';
+import { damageObjectivesAt } from './mission.js';
 
 /** Largest enemy radius; used to pad broad-phase queries. */
 const QUERY_PAD = 40;
@@ -47,8 +48,10 @@ export function updateProjectiles(world: World, enemyHash: SpatialHash<Enemy>, d
       pr.y = y0 + (pr.y - y0) * wallT;
     }
     if (!pr.deflected) {
-      if (pr.owner === 'player') hitEnemies(world, pr, x0, y0, enemyHash);
-      else hitPlayers(world, pr, x0, y0);
+      if (pr.owner === 'player') {
+        hitEnemies(world, pr, x0, y0, enemyHash);
+        if (!pr.dead) hitObjectives(world, pr, x0, y0);
+      } else hitPlayers(world, pr, x0, y0);
     }
     if (wallT !== null && !pr.dead) {
       world.events.push({ e: 'bnc', x: Math.round(pr.x), y: Math.round(pr.y), k: pr.kind });
@@ -300,5 +303,15 @@ function detonate(world: World, pr: Projectile, atRange = false): void {
       sourcePlayerId: pr.owner === 'player' ? pr.ownerId : undefined,
       kind: pr.kind,
     });
+  }
+}
+
+function hitObjectives(world: World, pr: Projectile, x0: number, y0: number): void {
+  for (const t of world.mission.targets) {
+    if (t.hp <= 0 || pr.dead) continue;
+    if (segmentDist2(x0, y0, pr.x, pr.y, t.x, t.y) > t.r * t.r) continue;
+    damageObjectivesAt(world, t.x, t.y, 0, pr.damage);
+    if (pr.explosion) damageObjectivesAt(world, t.x, t.y, pr.explosion.radius, pr.explosion.damage);
+    if (pr.pierceBudget ? pr.pierceBudgetLeft! <= 0 : pr.pierceLeft-- <= 0) spendPierce(pr);
   }
 }

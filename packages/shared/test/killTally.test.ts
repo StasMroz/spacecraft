@@ -70,6 +70,8 @@ describe('kill tally', () => {
     damageEnemy(w, at('carnifex'), 1e9, { sourcePlayerId: pa.id });
     damageEnemy(w, at('warrior'), 1e9, { sourcePlayerId: pb.id });
     damageEnemy(w, at('genestealer'), 1e9, { sourcePlayerId: pb.id });
+    w.reinforce.left = 0;
+    w.reinforce.pods = [];
     for (const p of w.players) {
       p.state = 'downed';
       p.invuln = 0;

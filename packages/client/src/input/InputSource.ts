@@ -34,6 +34,8 @@ export interface ActionIntent {
   /** Cycle weapons: -1 previous, +1 next, 0 none. */
   cycle: number;
   reload: boolean;
+  /** Call a drop-pod reinforcement (X / HUD tap). */
+  reinforce?: boolean;
 }
 
 export const NO_ACTIONS: ActionIntent = { slot: 0, cycle: 0, reload: false };
@@ -63,6 +65,7 @@ export function mergeActions(list: ActionIntent[]): ActionIntent {
     if (a.slot) out.slot = a.slot;
     if (a.cycle) out.cycle = a.cycle;
     if (a.reload) out.reload = true;
+    if (a.reinforce) out.reinforce = true;
   }
   return out;
 }

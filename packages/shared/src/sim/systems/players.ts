@@ -1,8 +1,10 @@
 import { PLAYER } from '../../constants.js';
+import { reinforceCooldown } from '../../data/reinforce.js';
 import { isGuarding } from '../../data/guard.js';
 import { stepSprint } from '../../data/sprint.js';
 import { dist2 } from '../../math/vec.js';
 import type { Player, World } from '../types.js';
+import { relicCarryMul } from './mission.js';
 import {
   effectiveFire,
   isMoving,
@@ -40,7 +42,9 @@ export function updatePlayerMovement(world: World, dt: number): void {
     // Defensive stance: hold input while standing still. Any move cancels immediately.
     p.guarding = isGuarding(p.input.guard === true, true, moving);
     p.fireSlow = stepFireSlow(p.fireSlow, effectiveFire(p.input.fire, p.sprint), dt);
-    const speed = p.sprint.sprinting ? marineSprintSpeed() : marineMoveSpeed(def, p.fireSlow);
+    const speed =
+      (p.sprint.sprinting ? marineSprintSpeed() : marineMoveSpeed(def, p.fireSlow)) *
+      relicCarryMul(world, p.id);
     const x0 = p.x;
     const y0 = p.y;
     stepPlayerMovement(p, mx, my, speed, dt, world.map);
@@ -91,7 +95,12 @@ export function updatePlayerStatus(world: World, dt: number): void {
 
   if (!world.players.some((p) => p.state === 'alive')) {
     for (const p of world.players) if (p.state !== 'dead') kill(world, p.id);
-    world.over = true;
+    // Last marine downed: they die immediately (no self-revive). Game-over is decided
+    // after reinforcements run: a remaining budget or a falling pod keeps the mission alive.
+    const rf = world.reinforce;
+    if (rf.cooldown <= 0 && rf.left > 0 && rf.pods.length === 0) {
+      rf.cooldown = reinforceCooldown(rf.streak);
+    }
   }
 }
 

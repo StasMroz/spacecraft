@@ -21,6 +21,10 @@ export interface RunResult {
   endedAt: string;
   version: string;
   mode: RunMode;
+  /** v29+: mission id (absent on older runs). */
+  mission?: string;
+  /** v29+: victory / defeat (absent on older endless-only runs). */
+  outcome?: 'victory' | 'defeat';
 }
 
 export interface HighscoreEntry extends RunResult {

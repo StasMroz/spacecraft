@@ -1,5 +1,8 @@
 import {
   defaultContent,
+  findMission,
+  getMission,
+  DEFAULT_MISSION_ID,
   type ContentRegistry,
   type PlayerSummary,
   type SquadSummary,
@@ -151,11 +154,12 @@ export class App {
   }
 
   private solo(name: string, demo = false): void {
-    const conn = createLocalGame(name);
+    const conn = createLocalGame(name, undefined, config.mission || undefined);
     this.attach(conn);
     if (demo) {
       const off = conn.session.on('start', () => {
-        if (conn.host?.world) stageHiveDemo(conn.host.world, this.content);
+        const map = conn.host?.world?.map ?? this.content.map;
+        if (conn.host?.world) stageHiveDemo(conn.host.world, this.content.withMap(map));
       });
       this.connCleanup.push(off);
     }
@@ -189,7 +193,7 @@ export class App {
     const s = conn.session;
     this.connCleanup.push(attachVoice(conn)); // voice chat: only when the host opted in (P2P)
     this.connCleanup.push(
-      s.on('start', () => this.startGame()),
+      s.on('start', (ev) => this.startGame(ev.mission)),
       s.on('lobby', (l) => {
         if (
           l.phase === 'lobby' &&
@@ -239,7 +243,7 @@ export class App {
     this.cleanup.push(room.dispose);
   }
 
-  private startGame(): void {
+  private startGame(missionId?: string): void {
     const conn = this.conn;
     if (!conn) return;
     this.game?.dispose();
@@ -247,7 +251,9 @@ export class App {
     this.linkJoin = null;
     this.gameOverUi = null;
     this.setUi(null);
-    const game = new GameClient(conn, this.canvas, this.assets, this.audio, this.content);
+    const mid = findMission(missionId)?.id ?? DEFAULT_MISSION_ID;
+    const content = this.content.withMap(getMission(mid).map);
+    const game = new GameClient(conn, this.canvas, this.assets, this.audio, content);
     game.on('over', (o) => setTimeout(() => this.showGameOver(o.result, o.summary, o.squad), 1600));
     // Escape / ⏸ -> "leave": close the connection (a leaving host closes the room, and the
     // squad takes the usual host-disconnect path) and go back to the main menu.

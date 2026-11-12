@@ -12,6 +12,7 @@ import { dropCaps } from './director.js';
 import { segmentBlocked } from '../walls.js';
 import type { Enemy, Player, World } from '../types.js';
 import { spawnAcid } from './acid.js';
+import { damageObjectivesAt } from './mission.js';
 
 export interface DamageOpts {
   /** 40k profile (data/profile.ts); strength omitted = ignores Toughness and Save. */
@@ -172,6 +173,7 @@ export function explode(
   const falloff = (d: number) =>
     spec.damage * (1 - (1 - spec.edgeFactor) * Math.min(1, d / spec.radius));
   if (opts.hurtsEnemies) {
+    damageObjectivesAt(world, x, y, spec.radius, spec.damage);
     for (const enemy of world.enemies) {
       if (enemy.dead || enemy.burrowed) continue;
       const def = world.content.enemy(enemy.type);

@@ -12,6 +12,7 @@ import {
   type PlayerSnap,
   type Snapshot,
   snapWalls,
+  findMission,
 } from '@sms/shared';
 import type { NoticeKind } from '../game/fx.js';
 import { formatTime } from '../ui/format.js';
@@ -215,6 +216,41 @@ const NOTICE_COLORS: Record<NoticeKind, string> = {
   warn: '#f0c050',
 };
 
+function missionBrief(s: HudState): {
+  name: string;
+  objective: string;
+  timer: string | null;
+  reinf: string;
+  urgent: boolean;
+} {
+  const mi = s.snap.mi;
+  const def = findMission(mi?.id);
+  const name = def?.name ?? 'Misja';
+  let objective = def?.objective ?? '';
+  if (mi) {
+    if (mi.tg.length) {
+      const done = mi.tg.filter((t) => t.hp <= 0).length;
+      objective = `Kapilary synapsy: ${done}/${mi.tg.length}`;
+    }
+    if (mi.rx !== undefined) {
+      objective = mi.rc ? 'Donieś relikwię do strefy ekstrakcji.' : 'Odzyskaj relikwię.';
+    }
+    const needRelic = mi.rx !== undefined && !mi.rc;
+    const needTargets = mi.tg.some((t) => t.hp > 0);
+    if (mi.eo && mi.out === 0 && !needRelic && !needTargets) {
+      const need = def?.extractHold ?? 5;
+      objective =
+        mi.ep > 0 ? `Ekstrakcja ${mi.ep.toFixed(1)}/${need}s` : 'Wejdź do strefy ekstrakcji.';
+    }
+  }
+  const urgent = !!mi && mi.tl >= 0 && mi.tl <= 30;
+  const timer = mi && mi.tl >= 0 ? formatTime(mi.tl * 1000) : null;
+  const left = s.snap.rf?.left ?? 0;
+  const cd = s.snap.rf?.cd ?? 0;
+  const reinf = cd > 0 ? `POSIŁKI ${left}  (${Math.ceil(cd)}s)` : `POSIŁKI ${left}`;
+  return { name, objective, timer, reinf, urgent };
+}
+
 /** Screen-space HUD drawn on the game canvas. */
 export class Hud {
   constructor(
@@ -348,13 +384,14 @@ export class Hud {
           y += hgt + 4;
         }
       };
+      push(this.missionPlate(ctx, cx, s, y, Math.min(420, maxW)));
       push(this.bossBar(ctx, cx, s, y + 4, Math.min(360, maxW - 16)));
       push(this.waveBanner(ctx, cx, h, s, y, maxW));
       if (s.me) push(this.stateBanner(ctx, cx, h, s.me, y, maxW));
       push(this.notices(ctx, cx, s.notices, y, maxW));
     } else {
       this.topStack = [];
-      const boss = this.bossBar(ctx, w / 2, s, 80, 360) > 0;
+      const boss = this.bossBar(ctx, w / 2, s, 104, 360) > 0;
       this.waveBanner(ctx, w / 2, h, s, null, 0);
       if (s.me) this.stateBanner(ctx, w / 2, h, s.me, null, 0);
       this.notices(ctx, w / 2, s.notices, boss ? 136 : 110, 0);
@@ -465,17 +502,24 @@ export class Hud {
   }
 
   private timer(ctx: CanvasRenderingContext2D, w: number, s: HudState): void {
-    this.panel(ctx, w / 2 - 125, 8, 250, 64);
-    // own skull-and-wings emblem flanking the clock
+    const m = missionBrief(s);
+    this.panel(ctx, w / 2 - 170, 8, 340, 86);
     ctx.globalAlpha = 0.28;
-    this.assets.draw(ctx, 'ui_emblem', 0, w / 2, 38, 0, 1.1);
+    this.assets.draw(ctx, 'ui_emblem', 0, w / 2, 36, 0, 1.05);
     ctx.globalAlpha = 1;
     ctx.textAlign = 'center';
     ctx.fillStyle = HUD.parchment;
-    ctx.font = F(700, 28, true);
-    ctx.fillText(formatTime(s.snap.time * 1000), w / 2, 48);
-    ctx.font = F(600, 11);
+    ctx.font = F(700, 24, true);
+    const clock = m.timer ? m.timer : formatTime(s.snap.time * 1000);
+    ctx.fillStyle = m.urgent ? '#ff8a60' : HUD.parchment;
+    ctx.fillText(clock, w / 2, 36);
+    ctx.font = F(700, 11);
     ctx.fillStyle = HUD.gold;
+    ctx.fillText(m.name.toUpperCase(), w / 2, 52);
+    ctx.font = F(600, 10);
+    ctx.fillStyle = HUD.parchment;
+    ctx.fillText(m.objective, w / 2, 66);
+    ctx.font = F(600, 10);
     const kills = s.snap.players.reduce((a, p) => a + p.k, 0);
     const wv = s.snap.wv;
     const status = !wv
@@ -484,7 +528,30 @@ export class Hud {
         ? `${wv.r} REMAINING`
         : `NEXT IN ${Math.ceil(wv.nx ?? 0)}s`;
     ctx.fillStyle = wv?.h ? '#ff8a60' : HUD.gold;
-    ctx.fillText(`WAVE ${s.snap.wave}  ✠  ${status}  ✠  ${kills} PURGED`, w / 2, 65);
+    ctx.fillText(`WAVE ${s.snap.wave}  ✠  ${status}  ✠  ${kills}  ✠  ${m.reinf}`, w / 2, 82);
+  }
+
+  /** Compact-phone mission / timer / reinforcement plate in the top band. */
+  private missionPlate(
+    ctx: CanvasRenderingContext2D,
+    cx: number,
+    s: HudState,
+    y: number,
+    maxW: number,
+  ): number {
+    const m = missionBrief(s);
+    const bw = Math.min(400, maxW);
+    const bh = 36;
+    this.panel(ctx, cx - bw / 2, y, bw, bh);
+    ctx.textAlign = 'center';
+    ctx.font = F(700, 11);
+    ctx.fillStyle = m.urgent ? '#ff8a60' : HUD.gold;
+    const clock = m.timer ? `  ${m.timer}` : '';
+    ctx.fillText(`${m.name.toUpperCase()}${clock}  ✠  ${m.reinf}`, cx, y + 14);
+    ctx.font = F(600, 10);
+    ctx.fillStyle = HUD.parchment;
+    ctx.fillText(m.objective, cx, y + 28);
+    return bh;
   }
 
   /** Breather between waves: big "WAVE N CLEARED" plate with the countdown. */

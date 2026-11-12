@@ -17,4 +17,5 @@ export const WAVE_MAP: MapDef = {
   playerSpawn: { x: ARENA.width / 2, y: ARENA.height / 2, ringMin: 50, ringPerMarine: 16 },
   walls: WAVE_WALLS,
   director: DIRECTOR,
+  theme: { biome: 'hive', floorA: '#1a2026', floorB: '#1d242b', edge: '#0d1014' },
 };
