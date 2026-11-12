@@ -231,6 +231,8 @@ export interface Projectile {
   oy?: number;
   /** Low-cover walls (map indices) this shot already crossed or rolled against (one roll each). */
   cover?: number[];
+  /** Skip low-cover checks (Hive Guard impaler, psychic bolts). */
+  ignoreLow?: boolean;
   /** Enemy ids already hit (so piercing shots hit each target once). */
   hit: number[];
   /** Ricocheted off a marine's front plate: harmless to everyone, fading out. */

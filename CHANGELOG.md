@@ -1,5 +1,9 @@
 # Changelog
 
+## v43
+
+- Nowi Tyranidzi: **Hive Guard** (ciężki strzelec, Impaler Cannon przebija niskie osłony), **Hive Tyrant** (boss: wręcz, szarża, pocisk psychiczny, aura synapsy i Bio-stimulus dla roju), **Lictor** (ukryty zabójca, podkop), **Zoanthrope** (psy-strzał nad barykadami, mniejsza synapsa), **Tyrant Guard** (żywa tarcza, ciężki pancerz). Własne sprite'y w stylu v27, wpisy w kompendium, pociski `impaler` / `warpblast`. Wchodzą do późniejszych fal Oblężenia (Tyrant zostaje bossem misji — nie losową falą).
+
 ## v42
 
 - Broń wręcz zakonów wyraźnie mocniejsza: ok. +49–55% DPS (termagant / warrior / carnifex), dłuższy zasięg i szerszy łuk, mocniejszy knockback. Przy zamachu krótki lifesteal (15–25% zadanych obrażeń) i odporność na przychodzące ciosy (25–35%). Tabela przed/po w raporcie. Broń dystansowa bez zmian. Charakter zachowany (pazury najszybsze, młoty najcięższe, głownia najdłuższa).

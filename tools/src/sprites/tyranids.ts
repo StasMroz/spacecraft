@@ -723,6 +723,116 @@ interface Spec {
   brief: string;
 }
 
+const hiveGuard: Drawer = (ctx, p, pal) => {
+  const rec = p.a * 8;
+  const gait = Math.sin(p.w * TAU);
+  plate(ctx, -2, 0, 16, 13, pal, p.c * 0.2);
+  flesh(ctx, 4, 0, 10, 8, pal);
+  // Four walking legs.
+  for (const s of [-1, 1]) {
+    leg(ctx, -4, s * 8, 8 + gait * s * 3, s * 16, s * 4, pal.carapace, 3.2);
+    leg(ctx, 6, s * 7, 4 - gait * s * 3, s * 15, s * 3, pal.carapace, 3);
+  }
+  // Shield-like shoulder carapace on the left.
+  plate(ctx, 2, -11, 9, 8, pal, -0.4);
+  // Impaler cannon reaching forward.
+  flesh(ctx, 14 + rec * 0.3, 6, 7, 4.5, pal, 0.1);
+  line(ctx, 16 + rec * 0.3, 6, 28 + rec, 6, pal.bone, 3.4);
+  line(ctx, 16 + rec * 0.3, 6, 28 + rec, 6, pal.bone, 1.4);
+  circle(ctx, 28 + rec, 6, 2.2, pal.bone);
+  // Head and sensory horns.
+  plate(ctx, 14, -3, 8, 6, pal, 0.15);
+  circle(ctx, 18, -4, 1.6, pal.eye);
+  glow(ctx, 18, -4, 4, pal.eye, 0.45);
+  line(ctx, 16, -8, 22, -12, pal.bone, 1.6);
+};
+
+const zoanthrope: Drawer = (ctx, p, pal) => {
+  const bob = Math.sin(p.w * TAU) * 3;
+  const swell = 1 + p.a * 0.15;
+  // Atrophied dangling body.
+  flesh(ctx, -2, 10 + bob, 6, 8, pal);
+  for (const s of [-1, 1]) line(ctx, -2, 14 + bob, s * 7, 20 + bob + p.c * 4, pal.fleshDark, 1.6);
+  // Huge cranium.
+  glow(ctx, 2, -2 + bob, 22 * swell, '#a050ff', 0.35 + p.a * 0.25);
+  ellipse(ctx, 2, -2 + bob, 16 * swell, 14 * swell, pal.flesh, pal.fleshDark, 1.4);
+  plate(ctx, 0, -6 + bob, 10, 7, pal, -0.2);
+  // Warp eye.
+  circle(ctx, 8, -2 + bob, 3.2, pal.eye);
+  glow(ctx, 8, -2 + bob, 8, '#d080ff', 0.7);
+  circle(ctx, 9, -2.5 + bob, 1.2, '#ffe8ff');
+  // Head-tail tendrils.
+  for (const s of [-1, 1]) line(ctx, -8, -2 + bob, -16, s * 8 + bob, pal.fleshDark, 2);
+};
+
+const lictor: Drawer = (ctx, p, pal) => {
+  const rec = p.a * 10;
+  const gait = Math.sin(p.w * TAU);
+  const dark = pal.carapaceDark;
+  flesh(ctx, 0, 0, 8, 6, pal);
+  plate(ctx, -2, 0, 11, 8, pal, p.c * 0.25);
+  // Long leaping legs.
+  for (const s of [-1, 1]) {
+    leg(ctx, -2, s * 5, 10 + gait * s * 4, s * 14, s * 3, dark, 2.4);
+    leg(ctx, 4, s * 5, 6 - gait * s * 3, s * 13, s * 2, pal.flesh, 2);
+  }
+  // Upper rending claws reaching forward.
+  for (const s of [-1, 1]) {
+    line(ctx, 6, s * 3, 18 + rec, s * (8 - rec * 0.4), pal.bone, 2.2);
+    line(ctx, 18 + rec, s * (8 - rec * 0.4), 22 + rec, s * (5 - rec * 0.2), pal.bone, 1.6);
+  }
+  // Mantle / flesh hooks on the back.
+  for (const s of [-1, 1]) line(ctx, -6, s * 2, -14, s * 10, pal.flesh, 1.8);
+  plate(ctx, 8, -2, 6, 4.5, pal, 0.2);
+  circle(ctx, 12, -3, 1.4, pal.eye);
+  glow(ctx, 12, -3, 3.5, pal.eye, 0.4);
+};
+
+const tyrantGuard: Drawer = (ctx, p, pal) => {
+  const rec = p.a * 6;
+  const gait = Math.sin(p.w * TAU);
+  // Massive shield plates.
+  plate(ctx, 0, 0, 20, 16, pal, p.c * 0.15);
+  plate(ctx, 6, -10, 12, 10, pal, -0.35);
+  plate(ctx, 6, 10, 12, 10, pal, 0.35);
+  flesh(ctx, 4, 0, 10, 8, pal);
+  for (const s of [-1, 1]) {
+    leg(ctx, -4, s * 10, 10 + gait * s * 2, s * 20, s * 5, pal.carapace, 5);
+    leg(ctx, 8, s * 9, 6 - gait * s * 2, s * 18, s * 4, pal.carapace, 4.4);
+  }
+  // Short heavy claws.
+  for (const s of [-1, 1]) leg(ctx, 10, s * 6, 18 + rec, s * 8, s * 3, pal.bone, 4);
+  plate(ctx, 14, -2, 8, 6, pal, 0.1);
+  circle(ctx, 18, -3, 1.7, pal.eye);
+};
+
+const hiveTyrant: Drawer = (ctx, p, pal) => {
+  const rec = p.a * 8;
+  const gait = Math.sin(p.w * TAU);
+  // Vestigial wings.
+  for (const s of [-1, 1]) {
+    ellipse(ctx, -8, s * 22, 16, 9, pal.flesh, pal.fleshDark, 1, s * 0.5);
+    plate(ctx, -6, s * 20, 12, 6, pal, s * 0.45);
+  }
+  plate(ctx, 0, 0, 22, 16, pal, p.c * 0.12);
+  flesh(ctx, 6, 0, 12, 9, pal);
+  for (const s of [-1, 1]) {
+    leg(ctx, -4, s * 10, 14 + gait * s * 3, s * 24, s * 6, pal.carapace, 5.5);
+    leg(ctx, 8, s * 10, 8 - gait * s * 3, s * 22, s * 5, pal.carapace, 5);
+  }
+  // Four arms: boneswords high, lesser claws low.
+  for (const s of [-1, 1]) {
+    line(ctx, 10, s * 6, 26 + rec, s * (14 - rec * 0.3), pal.bone, 3.2);
+    line(ctx, 26 + rec, s * (14 - rec * 0.3), 32 + rec, s * (10 - rec * 0.2), pal.bone, 2.2);
+    line(ctx, 8, s * 8, 20, s * 16, pal.fleshDark, 2.4);
+  }
+  // Psychic crest.
+  plate(ctx, 16, -4, 11, 8, pal, 0.15);
+  for (const s of [-1, 1]) line(ctx, 14, -8, 22, s * -16, pal.bone, 2);
+  glow(ctx, 22, -5, 8, '#c070ff', 0.45 + p.a * 0.25);
+  circle(ctx, 22, -5, 2.2, pal.eye);
+};
+
 const SPECIES: Record<string, Spec> = {
   hormagaunt: {
     size: 64,
@@ -804,6 +914,51 @@ const SPECIES: Record<string, Spec> = {
     death: 5,
     brief:
       'hunched many-limbed psychic furnace: six scuttling talon-tipped legs, a bulbous body with digestive sacs, dorsal ash-chimneys, and a gaping many-jawed maw ringed with barbed tentacles',
+  },
+  hive_guard: {
+    size: 100,
+    draw: hiveGuard,
+    walk: 6,
+    attack: 3,
+    death: 4,
+    brief:
+      'hunched four-legged gunbeast with a long organic impaler cannon and a shield-like shoulder carapace',
+  },
+  zoanthrope: {
+    size: 88,
+    draw: zoanthrope,
+    walk: 4,
+    attack: 3,
+    death: 4,
+    brief:
+      'floating swollen psychic alien: huge glowing cranium, atrophied dangling body and warp-lit eye',
+  },
+  lictor: {
+    size: 80,
+    draw: lictor,
+    walk: 6,
+    attack: 3,
+    death: 4,
+    brief:
+      'lean mantis-like assassin alien with long rending claws, flesh hooks and a stealthy dark carapace',
+  },
+  tyrant_guard: {
+    size: 112,
+    draw: tyrantGuard,
+    walk: 6,
+    attack: 3,
+    death: 4,
+    brief:
+      'bulky living-shield alien with massive overlapping carapace plates and short heavy claws',
+  },
+  hive_tyrant: {
+    size: 136,
+    draw: hiveTyrant,
+    walk: 6,
+    attack: 3,
+    death: 5,
+    brief:
+      'towering winged hive monarch: four arms with boneswords, a psychic crest and a broad carapace',
   },
 };
 

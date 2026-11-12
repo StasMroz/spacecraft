@@ -16,7 +16,13 @@ describe('game-over kill tally', () => {
   it('lists every enemy type: bosses, then elites, then the swarm', () => {
     const rows = killTallyRows([marine(1, 'A', { hormagaunt: 3 })], undefined, defaultContent);
     expect(rows.map((r) => r.id).sort()).toEqual([...defaultContent.enemies.keys()].sort());
-    expect(rows[0]).toMatchObject({ id: 'carnifex', rank: 'boss', total: 0 });
+    expect(
+      rows
+        .filter((r) => r.rank === 'boss')
+        .map((r) => r.id)
+        .sort(),
+    ).toEqual(['carnifex', 'hive_tyrant', 'psychophage'].sort());
+    expect(rows[0]?.rank).toBe('boss');
     const ranks = rows.map((r) => r.rank);
     expect(ranks).toEqual(
       [...ranks].sort(

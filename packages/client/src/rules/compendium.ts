@@ -186,7 +186,7 @@ function enemyAttack(e: EnemyDef, c: ContentRegistry): string {
   if (e.ranged) {
     const r = e.ranged;
     a.push(
-      `strzał ${r.projectile.damage}${r.projectile.explosion ? ` + wybuch ${r.projectile.explosion.damage} (r ${r.projectile.explosion.radius})` : ''} co ${n(r.cooldown, 2)} s, zasięg ${r.range} px (trzyma dystans ${r.preferredDistance})`,
+      `strzał ${r.projectile.damage}${r.projectile.explosion ? ` + wybuch ${r.projectile.explosion.damage} (r ${r.projectile.explosion.radius})` : ''} co ${n(r.cooldown, 2)} s, zasięg ${r.range} px (trzyma dystans ${r.preferredDistance})${r.projectile.ignoreLow ? ', przebija niskie osłony' : ''}`,
     );
   }
   if (e.charge) {

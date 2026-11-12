@@ -81,11 +81,17 @@ describe('40k content data', () => {
       'biovore',
       'spore_mine',
       'carnifex',
+      'hive_guard',
+      'zoanthrope',
+      'lictor',
+      'tyrant_guard',
+      'hive_tyrant',
     ])
       expect(ids).toContain(id);
     expect([...content.enemies.values()].filter((e) => e.boss).map((e) => e.id)).toEqual([
       'carnifex',
       'psychophage',
+      'hive_tyrant',
     ]);
     expect(content.enemy('warrior').synapse).toBeDefined();
     expect(content.enemy('ravener').burrow).toBeDefined();

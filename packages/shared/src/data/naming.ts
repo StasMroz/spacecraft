@@ -42,6 +42,12 @@ export const NAME_PRESETS: Record<string, NamePreset> = {
       biovore: 'Mortar Beast',
       spore_mine: 'Gas Bag',
       carnifex: 'Juggernaut',
+      psychophage: 'Stim Beast',
+      hive_guard: 'Impaler Beast',
+      zoanthrope: 'Warp Node',
+      lictor: 'Shade Assassin',
+      tyrant_guard: 'Shield Beast',
+      hive_tyrant: 'Hive Sovereign',
     },
     chapters: {
       ultramarines: 'Azure Legion',

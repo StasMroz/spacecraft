@@ -64,6 +64,8 @@ export interface ProjectileSpec {
   pool?: AcidPoolSpec;
   /** Lobbed: lands at the target's position at firing time (lifetime capped to that distance). */
   lob?: boolean;
+  /** Impaler / psychic bolts: fly over low cover; full walls still stop them. */
+  ignoreLow?: boolean;
 }
 
 export interface AcidPoolSpec {

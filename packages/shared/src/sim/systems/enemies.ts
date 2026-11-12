@@ -414,6 +414,7 @@ function spit(
     knockback: 0,
     explosion: spec.explosion,
     ...(spec.pool ? { pool: spec.pool } : {}),
+    ...(spec.ignoreLow ? { ignoreLow: true } : {}),
     hit: [],
     dead: false,
   });

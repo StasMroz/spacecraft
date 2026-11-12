@@ -29,17 +29,17 @@
       "4000:857025e1",
       "4500:996a5ef5",
       "5000:4a9f9bcc",
-      "5500:969fc8c6",
-      "6000:c5e07d28",
-      "6500:c80f5b0d",
-      "7000:015c40fd",
-      "7500:efc9bc3c",
-      "8000:a74660b3",
-      "8500:f14b0011",
-      "9000:2a72b0a9"
+      "5500:929c911d",
+      "6000:a067db82",
+      "6500:8bbc97aa",
+      "7000:a5b7b327",
+      "7500:0fa4bb21",
+      "8000:c715266f",
+      "8500:ce9f1cd7",
+      "9000:85247e8c"
     ],
-    "events": "36371d82",
-    "summary": "wave=6 kills=205 over=false time=300.00"
+    "events": "db64b9ae",
+    "summary": "wave=6 kills=200 over=false time=300.00"
   },
   "duo-immortal": {
     "checkpoints": [

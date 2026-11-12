@@ -71,6 +71,11 @@ describe('v0.4 arsenal', () => {
       warrior: 15,
       carnifex: 50,
       psychophage: 40,
+      hive_guard: 18,
+      zoanthrope: 16,
+      lictor: 14,
+      tyrant_guard: 20,
+      hive_tyrant: 60,
     });
   });
 });

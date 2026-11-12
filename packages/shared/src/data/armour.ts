@@ -70,6 +70,10 @@ export const MARINE_DEFLECTION = {
     bioacid: 0,
     /** Psychophage psychoclastic ash: a gout, not a bolt — never ricochets. */
     psyash: 0,
+    /** Hive Guard impaler spike: a dense bone dart, harder to bounce than a deathspitter. */
+    impaler: 0.1,
+    /** Zoanthrope / Hive Tyrant warp blast: a psychic burst, nothing to ricochet. */
+    warpblast: 0,
   } as Readonly<Record<string, number>>,
   /** Any future direct-fire projectile not in the table. */
   defaultChance: 0.15,

@@ -260,7 +260,7 @@ function wallStop(world: World, pr: Projectile, x0: number, y0: number): number 
     const t = segmentEntry(x0, y0, pr.x, pr.y, w);
     if (t === null) return;
     if (w.kind === 'low') {
-      if (!pr.cover?.includes(i)) low.push({ i, t });
+      if (!pr.ignoreLow && !pr.cover?.includes(i)) low.push({ i, t });
       return;
     }
     if (best === null || t < best) best = t;

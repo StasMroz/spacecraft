@@ -150,6 +150,47 @@ const PROJ: Record<string, { w: number; h: number; prompt: string; draw: (ctx: C
       circle(ctx, 14, 14, 3.5, 'rgba(242,255,154,0.75)');
     },
   },
+  impaler: {
+    w: 28,
+    h: 10,
+    prompt:
+      'Bone impaler spike from a Hive Guard cannon, long ivory dart with a flesh collar, pointing right',
+    draw: (ctx) => {
+      glow(ctx, 22, 5, 6, '#ffe8a0', 0.45);
+      line(ctx, 2, 5, 22, 5, FLEET.bone, 3.2);
+      line(ctx, 2, 5, 22, 5, '#fff6d0', 1.2);
+      ellipse(ctx, 8, 5, 3.5, 3, FLEET.flesh, FLEET.fleshDark, 0.8);
+      ctx.beginPath();
+      ctx.moveTo(22, 5);
+      ctx.lineTo(27, 5);
+      ctx.lineTo(22, 2.5);
+      ctx.lineTo(22, 7.5);
+      ctx.closePath();
+      ctx.fillStyle = '#f4e8c0';
+      ctx.fill();
+    },
+  },
+  warpblast: {
+    w: 28,
+    h: 28,
+    prompt: 'Psychic warp blast: pulsing violet orb with crackling arcs, flying right',
+    draw: (ctx) => {
+      glow(ctx, 16, 14, 14, '#c070ff', 0.7);
+      circle(ctx, 16, 14, 8, '#6a20a0', '#2a0840', 1.2);
+      circle(ctx, 14, 12, 3.5, 'rgba(230,200,255,0.85)');
+      for (const a of [0.2, 1.4, 2.6, 4.0]) {
+        line(
+          ctx,
+          16 + Math.cos(a) * 5,
+          14 + Math.sin(a) * 5,
+          16 + Math.cos(a) * 12,
+          14 + Math.sin(a) * 12,
+          'rgba(210,160,255,0.8)',
+          1.4,
+        );
+      }
+    },
+  },
 };
 
 const projectiles: SpriteDef[] = defaultContent.projectileKinds.map((kind) => {

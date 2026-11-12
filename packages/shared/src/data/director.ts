@@ -102,7 +102,15 @@ export const DIRECTOR: DirectorConfig = {
     },
     {
       fromWave: 5,
-      weights: { hormagaunt: 9, termagant: 5, ripper: 2, genestealer: 3, warrior: 1, ravener: 1.2 },
+      weights: {
+        hormagaunt: 9,
+        termagant: 5,
+        ripper: 2,
+        genestealer: 3,
+        warrior: 1,
+        ravener: 1.2,
+        lictor: 0.8,
+      },
     },
     {
       fromWave: 6,
@@ -115,6 +123,9 @@ export const DIRECTOR: DirectorConfig = {
         ravener: 1.5,
         biovore: 1,
         spore_mine: 1.5,
+        hive_guard: 1,
+        zoanthrope: 0.7,
+        lictor: 0.8,
       },
     },
     {
@@ -129,6 +140,10 @@ export const DIRECTOR: DirectorConfig = {
         biovore: 1.5,
         spore_mine: 2,
         carnifex: 0.25,
+        hive_guard: 1.5,
+        zoanthrope: 1,
+        lictor: 1,
+        tyrant_guard: 0.6,
       },
     },
     {
@@ -143,6 +158,10 @@ export const DIRECTOR: DirectorConfig = {
         biovore: 2,
         spore_mine: 2,
         carnifex: 0.5,
+        hive_guard: 2,
+        zoanthrope: 1.2,
+        lictor: 1.2,
+        tyrant_guard: 1,
       },
     },
   ],
