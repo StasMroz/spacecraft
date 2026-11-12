@@ -52,6 +52,18 @@ export interface MissionDef {
   nests?: { interval: number; maxAlive: number; types: string[] };
   /** Extra pre-placed groups: [x, y, kind] (kind 0 = stealers, 1 = gaunts). */
   patrols?: [number, number, number][];
+  /**
+   * Counts for the main (Firestore) leaderboard. Only hive_siege is ranked, so existing
+   * survival scores stay comparable: same map, starting loadout and wave rules. Seed stays
+   * per-run random (a fixed seed would turn the board into a single RNG route).
+   */
+  ranked?: boolean;
+}
+
+/** True for runs that belong on the global board. Missing `mission` = legacy hive_siege. */
+export function countsForLeaderboard(missionId?: string): boolean {
+  if (!missionId) return true;
+  return findMission(missionId)?.ranked === true;
 }
 
 export const DEFAULT_MISSION_ID = 'hive_siege';
@@ -71,6 +83,7 @@ export const MISSIONS: readonly MissionDef[] = [
     extractHold: 0,
     crates: true,
     crash: true,
+    ranked: true,
   },
   {
     id: 'hold_the_line',
@@ -182,5 +195,8 @@ export function validateMissions(list: readonly MissionDef[] = MISSIONS): string
   }
   if (!ids.has(DEFAULT_MISSION_ID))
     errors.push(`default mission '${DEFAULT_MISSION_ID}' is missing`);
+  const ranked = list.filter((m) => m.ranked);
+  if (ranked.length !== 1 || ranked[0]!.id !== DEFAULT_MISSION_ID)
+    errors.push(`exactly one ranked mission, and it must be '${DEFAULT_MISSION_ID}'`);
   return errors;
 }

@@ -225,7 +225,7 @@ function missionBrief(s: HudState): {
 } {
   const mi = s.snap.mi;
   const def = findMission(mi?.id);
-  const name = def?.name ?? 'Misja';
+  const name = def?.ranked ? `${def.name} · ranking` : (def?.name ?? 'Misja');
   let objective = def?.objective ?? '';
   if (mi) {
     if (mi.tg.length) {

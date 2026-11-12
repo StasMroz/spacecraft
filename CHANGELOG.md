@@ -1,5 +1,10 @@
 # Changelog
 
+## v39
+
+- Ranking główny liczy tylko **Oblężenie ula** (`hive_siege`, `ranked: true`): ten sam pokład, ten sam startowy loadout, fale jak dotychczas; seed nadal losowy na bieg (stały seed zepsułby porównanie z istniejącymi wynikami). Inne misje zapisują wynik tylko w przeglądarce — bez zapisu do Firestore / głównej tablicy. Stare biegi bez pola `mission` nadal się liczą (to było Oblężenie).
+- Pages: checkout z `fetch-depth: 0`, żeby `versions.json` dostawał daty z tagów.
+
 ## v38
 
 - Broń zakonów (specjale z v28): własne ikony HUD i held-sprite'y zamiast generycznego prostokąta — Storm Bolter (podwójna lufa), Inferno Pistol, Plasma Caster, Siege Bolter (płyta), Plasma Pistol, Bolt Carbine, Stalker Bolter (tłumik i luneta). Lufy zgrają się z flashu (muzzle).

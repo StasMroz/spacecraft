@@ -5,6 +5,7 @@ import {
   MISSIONS,
   REINFORCE,
   defaultContent,
+  countsForLeaderboard,
   findMission,
   getMission,
   reinforceBudget,
@@ -271,5 +272,17 @@ describe('host / protocol API', () => {
     h.setMission('synapse_purge');
     expect(h.getMissionId()).toBe('synapse_purge');
     expect(() => h.setMission('nope')).toThrow();
+  });
+});
+
+describe('ranked leaderboard mission', () => {
+  it('hive_siege is the only ranked mission and legacy runs still count', () => {
+    expect(getMission('hive_siege').ranked).toBe(true);
+    expect(MISSIONS.filter((m) => m.ranked).map((m) => m.id)).toEqual(['hive_siege']);
+    expect(countsForLeaderboard()).toBe(true);
+    expect(countsForLeaderboard('hive_siege')).toBe(true);
+    expect(countsForLeaderboard('hold_the_line')).toBe(false);
+    expect(countsForLeaderboard('synapse_purge')).toBe(false);
+    expect(validateMissions()).toEqual([]);
   });
 });

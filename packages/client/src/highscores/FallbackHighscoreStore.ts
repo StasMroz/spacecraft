@@ -1,4 +1,4 @@
-import type { HighscoreEntry, RunResult } from '@sms/shared';
+import { countsForLeaderboard, type HighscoreEntry, type RunResult } from '@sms/shared';
 import type {
   HighscoreStore,
   SubmitOutcome,
@@ -37,6 +37,11 @@ export class FallbackHighscoreStore implements HighscoreStore {
   }
 
   async submit(result: RunResult): Promise<SubmitOutcome> {
+    // Other missions stay in this browser only — no Firebase / HTTP board write.
+    if (!countsForLeaderboard(result.mission)) {
+      const kept = await this.local.keep(result);
+      return { status: 'local', rank: kept.rank };
+    }
     if (!this.remote) return this.local.submit(result);
     try {
       const out = await this.remote.submit(result);
@@ -96,6 +101,10 @@ export class FallbackHighscoreStore implements HighscoreStore {
     try {
       for (const e of this.local.pending()) {
         const { id: _id, submittedAt: _s, ...run } = e as HighscoreEntry;
+        if (!countsForLeaderboard(run.mission)) {
+          this.local.markKept(run.runId);
+          continue;
+        }
         try {
           const out = await this.remote.submit(run);
           this.local.markSynced(run.runId);

@@ -137,3 +137,39 @@ describe('FallbackHighscoreStore (local-only, no server configured)', () => {
     expect(warn).not.toHaveBeenCalled();
   });
 });
+
+describe('ranked missions only reach the global board', () => {
+  const fakeRemote = () => {
+    const state = { received: [] as RunResult[] };
+    const remote = {
+      async submit(r: RunResult) {
+        state.received.push(r);
+        return { status: 'server' as const, rank: state.received.length };
+      },
+      async top() {
+        return { entries: [], source: 'server' as const };
+      },
+    } as unknown as HttpHighscoreStore;
+    return { state, remote };
+  };
+
+  it('submits hive_siege (and legacy runs without mission) remotely', async () => {
+    const { state, remote } = fakeRemote();
+    const s = new FallbackHighscoreStore(remote, new LocalHighscoreStore());
+    await s.submit({ ...run(10_000), mission: 'hive_siege' });
+    await s.submit(run(11_000));
+    expect(state.received).toHaveLength(2);
+  });
+
+  it('keeps other missions local and does not flush them to the board', async () => {
+    const { state, remote } = fakeRemote();
+    const local = new LocalHighscoreStore();
+    const s = new FallbackHighscoreStore(remote, local);
+    const out = await s.submit({ ...run(40_000), mission: 'hold_the_line' });
+    expect(out.status).toBe('local');
+    expect(state.received).toHaveLength(0);
+    expect(local.pending()).toHaveLength(0);
+    await s.flushPending();
+    expect(state.received).toHaveLength(0);
+  });
+});
