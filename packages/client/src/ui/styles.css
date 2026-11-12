@@ -240,6 +240,32 @@ button.primary:hover:not(:disabled) {
 .help[open] summary {
   margin-bottom: 6px;
 }
+.duel-ranking-body {
+  margin: 0;
+}
+.duel-ranking-msg {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+.duel-ranking-table {
+  font-size: 12px;
+}
+.duel-ranking-table th,
+.duel-ranking-table td {
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+.duel-ranking-table th:nth-child(n+3),
+.duel-ranking-table td.num {
+  text-align: right;
+  width: 1%;
+  font-variant-numeric: tabular-nums;
+}
+.duel-ranking-table td.rank {
+  width: 1%;
+}
 .squad {
   border-top: 1px solid var(--line);
   padding-top: 10px;

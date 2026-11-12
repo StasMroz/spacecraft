@@ -35,4 +35,11 @@ describe('menu layout', () => {
   it('still shows the version under the title', () => {
     expect(markup).toContain(`>v${GAME_VERSION}`);
   });
+
+  it('collapses the 1v1 ranking under RANKING 1v1', () => {
+    const details = at('id="duel-ranking"');
+    expect(markup).not.toMatch(/id="duel-ranking"[^>]*\sopen/);
+    expect(at('<summary>RANKING 1v1</summary>')).toBeGreaterThan(details);
+    expect(at('id="duel-ranking-body"')).toBeGreaterThan(details);
+  });
 });

@@ -1,5 +1,9 @@
 # Changelog
 
+## v49
+
+- Menu: zwijana sekcja RANKING 1v1 (ładowana leniwie przy otwarciu). Wiersze: pozycja, nick, rating, W–L. Pusty stan: „brak meczów 1v1 — zagraj pojedynek, żeby trafić do rankingu”. Błąd odczytu ma krótki komunikat; `fetchDuelRanking()` przy 403/braku konfiguracji zwraca `[]` (pusty stan), a rzut byłby złapany osobno. Podpowiedź pojedynku: „2 graczy = 1v1 (ranking), 4 = 2v2, pierwszy do N zabójstw”.
+
 ## v48
 
 - Ranking 1v1 Pojedynku: host P2P zapisuje wynik meczu `duel` tylko przy dokładnie dwóch graczach (2v2, 2v1 i solo nie liczą się). Jedna, idempotentna karta meczu w Firestore (`duelMatches/{runId}`: zwycięzca i przegrany po nicku). Elo (start 1000, K=32) w czystej funkcji `@sms/shared`. Tablica `fetchDuelRanking()` dla menu (`packages/client/src/highscores/duelRanking.ts`). Błąd zapisu nie psuje gry. Istniejący ranking Oblężenia bez zmian.

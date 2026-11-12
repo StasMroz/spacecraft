@@ -6,6 +6,7 @@ import {
   getMission,
   sanitizeName,
   type ContentRegistry,
+  type DuelRatingRow,
   type MissionDef,
 } from '@sms/shared';
 import { DEV_PREVIEW } from '../../devPreview.js';
@@ -34,6 +35,8 @@ export interface MenuOptions {
   mixer?: MixerControls;
   /** Pre-selected mission (`?mission=` or last remembered). */
   missionId?: string;
+  /** 1v1 ladder; loaded lazily when the ranking section is opened. */
+  fetchDuelRanking?: () => Promise<readonly DuelRatingRow[]>;
 }
 
 const NAME_KEY = 'sms.name';
@@ -77,7 +80,7 @@ export function duelSoloMessage(missionId: string | undefined | null): string | 
 export function duelBriefingHint(m: MissionDef): string | null {
   if (m.kind !== 'duel') return null;
   const n = m.duelTo ?? 2;
-  return `2 graczy = 1v1, 4 = 2v2, pierwszy do ${n} zabójstw, bez rankingu`;
+  return `2 graczy = 1v1 (ranking), 4 = 2v2, pierwszy do ${n} zabójstw`;
 }
 
 /** Lobby start rules for a duel. Other missions leave blockStart false and hint null. */
@@ -220,6 +223,90 @@ export function bindMissionPicker(root: ParentNode, onPick: (id: string) => void
   }
 }
 
+
+export const DUEL_RANKING_EMPTY =
+  'brak meczów 1v1 — zagraj pojedynek, żeby trafić do rankingu';
+export const DUEL_RANKING_LOADING = 'ładowanie…';
+export const DUEL_RANKING_ERROR = 'nie udało się wczytać rankingu';
+
+export type DuelRankingView =
+  | { kind: 'loading' }
+  | { kind: 'empty' }
+  | { kind: 'error' }
+  | { kind: 'rows'; rows: readonly DuelRatingRow[] };
+
+/** Body of the 1v1 ranking section, from a loaded view (no I/O). */
+export function duelRankingBodyHtml(view: DuelRankingView): string {
+  if (view.kind === 'loading') {
+    return `<p class="duel-ranking-msg" id="duel-ranking-status">${DUEL_RANKING_LOADING}</p>`;
+  }
+  if (view.kind === 'empty') {
+    return `<p class="duel-ranking-msg" id="duel-ranking-status">${escapeHtml(DUEL_RANKING_EMPTY)}</p>`;
+  }
+  if (view.kind === 'error') {
+    return `<p class="duel-ranking-msg error" id="duel-ranking-status">${DUEL_RANKING_ERROR}</p>`;
+  }
+  const body = view.rows
+    .map(
+      (r, i) =>
+        `<tr><td class="rank">${i + 1}</td><td class="names">${escapeHtml(r.name)}</td><td class="num">${r.rating}</td><td class="num">${r.wins}–${r.losses}</td></tr>`,
+    )
+    .join('');
+  return `<table class="duel-ranking-table" id="duel-ranking-table"><thead><tr><th>#</th><th>NICK</th><th>RATING</th><th>W–L</th></tr></thead><tbody>${body}</tbody></table>`;
+}
+
+export function duelRankingMarkup(): string {
+  return `<details class="help duel-ranking" id="duel-ranking">
+          <summary>RANKING 1v1</summary>
+          <div class="duel-ranking-body" id="duel-ranking-body"></div>
+        </details>`;
+}
+
+/** Map a fetch result (or throw) to the view the section should paint. */
+export async function readDuelRankingView(
+  fetchRows: () => Promise<readonly DuelRatingRow[]>,
+): Promise<DuelRankingView> {
+  try {
+    const rows = await fetchRows();
+    return rows.length ? { kind: 'rows', rows } : { kind: 'empty' };
+  } catch {
+    return { kind: 'error' };
+  }
+}
+
+async function defaultFetchDuelRanking(): Promise<DuelRatingRow[]> {
+  const { fetchDuelRanking } = await import('../../duel/ranking.js');
+  return fetchDuelRanking();
+}
+
+/** Fetch the ladder only when the section is first opened. Does not block the menu. */
+export function bindDuelRanking(
+  root: ParentNode,
+  fetchRows?: () => Promise<readonly DuelRatingRow[]>,
+): void {
+  const details = root.querySelector<HTMLDetailsElement>('#duel-ranking');
+  const body = root.querySelector<HTMLElement>('#duel-ranking-body');
+  if (!details || !body) return;
+  let loaded = false;
+  let inflight = false;
+  const load = (): void => {
+    if (loaded || inflight) return;
+    inflight = true;
+    body.innerHTML = duelRankingBodyHtml({ kind: 'loading' });
+    void readDuelRankingView(fetchRows ?? defaultFetchDuelRanking)
+      .then((view) => {
+        body.innerHTML = duelRankingBodyHtml(view);
+        if (view.kind !== 'error') loaded = true;
+      })
+      .finally(() => {
+        inflight = false;
+      });
+  };
+  details.addEventListener('toggle', () => {
+    if (details.open) load();
+  });
+}
+
 export function createMenuScreen(actions: MenuActions, opts: MenuOptions): HTMLElement {
   const missionId = initialMissionId(opts.missionId, prefs.mission());
   const el = html(menuMarkup({ ...opts, missionId }));
@@ -240,6 +327,7 @@ export function createMenuScreen(actions: MenuActions, opts: MenuOptions): HTMLE
   );
   $(el, '#meta').append(createVersionsLink());
   if (opts.mixer) $(el, '#mixer').append(createMixerPanel(opts.mixer));
+  bindDuelRanking(el, opts.fetchDuelRanking);
   const name = $<HTMLInputElement>(el, '#name');
   const code = $<HTMLInputElement>(el, '#code');
   const err = $(el, '#err');
@@ -329,6 +417,7 @@ export function menuMarkup(
           <span class="touch-only"><b>Left thumb</b> move · <b>Right thumb</b> aim &amp; auto-fire · <b>🛡 GUARD</b> hold (right) · <b>tap a weapon</b> to switch · <b>⟳</b> reload · <b>⛶</b> fullscreen<br></span>
           Stand next to a downed battle-brother to revive them. Wargear unlocks over time; supply crates drop on the map. Plasma runs hot: past the line shots are supercharged, at the top it vents and burns you.
         </details>
+        ${duelRankingMarkup()}
         <div id="mixer"></div>
         <div class="muted small" id="meta"><a class="rules-link" href="rules.html">ZASADY / RULES</a> · <a class="rules-link" href="feedback.html">PETYCJE</a>${opts.dedicated ? ' · dedicated host mode' : ' · P2P (browser-hosted)'}</div>
       </div>

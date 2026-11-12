@@ -131,7 +131,8 @@ describe('mission briefing', () => {
         expect(hint).toBeTruthy();
         if (hint) {
           expect(hint).toContain(`pierwszy do ${m.duelTo ?? 2} zabójstw`);
-          expect(hint).toContain('bez rankingu');
+          expect(hint).toContain('1v1 (ranking)');
+          expect(hint).not.toContain('bez rankingu');
           expect(html).toContain(hint);
         }
       } else {
