@@ -66,10 +66,33 @@ export function mapLabel(mapId: string): string {
   return findMap(mapId)?.name ?? mapId;
 }
 
-export function missionDetailsHtml(id: string | undefined | null): string {
+export function missionSupplyLabel(m: MissionDef): string {
+  return m.crates ? 'zrzuty' : 'brak zrzutów';
+}
+
+export function missionClockLabel(m: MissionDef): string {
+  return m.timeLimit !== null ? `limit ${formatTimeLimit(m.timeLimit)}` : 'bez limitu';
+}
+
+/** Map, resupply and clock, one compact line for the briefing. */
+export function missionMetaLine(m: MissionDef): string {
+  return `${mapLabel(m.map)} · ${missionSupplyLabel(m)} · ${missionClockLabel(m)}`;
+}
+
+/** 40k-style briefing for the selected mission, built only from catalogue fields. */
+export function missionBriefingHtml(id: string | undefined | null): string {
   const m = getMission(resolvedMissionId(id));
-  return `<p class="mission-desc" id="mission-desc">${escapeHtml(m.description)}</p>
-    <p class="mission-map muted small" id="mission-map">${escapeHtml(mapLabel(m.map))}</p>`;
+  return `<div class="mission-briefing">
+    <h3 class="mission-briefing-title">BRIEFING</h3>
+    <p class="mission-picked">${escapeHtml(m.name)}</p>
+    <p class="mission-desc" id="mission-desc">${escapeHtml(m.description)}</p>
+    <p class="mission-objective" id="mission-objective">${escapeHtml(m.objective)}</p>
+    <p class="mission-meta muted small" id="mission-meta">${escapeHtml(missionMetaLine(m))}</p>
+  </div>`;
+}
+
+export function missionDetailsHtml(id: string | undefined | null): string {
+  return missionBriefingHtml(id);
 }
 
 /** Compact radio list: one row per mission, description + map for the selection only. */
@@ -92,8 +115,7 @@ export function lobbyMissionMarkup(missionId: string | undefined | null): string
   const m = getMission(resolvedMissionId(missionId));
   return `<section class="missions mission-brief" aria-labelledby="mission-title">
     <h2 id="mission-title">MISSION</h2>
-    <p class="mission-picked">${escapeHtml(m.name)}</p>
-    ${missionDetailsHtml(m.id)}
+    ${missionBriefingHtml(m.id)}
   </section>`;
 }
 
@@ -108,10 +130,12 @@ export function paintMissionDetails(root: ParentNode, id: string | undefined | n
   const mid = resolvedMissionId(id);
   const m = getMission(mid);
   const desc = root.querySelector('#mission-desc');
-  const map = root.querySelector('#mission-map');
+  const objective = root.querySelector('#mission-objective');
+  const meta = root.querySelector('#mission-meta');
   const picked = root.querySelector('.mission-picked');
   if (desc) desc.textContent = m.description;
-  if (map) map.textContent = mapLabel(m.map);
+  if (objective) objective.textContent = m.objective;
+  if (meta) meta.textContent = missionMetaLine(m);
   if (picked) picked.textContent = m.name;
   for (const input of root.querySelectorAll<HTMLInputElement>('input[name="mission"]')) {
     input.checked = input.value === mid;

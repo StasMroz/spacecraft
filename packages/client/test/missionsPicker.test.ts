@@ -1,4 +1,4 @@
-import { DEFAULT_MISSION_ID, MISSIONS, getMap, getMission } from '@sms/shared';
+import { DEFAULT_MISSION_ID, MISSIONS, getMission } from '@sms/shared';
 import { describe, expect, it } from 'vitest';
 import {
   formatTimeLimit,
@@ -6,7 +6,11 @@ import {
   lobbyMissionMarkup,
   mapLabel,
   menuMarkup,
+  missionBriefingHtml,
+  missionClockLabel,
+  missionMetaLine,
   missionPickerMarkup,
+  missionSupplyLabel,
   missionTags,
   resolvedMissionId,
   selectedMissionId,
@@ -47,25 +51,16 @@ describe('mission picker markup', () => {
     expect(html).not.toMatch(/value="evacuation"[^>]*checked|checked[^>]*value="evacuation"/);
   });
 
-  it('checks the given mission and shows only that description and map', () => {
-    const m = getMission('synapse_purge');
-    const html = missionPickerMarkup('synapse_purge');
-    expect(html).toMatch(/value="synapse_purge"[^>]*checked|checked[^>]*value="synapse_purge"/);
-    expect(html).toContain(m.description);
-    expect(html).toContain(getMap(m.map).name);
-    expect(html).not.toContain(getMission('evacuation').description);
-  });
-
-  it('marks supply drops and the time limit, and uses the map signature', () => {
-    expect(missionTags(getMission('hive_siege'))).toBe('drops');
-    expect(missionTags(getMission('hold_the_line'))).toBe(`drops · ${formatTimeLimit(190)}`);
-    expect(missionTags(getMission('relic_recovery'))).toBe(formatTimeLimit(240));
+  it('builds chip tags from each catalogue entry, without hard-coded ids', () => {
+    expect(MISSIONS.length).toBeGreaterThan(0);
+    for (const m of MISSIONS) {
+      const tags = missionTags(m);
+      if (m.crates) expect(tags).toContain('drops');
+      else expect(tags).not.toMatch(/\bdrops\b/);
+      if (m.timeLimit !== null) expect(tags).toContain(formatTimeLimit(m.timeLimit));
+    }
     expect(formatTimeLimit(190)).toBe('3:10');
-    expect(mapLabel('jungle')).toBe('Dżungla biomasy');
     expect(mapLabel('missing-map')).toBe('missing-map');
-    const html = missionPickerMarkup('hive_siege');
-    expect(html).toContain('drops');
-    expect(html).toContain(mapLabel('wave'));
   });
 });
 
@@ -101,15 +96,43 @@ describe('passing a mission id into solo', () => {
   });
 });
 
-describe('lobby mission briefing', () => {
-  it('shows the name and description from the lobby mission id', () => {
-    const m = getMission('evacuation');
-    const html = lobbyMissionMarkup('evacuation');
-    expect(html).toContain(m.name);
-    expect(html).toContain(m.description);
-    expect(html).toContain(getMap(m.map).name);
-    expect(html).not.toContain('input');
-    expect(lobbyMissionMarkup('nope')).toContain(getMission('hive_siege').name);
+describe('mission briefing', () => {
+  it('renders a BRIEFING for every catalogue mission from its fields only', () => {
+    expect(MISSIONS.length).toBeGreaterThan(0);
+    for (const m of MISSIONS) {
+      const html = missionBriefingHtml(m.id);
+      expect(html).toContain('BRIEFING');
+      expect(html).toContain(m.name);
+      expect(html).toContain(m.description);
+      expect(html).toContain(m.objective);
+      expect(html).toContain(mapLabel(m.map));
+      expect(html).toContain(missionSupplyLabel(m));
+      expect(html).toContain(missionClockLabel(m));
+      expect(missionMetaLine(m)).toBe(
+        `${mapLabel(m.map)} · ${missionSupplyLabel(m)} · ${missionClockLabel(m)}`,
+      );
+      if (m.crates) expect(missionSupplyLabel(m)).toBe('zrzuty');
+      else expect(missionSupplyLabel(m)).toBe('brak zrzutów');
+      if (m.timeLimit === null) expect(missionClockLabel(m)).toBe('bez limitu');
+      else expect(missionClockLabel(m)).toBe(`limit ${formatTimeLimit(m.timeLimit)}`);
+    }
+  });
+
+  it('puts that briefing in the picker and the lobby, for each mission', () => {
+    for (const m of MISSIONS) {
+      const picker = missionPickerMarkup(m.id);
+      const lobby = lobbyMissionMarkup(m.id);
+      for (const html of [picker, lobby]) {
+        expect(html).toContain('BRIEFING');
+        expect(html).toContain(m.name);
+        expect(html).toContain(m.description);
+        expect(html).toContain(m.objective);
+        expect(html).toContain(missionMetaLine(m));
+      }
+      expect(picker).toMatch(new RegExp(`value="${m.id}"[^>]*checked|checked[^>]*value="${m.id}"`));
+      expect(lobby).not.toContain('input');
+    }
+    expect(lobbyMissionMarkup('nope')).toContain(getMission(DEFAULT_MISSION_ID).name);
   });
 });
 

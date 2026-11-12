@@ -316,11 +316,33 @@ button.primary:hover:not(:disabled) {
 .mission-chip:has(:focus-visible) {
   outline: 2px solid var(--accent2);
 }
-.mission-desc {
-  margin: 6px 0 0;
-  font-size: 12px;
-  line-height: 1.4;
+.mission-briefing {
+  margin-top: 6px;
 }
+.mission-briefing-title {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: var(--accent);
+}
+.mission-briefing .mission-picked {
+  margin: 1px 0 0;
+  font-size: 13px;
+}
+.mission-desc {
+  margin: 3px 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.mission-objective {
+  margin: 3px 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.mission-meta,
 .mission-map {
   margin: 2px 0 0;
 }

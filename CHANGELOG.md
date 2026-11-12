@@ -1,5 +1,9 @@
 # Changelog
 
+## v33
+
+- Menu i lobby: zaznaczona misja ma zwartą odprawę BRIEFING (nazwa, opis, cel, mapa, zrzuty albo ich brak, limit czasu albo „bez limitu”), złożoną z pól katalogu — bez wpisanych na sztywno id ani nazw misji.
+
 ## v32
 
 - Każdy zakon ma jedną broń wręcz (klawisz 7 / kółko ARMS, od fali 2) zamiast trzech wspólnych (Chainsword / Power Axe / Thunder Hammer na 7–9). Mapowanie: Ultramarines — Power Sword; Blood Angels — Encarmine Blade; Dark Angels — Heavenfall Blade; Imperial Fists — Thunder Hammer; Space Wolves — Frost Axe; Salamanders — Forge Hammer; White Scars — Power Glaive; Raven Guard — Lightning Claws. Profile różnią się tempem, obrażeniami, łukiem i odrzutem, w okolicy dawnych trzech. Skrzynia z cudzą bronią wręcz zamienia się w twoją.
