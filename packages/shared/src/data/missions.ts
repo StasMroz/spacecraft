@@ -124,8 +124,8 @@ export const MISSIONS: readonly MissionDef[] = [
     id: 'evacuation',
     name: 'Ewakuacja',
     description:
-      'Lądujecie na wraku hulka, który już roi się od Tyranidów. Przebijcie się do strefy evakuacji na drugim końcu — Thunderhawk czeka, ale czas jest krótki. Bez fal z krawędzi.',
-    objective: 'Przebij się do strefy evakuacji.',
+      'Lądujecie na wraku hulka, który już roi się od Tyranidów. Przebijcie się do strefy ewakuacji na drugim końcu — Thunderhawk czeka, ale czas jest krótki. Bez fal z krawędzi.',
+    objective: 'Przebij się do strefy ewakuacji.',
     kind: 'extract',
     map: 'hulk',
     timeLimit: 165,
@@ -160,7 +160,7 @@ export const MISSIONS: readonly MissionDef[] = [
     targets: 3,
     targetHp: 400,
     assault: true,
-    start: [600, 400],
+    start: [600, 580],
     nests: { interval: 5, maxAlive: 5, types: ['termagant', 'hormagaunt'] },
     patrols: [
       [1200, 800, 1],
@@ -209,7 +209,7 @@ export const MISSIONS: readonly MissionDef[] = [
     assault: true,
     sleeping: true,
     fog: true,
-    start: [500, 400],
+    start: [400, 580],
     targets: 1,
     targetHp: 280,
     targetLabel: 'Augur',

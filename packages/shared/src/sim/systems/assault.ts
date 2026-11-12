@@ -1,6 +1,8 @@
 import { REINFORCE } from '../../data/reinforce.js';
 import { getMission } from '../../data/missions.js';
+import { PLAYER } from '../../constants.js';
 import { clamp, dist2 } from '../../math/vec.js';
+import { pushOutOfWalls } from '../walls.js';
 import type { World } from '../types.js';
 import { spawnCrate, spawnEnemy } from './director.js';
 import { spawnGuardsmen } from './crash.js';
@@ -20,6 +22,7 @@ export function setupAssault(world: World): void {
     const ring = n > 1 ? 48 : 0;
     p.x = clamp(start[0] + Math.cos(a) * ring, 40, width - 40);
     p.y = clamp(start[1] + Math.sin(a) * ring, 40, height - 40);
+    pushOutOfWalls(p, PLAYER.radius, world.map.walls);
     p.invuln = Math.max(p.invuln, REINFORCE.invulnS);
   });
   world.director.nextWaveAt = Number.POSITIVE_INFINITY;

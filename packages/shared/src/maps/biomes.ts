@@ -53,7 +53,7 @@ export const JUNGLE_WALLS: readonly WallDef[] = [
   low(1400, 300, 240, 28),
   low(1500, 1850, 240, 28),
   low(1780, 900, 28, 160),
-  low(1280, 1100, 160, 28),
+  low(1280, 1280, 160, 28),
 ];
 
 /**
@@ -144,8 +144,8 @@ export const ICE_MAP: MapDef = {
       { id: 'east', x: 3070, y: 980, kind: 'tunnel' },
       { id: 'south', x: 1720, y: 2070, kind: 'breach' },
       { id: 'west', x: 130, y: 1220, kind: 'tunnel' },
-      { id: 'vent_nw', x: 700, y: 500, kind: 'vent' },
-      { id: 'vent_se', x: 2500, y: 1700, kind: 'vent' },
+      { id: 'vent_nw', x: 700, y: 400, kind: 'vent' },
+      { id: 'vent_se', x: 2500, y: 1900, kind: 'vent' },
     ],
   },
 };

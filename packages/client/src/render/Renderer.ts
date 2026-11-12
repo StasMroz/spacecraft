@@ -28,6 +28,7 @@ import type { Assets } from './assets.js';
 import { Camera } from './camera.js';
 import { Particles } from './particles.js';
 import { visibleTo } from './visibility.js';
+import { wallLayers } from './wallLayers.js';
 import {
   DEFAULT_ENEMY_VISUAL,
   DEFAULT_PROJECTILE_VISUAL,
@@ -222,9 +223,9 @@ export class Renderer {
     ctx.restore();
   }
 
-  private drawWalls(): void {
+  private drawWalls(walls: readonly WallDef[]): void {
     const { ctx } = this;
-    for (const w of this.walls) this.drawWall(ctx, w);
+    for (const w of walls) this.drawWall(ctx, w);
   }
 
   private drawWall(ctx: CanvasRenderingContext2D, w: WallDef): void {
@@ -424,6 +425,7 @@ export class Renderer {
     ctx.imageSmoothingEnabled = true;
 
     this.walls = snapWalls(this.content.map.walls, f.b.wk);
+    const layers = wallLayers(this.walls);
     this.drawFloor();
     this.drawCreep(f.b.time);
     ctx.drawImage(this.decals, 0, 0, this.content.map.arena.width, this.content.map.arena.height);
@@ -435,6 +437,10 @@ export class Renderer {
     this.drawBreaches();
     this.drawAcid(f);
     this.drawCrashSite(f);
+    // Low cover is ground-height: paint it before units and before LOS shadows so a
+    // tall wall (and its umbra) hide barricades sitting behind it. Tall walls stay
+    // after the shadow so their faces remain visible.
+    this.drawWalls(layers.low);
     this.drawPickups(f);
     this.drawCorpses();
     this.drawEnemies(f);
@@ -443,7 +449,7 @@ export class Renderer {
     this.drawProjectiles(f);
     this.drawParticles();
     this.drawSightShadows();
-    this.drawWalls();
+    this.drawWalls(layers.full);
     this.drawFallingShip(f);
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);

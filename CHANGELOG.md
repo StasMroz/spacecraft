@@ -1,5 +1,12 @@
 # Changelog
 
+## v41
+
+- Głębia ścian: niskie osłony (barykady) malowały się _po_ cieniu LOS i w kolejności tablicy, więc było je widać jasno za wysokim murem (albo na jego wierzchu, gdy mapa listowała osłony po ścianach). Teraz niska osłona to warstwa podłoża — przed jednostkami i przed cieniem — a wysokie ściany malują się po cieniu, żeby ich lico zostało widoczne. W każdej warstwie y-sort (dalsze najpierw).
+- Zrzut **Infiltracji** i **Spalenia gniazd** lądował w pniu na dżungli (`full(520, 380, …)`). Start przesunięty na otwarty grunt; `setupAssault` dodatkowo wypycha oddział ze ścian.
+- Lodowy świat: wentyle `vent_nw` / `vent_se` nachodziły na grzbiet lodu i wychodnię. Dżungla: niska osłona w pierścieniu desantu na środku mapy — odsunięta na południe.
+- Testy geometrii każdej mapy i misji (desant, cele, relikwia, ekstrakcja osiągalne, nikt nie spawnuje się w ścianie, krótki bieg bez NaN). Headless na wszystkich siedmiu zleceniach: zero wyjątków i błędów konsoli.
+
 ## v40
 
 - **Ewakuacja** i **Odzyskaj relikwię** przebudowane na desant ofensywny (jak v34): lądujecie wśród już rozstawionych Tyranidów, bez fal z krawędzi. Identyfikatory i pola katalogu (`name`, `description`, `objective`, `map`, `crates`, `timeLimit`) zachowane. Ewakuacja: przebicie przez wrak hulka do otwartej strefy (limit 165 s). Relikwia: zrzut przy artefakcie, część roju śpi, cień w warpie nadal tłumi skrzynie.
