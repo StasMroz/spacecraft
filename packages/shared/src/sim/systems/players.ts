@@ -5,6 +5,7 @@ import { stepSprint } from '../../data/sprint.js';
 import { dist2 } from '../../math/vec.js';
 import type { Player, World } from '../types.js';
 import { relicCarryMul } from './mission.js';
+import { isDuel, updateDuel } from './duel.js';
 import {
   effectiveFire,
   isMoving,
@@ -68,6 +69,10 @@ export function trackStillness(p: Player, mx: number, my: number, dt: number): v
 
 /** Downed / revive / bleed-out / disconnect handling and the game-over check. */
 export function updatePlayerStatus(world: World, dt: number): void {
+  if (isDuel(world)) {
+    updateDuel(world, dt);
+    return;
+  }
   const rr = PLAYER.reviveRadius * PLAYER.reviveRadius;
   for (const p of world.players) {
     if (!p.connected && p.state !== 'dead') kill(world, p.id);

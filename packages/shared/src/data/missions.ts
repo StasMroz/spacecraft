@@ -4,7 +4,7 @@
  *
  * `hive_siege` is the original endless-wave mode and the default when nothing is chosen.
  */
-export type MissionKind = 'endless' | 'hold' | 'extract' | 'destroy' | 'retrieve';
+export type MissionKind = 'endless' | 'hold' | 'extract' | 'destroy' | 'retrieve' | 'duel';
 
 export interface MissionDef {
   /** Stable id. Lowercase [a-z0-9_]. Never rename once released. */
@@ -68,6 +68,8 @@ export interface MissionDef {
   sleeping?: boolean;
   /** Reduced visibility (spore haze). */
   fog?: boolean;
+  /** PvP frag target (kind === 'duel'). First side to this many kills wins; default 2 (best of 3). */
+  duelTo?: number;
 }
 
 /** True for runs that belong on the global board. Missing `mission` = legacy hive_siege. */
@@ -270,6 +272,22 @@ export const MISSIONS: readonly MissionDef[] = [
       [800, 700, 3],
       [2000, 1000, 5],
     ],
+  },
+  {
+    id: 'duel',
+    name: 'Pojedynek',
+    description:
+      'Marine kontra marine na małej arenie z osłonami. 1v1 albo 2v2 (narożniki: zachód kontra wschód). Pierwszy do dwóch zabójstw wygrywa (best of 3). Po upadku odrodzenie w swoim rogu. Bez Tyranidów, bez rankingu.',
+    objective: 'Do dwóch zabójstw (best of 3).',
+    kind: 'duel',
+    map: 'duel',
+    timeLimit: null,
+    extractOpensAt: null,
+    extractWindow: null,
+    extractHold: 0,
+    crates: false,
+    crash: false,
+    duelTo: 2,
   },
 ];
 

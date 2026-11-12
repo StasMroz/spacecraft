@@ -2,6 +2,7 @@ import type { DirectorConfig } from '../data/types.js';
 import type { MapDef } from './types.js';
 import { JUNGLE_MAP, ICE_MAP, HULK_MAP } from './biomes.js';
 import { CITY_MAP, DESERT_MAP, VOLCANIC_MAP, SHIP_MAP } from './large.js';
+import { DUEL_MAP } from './duel.js';
 import { WAVE_MAP } from './wave.js';
 
 export * from './types.js';
@@ -9,6 +10,7 @@ export { COVER, WAVE_WALLS } from './walls.js';
 export { WAVE_MAP, JUNGLE_MAP, ICE_MAP, HULK_MAP };
 export { JUNGLE_WALLS, ICE_WALLS, HULK_WALLS } from './biomes.js';
 export { CITY_MAP, DESERT_MAP, VOLCANIC_MAP, SHIP_MAP, LARGE_ARENA } from './large.js';
+export { DUEL_MAP, DUEL_ARENA, DUEL_WALLS } from './duel.js';
 export { CITY_WALLS, DESERT_WALLS, VOLCANIC_WALLS, SHIP_WALLS } from './large.js';
 
 /** Map played when nothing else is chosen (every current session, wire message and board). */
@@ -28,6 +30,7 @@ export const MAPS: readonly MapDef[] = [
   DESERT_MAP,
   VOLCANIC_MAP,
   SHIP_MAP,
+  DUEL_MAP,
 ];
 
 const byId = new Map(MAPS.map((m) => [m.id, m]));

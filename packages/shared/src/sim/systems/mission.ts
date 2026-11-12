@@ -50,6 +50,7 @@ const LANDMARKS: Record<string, Landmark> = {
     ],
   },
   ship: { extract: [6000, 2200] },
+  duel: { extract: [1000, 1000] },
 };
 
 function circleHitsWall(world: World, x: number, y: number, r: number): boolean {
@@ -219,7 +220,7 @@ export function bossDown(world: World): boolean {
 
 function extractEligible(world: World): boolean {
   const m = world.mission;
-  if (m.kind === 'endless') return false;
+  if (m.kind === 'endless' || m.kind === 'duel') return false;
   if (m.kind === 'destroy' && m.targets.some((t) => t.hp > 0)) return false;
   if (m.kind === 'retrieve' && m.relicCarrier == null) return false;
   if (!bossDown(world)) return false;
@@ -228,7 +229,7 @@ function extractEligible(world: World): boolean {
 
 function refreshExtractOpen(world: World): void {
   const m = world.mission;
-  if (m.kind === 'endless' || m.extractHold <= 0) {
+  if (m.kind === 'endless' || m.kind === 'duel' || m.extractHold <= 0) {
     m.extractOpen = false;
     return;
   }

@@ -15,6 +15,7 @@ import { segmentEntry } from '../walls.js';
 import { spawnAcid } from './acid.js';
 import { damageEnemy, damagePlayer, explode } from './combat.js';
 import { damageObjectivesAt } from './mission.js';
+import { duelTeam, isDuel } from './duel.js';
 
 /** Largest enemy radius; used to pad broad-phase queries. */
 const QUERY_PAD = 40;
@@ -50,6 +51,7 @@ export function updateProjectiles(world: World, enemyHash: SpatialHash<Enemy>, d
     if (!pr.deflected) {
       if (pr.owner === 'player') {
         hitEnemies(world, pr, x0, y0, enemyHash);
+        if (!pr.dead && isDuel(world)) hitPlayers(world, pr, x0, y0);
         if (!pr.dead) hitObjectives(world, pr, x0, y0);
       } else hitPlayers(world, pr, x0, y0);
     }
@@ -165,12 +167,21 @@ function hitPlayers(world: World, pr: Projectile, x0: number, y0: number): void 
     if (p.state !== 'alive') continue;
     const r = PLAYER.radius + pr.radius;
     if (segmentDist2(x0, y0, pr.x, pr.y, p.x, p.y) <= r * r) {
+      if (
+        pr.owner === 'player' &&
+        (p.id === pr.ownerId ||
+          (isDuel(world) && duelTeam(world, p.id) === duelTeam(world, pr.ownerId)))
+      )
+        continue;
       if (pr.hit.includes(-p.id)) continue;
       if (tryDeflect(world, pr, p)) return;
       if (pr.damage > 0) {
         // Armour faces the incoming shot: source direction = against its travel (or its
         // segment start if it has somehow stopped).
-        const src = pr.vx || pr.vy ? { dirX: -pr.vx, dirY: -pr.vy } : { fromX: x0, fromY: y0 };
+        const src =
+          pr.vx || pr.vy
+            ? { dirX: -pr.vx, dirY: -pr.vy, playerId: pr.ownerId }
+            : { fromX: x0, fromY: y0, playerId: pr.ownerId };
         const dx = pr.vx || pr.vy ? -pr.vx : x0 - p.x;
         const dy = pr.vx || pr.vy ? -pr.vy : y0 - p.y;
         let dmg = pr.damage;
@@ -290,7 +301,7 @@ function detonate(world: World, pr: Projectile, atRange = false): void {
   if (pr.explosion) {
     explode(world, pr.x, pr.y, pr.explosion, {
       hurtsEnemies: pr.owner === 'player',
-      hurtsPlayers: pr.owner === 'enemy' || !!pr.explosion.friendlyFire,
+      hurtsPlayers: pr.owner === 'enemy' || !!pr.explosion.friendlyFire || isDuel(world),
       sourcePlayerId: pr.owner === 'player' ? pr.ownerId : undefined,
     });
   } else if (atRange && pr.endBurst && !pr.deflected) {
@@ -299,7 +310,7 @@ function detonate(world: World, pr: Projectile, atRange = false): void {
     // Same friendly-fire rule as other blasts: marine bursts hurt enemies only unless friendlyFire.
     explode(world, pr.x, pr.y, pr.endBurst, {
       hurtsEnemies: pr.owner === 'player',
-      hurtsPlayers: pr.owner === 'enemy' || !!pr.endBurst.friendlyFire,
+      hurtsPlayers: pr.owner === 'enemy' || !!pr.endBurst.friendlyFire || isDuel(world),
       sourcePlayerId: pr.owner === 'player' ? pr.ownerId : undefined,
       kind: pr.kind,
     });

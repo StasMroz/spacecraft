@@ -51,6 +51,7 @@ describe('mission catalogue', () => {
       'relic_recovery',
       'infiltration',
       'fortress_raid',
+      'duel',
     ]);
   });
 

@@ -269,6 +269,15 @@ function waveStatusLine(s: HudState, kills: number, tail: string): string {
   return `WAVE ${s.snap.wave}  ✠  ${status}  ✠  ${kills}${tail}`;
 }
 
+function snapDuelScore(players: { k: number }[]): [number, number] {
+  const s: [number, number] = [0, 0];
+  for (let i = 0; i < players.length; i++) {
+    const team = players.length <= 2 ? (i === 0 ? 0 : 1) : ((i % 2) as 0 | 1);
+    s[team] += players[i]!.k;
+  }
+  return s;
+}
+
 export class Hud {
   constructor(
     private readonly assets: Assets,
@@ -374,7 +383,7 @@ export class Hud {
     if (L.block) this.compactBlock(ctx, L.block, s);
     else {
       this.timer(ctx, w, s);
-      if (s.me) this.score(ctx, w, s.me);
+      if (s.me) this.score(ctx, w, s, s.me);
     }
     this.minimap(ctx, w, h, s);
     this.objectiveArrow(ctx, w, h, s);
@@ -538,10 +547,12 @@ export class Hud {
     ctx.fillStyle = HUD.parchment;
     ctx.fillText(m.objective, w / 2, 66);
     ctx.font = F(600, 10);
-    const kills = s.snap.players.reduce((a, p) => a + p.k, 0);
-    const wv = s.snap.wv;
-    ctx.fillStyle = wv?.h ? '#ff8a60' : HUD.gold;
-    ctx.fillText(waveStatusLine(s, kills, `  ✠  ${m.reinf}`), w / 2, 82);
+    if (s.snap.mi?.id !== 'duel') {
+      const kills = s.snap.players.reduce((a, p) => a + p.k, 0);
+      const wv = s.snap.wv;
+      ctx.fillStyle = wv?.h ? '#ff8a60' : HUD.gold;
+      ctx.fillText(waveStatusLine(s, kills, `  ✠  ${m.reinf}`), w / 2, 82);
+    }
   }
 
   /** Compact-phone mission / timer / reinforcement plate in the top band. */
@@ -687,17 +698,23 @@ export class Hud {
       ctx.textAlign = 'right';
       ctx.font = F(700, 8);
       ctx.fillStyle = HUD.gold;
-      ctx.fillText('SCORE', x + w - 10, y + 16);
+      const duel = s.snap.mi?.id === 'duel';
+      ctx.fillText(duel ? 'DUEL' : 'SCORE', x + w - 10, y + 16);
       ctx.font = F(800, 18, true);
       ctx.fillStyle = '#fff2c8';
-      ctx.fillText(String(me.sc ?? 0), x + w - 10, y + 34);
+      if (duel) {
+        const [a, b] = snapDuelScore(s.snap.players);
+        ctx.fillText(`${a}–${b}`, x + w - 10, y + 34);
+      } else ctx.fillText(String(me.sc ?? 0), x + w - 10, y + 34);
     }
     ctx.textAlign = 'left';
     ctx.font = F(600, 10);
-    const kills = s.snap.players.reduce((a, p) => a + p.k, 0);
-    const wv = s.snap.wv;
-    ctx.fillStyle = wv?.h ? '#ff8a60' : HUD.gold;
-    ctx.fillText(waveStatusLine(s, kills, ' PURGED'), x + 10, y + 49);
+    if (s.snap.mi?.id !== 'duel') {
+      const kills = s.snap.players.reduce((a, p) => a + p.k, 0);
+      const wv = s.snap.wv;
+      ctx.fillStyle = wv?.h ? '#ff8a60' : HUD.gold;
+      ctx.fillText(waveStatusLine(s, kills, ' PURGED'), x + 10, y + 49);
+    }
     if (!me) return;
     const ay = b.armourY;
     const frac = me.st === 'alive' ? Math.max(0, me.hp / me.mhp) : 0;
@@ -734,19 +751,30 @@ export class Hud {
   }
 
   /** Own score: big, right of the clock (teammates' scores are small, in the team panel). */
-  private score(ctx: CanvasRenderingContext2D, w: number, me: PlayerSnap): void {
+  private score(ctx: CanvasRenderingContext2D, w: number, s: HudState, me: PlayerSnap): void {
     const x = w / 2 + 131;
     this.panel(ctx, x, 8, 110, 64);
     ctx.textAlign = 'center';
     ctx.font = F(700, 10);
     ctx.fillStyle = HUD.gold;
-    ctx.fillText('YOUR SCORE', x + 55, 24);
-    ctx.font = F(800, 26, true);
-    ctx.fillStyle = '#fff2c8';
-    ctx.fillText(String(me.sc ?? 0), x + 55, 54);
-    ctx.font = F(600, 9);
-    ctx.fillStyle = HUD.dim;
-    ctx.fillText(`${me.k} KILLS`, x + 55, 66);
+    if (s.snap.mi?.id === 'duel') {
+      const [a, b] = snapDuelScore(s.snap.players);
+      ctx.fillText('POJEDYNEK', x + 55, 24);
+      ctx.font = F(800, 26, true);
+      ctx.fillStyle = '#fff2c8';
+      ctx.fillText(`${a} – ${b}`, x + 55, 54);
+      ctx.font = F(600, 9);
+      ctx.fillStyle = HUD.dim;
+      ctx.fillText('DO 2 ZABÓJSTW', x + 55, 66);
+    } else {
+      ctx.fillText('YOUR SCORE', x + 55, 24);
+      ctx.font = F(800, 26, true);
+      ctx.fillStyle = '#fff2c8';
+      ctx.fillText(String(me.sc ?? 0), x + 55, 54);
+      ctx.font = F(600, 9);
+      ctx.fillStyle = HUD.dim;
+      ctx.fillText(`${me.k} KILLS`, x + 55, 66);
+    }
   }
 
   /** Heavy Bolter brace indicator. */

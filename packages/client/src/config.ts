@@ -7,7 +7,8 @@
  *   ?names=generic          display-name preset (content data/naming.ts), e.g. IP-neutral names
  *   ?demo=hive              solo showcase: staged late-game fight, nothing is submitted
  *   ?mission=id             solo / host mission id (hive_siege, hold_the_line, evacuation,
- *                           synapse_purge, relic_recovery). Unknown ids fall back to hive_siege.
+ *                           synapse_purge, relic_recovery, infiltration, fortress_raid, duel).
+ *                           Unknown ids fall back to hive_siege.
  */
 import { GAME_VERSION, leaderboardBoard } from '@sms/shared';
 import { boardFor } from './devPreview.js';

@@ -30,14 +30,32 @@ export function createGameOverScreen(
   },
   actions: GameOverActions,
 ): { el: HTMLElement } {
-  const won = result.outcome === 'victory';
-  const missionName = findMission(result.mission)?.name;
+  const def = findMission(result.mission);
+  const missionName = def?.name;
+  const duel = def?.kind === 'duel';
+  const kills = result.playerKills ?? [];
+  const duelScore = (() => {
+    const s: [number, number] = [0, 0];
+    for (let i = 0; i < (result.players?.length ?? kills.length); i++) {
+      const team =
+        (result.players?.length ?? kills.length) <= 2 ? (i === 0 ? 0 : 1) : ((i % 2) as 0 | 1);
+      s[team] += kills[i] ?? 0;
+    }
+    return s;
+  })();
+  const won = duel ? true : result.outcome === 'victory';
+  // Neutral copy for a PvP finish: the same screen is shown to every marine.
+  const title = duel ? 'DUEL COMPLETE' : won ? 'MISSION COMPLETE' : 'THE LINE HAS FALLEN';
+  const mutedTop = duel ? 'SCORE' : won ? 'EXTRACTED' : 'SURVIVED';
+  const detail = duel
+    ? `${missionName ? `${escapeHtml(missionName)} · ` : ''}${duelScore[0]} – ${duelScore[1]} · ${result.teamSize} marines`
+    : `${missionName ? `${escapeHtml(missionName)} · ` : ''}wave ${result.wave} · ${result.kills} kills · ${result.teamSize}-marine squad`;
   const el = html(`<div class="screen gameover" data-tab="squad">
     <div class="go-left">
       <div class="card go-main">
-        <h1 class="${won ? 'won' : 'dead'}">${won ? 'MISSION COMPLETE' : 'THE LINE HAS FALLEN'}</h1>
-        <div class="survived"><span class="muted">${won ? 'EXTRACTED' : 'SURVIVED'}</span><div class="big">${formatTime(result.survivalMs)}</div>
-          <div class="muted">${missionName ? `${escapeHtml(missionName)} · ` : ''}wave ${result.wave} · ${result.kills} kills · ${result.teamSize}-marine squad</div></div>
+        <h1 class="${won ? 'won' : 'dead'}">${title}</h1>
+        <div class="survived"><span class="muted">${mutedTop}</span><div class="big">${duel ? `${duelScore[0]} – ${duelScore[1]}` : formatTime(result.survivalMs)}</div>
+          <div class="muted">${detail}</div></div>
         <nav class="go-tabs" role="tablist">
           <button data-tab="squad" role="tab" class="active">SQUAD</button>
           <button data-tab="xenos" role="tab">XENOS</button>

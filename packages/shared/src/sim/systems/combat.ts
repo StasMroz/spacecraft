@@ -13,6 +13,7 @@ import { segmentBlocked } from '../walls.js';
 import type { Enemy, Player, World } from '../types.js';
 import { spawnAcid } from './acid.js';
 import { damageObjectivesAt } from './mission.js';
+import { creditDuelKill, duelTeam, isDuel } from './duel.js';
 
 export interface DamageOpts {
   /** 40k profile (data/profile.ts); strength omitted = ignores Toughness and Save. */
@@ -116,7 +117,9 @@ export function killEnemy(world: World, enemy: Enemy, killer?: Player): void {
  * `dirX/dirY` = the vector from the marine towards the source (e.g. minus a projectile's velocity).
  * Omitted = no direction (overheat etc.): unmodified damage.
  */
-export type DamageSource = { fromX: number; fromY: number } | { dirX: number; dirY: number };
+export type DamageSource = ({ fromX: number; fromY: number } | { dirX: number; dirY: number }) & {
+  playerId?: number;
+};
 
 export function damagePlayer(
   world: World,
@@ -147,6 +150,7 @@ export function damagePlayer(
     player.reviveProgress = 0;
     player.reloadTimer = 0;
     world.events.push({ e: 'down', p: player.id });
+    if (source?.playerId != null) creditDuelKill(world, player.id, source.playerId);
   }
 }
 
@@ -204,9 +208,22 @@ export function explode(
       const d = dist(x, y, p.x, p.y) - PLAYER.radius;
       if (d > spec.radius) continue;
       if (segmentBlocked(world.map.walls, x, y, p.x, p.y, 'full')) continue;
-      // Player-fired explosions deal reduced self/team damage.
-      const mul = opts.sourcePlayerId !== undefined ? 0.25 : 1;
-      damagePlayer(world, p, falloff(Math.max(0, d)) * mul, { fromX: x, fromY: y });
+      let mul = 1;
+      const srcId = opts.sourcePlayerId;
+      if (srcId !== undefined) {
+        if (isDuel(world)) {
+          if (p.id === srcId) continue;
+          if (duelTeam(world, p.id) === duelTeam(world, srcId)) continue;
+        } else {
+          // Player-fired explosions deal reduced self/team damage.
+          mul = 0.25;
+        }
+      }
+      damagePlayer(world, p, falloff(Math.max(0, d)) * mul, {
+        fromX: x,
+        fromY: y,
+        playerId: srcId,
+      });
     }
   }
   if (spec.pool) spawnAcid(world, x, y, spec.pool);

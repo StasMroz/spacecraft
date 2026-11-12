@@ -30,6 +30,7 @@ describe('resolved / initial mission id', () => {
   it('keeps a known catalogue id', () => {
     expect(resolvedMissionId('evacuation')).toBe('evacuation');
     expect(resolvedMissionId('synapse_purge')).toBe('synapse_purge');
+    expect(resolvedMissionId('duel')).toBe('duel');
   });
 
   it('lets ?mission= win over a remembered pref', () => {

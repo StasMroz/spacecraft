@@ -1,5 +1,9 @@
 # Changelog
 
+## v46
+
+- Pojedynki PvP (`duel`, `?mission=duel`): marine vs marine na małej arenie z osłonami, na istniejącym P2P. 1v1 albo 2v2 (narożniki zachód–wschód). Pierwszy do dwóch zabójstw (best of 3). Po upadku odrodzenie w swoim rogu, wynik w HUD, bez Tyranidów i bez rankingu. `HostSession.setMission('duel')` działa jak przy innych zleceniach. Brief dla menu: `docs/BRIEF-duel-menu.md`.
+
 ## v45
 
 - Cztery nowe, dwukrotnie większe biomy (arena 6400×4400, kamera przewija i trzyma widok na mapie): **Miasto-ul** (hab-bloki i aleje), **Pustynia** (wydmy i wychodnie), **Świat wulkaniczny** (kanały lawy z przeprawami), **Statek-ul** (hangar, długie grodzie, śluza). Infiltracja, Odzyskaj relikwię, Spalenie gniazd i Ewakuacja grają się na tych mapach (Oblężenie, Zabójstwo i Rajd zostają na klasycznym pokładzie — ranking bez zmian).

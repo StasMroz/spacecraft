@@ -2,6 +2,7 @@ import { TICK_DT } from '../constants.js';
 import { SpatialHash } from './spatialHash.js';
 import { updateDirector } from './systems/director.js';
 import { setupAssault, updateAssault } from './systems/assault.js';
+import { isDuel, setupDuel } from './systems/duel.js';
 import { worldBoot } from './world.js';
 import { updateEnemies } from './systems/enemies.js';
 import { updateAcid } from './systems/acid.js';
@@ -16,7 +17,7 @@ import { unlockWaveWeapons, updatePlayerWeapon } from './systems/weapons.js';
 import type { Enemy, PlayerInput, World } from './types.js';
 
 const enemyHash = new SpatialHash<Enemy>(64);
-worldBoot.push(setupAssault);
+worldBoot.push(setupAssault, setupDuel);
 
 /** Sets a player's input for the next tick. */
 export function applyInput(world: World, playerId: number, input: PlayerInput): void {
@@ -61,7 +62,7 @@ export function stepWorld(world: World, dt: number = TICK_DT): void {
   updateMission(world, dt);
   updatePlayerStatus(world, dt);
   updateReinforce(world, dt);
-  if (!world.over && squadWiped(world)) {
+  if (!world.over && !isDuel(world) && squadWiped(world)) {
     world.mission.outcome = 'defeat';
     world.over = true;
     world.events.push({ e: 'fail' });

@@ -46,6 +46,17 @@ export {
   TARGET_RADIUS,
 } from './systems/mission.js';
 export {
+  isDuel,
+  duelTeam,
+  duelScore,
+  duelCorner,
+  setupDuel,
+  updateDuel,
+  creditDuelKill,
+  DUEL_FRAGS,
+  DUEL_RESPAWN,
+} from './systems/duel.js';
+export {
   initReinforce,
   updateReinforce,
   callReinforce,
